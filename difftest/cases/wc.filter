@@ -1,0 +1,2 @@
+# the spec writes the counts separated by one space; others pad them
+sed -e 's/^ *//' -e 's/  */ /g'

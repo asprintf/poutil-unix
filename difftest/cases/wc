@@ -1,0 +1,57 @@
+# wc: stdin is /dev/null in difftest, files come from wc.setup
+@
+-
+f1
+f2
+f1 f2
+f1 f2 empty
+empty
+nl
+ws
+bin
+-l f1
+-c f1
+-w f1
+-m f1
+-lw f1
+-wl f1
+-lc f1
+-cw f1
+-lwc f1
+-mlw f1
+-mw f1
+-lm f1
+-ll f1
+-c -c f1
+-l f1 f2
+-c f1 f2
+-w nl
+-l bin
+-c bin
+-w bin
+-w odd
+-m utf8
+-c utf8
+-w utf8
+-mw utf8
+-m emsp
+-w emsp
+-m bad
+-w bad
+-c bad
+-l -
+-c -
+-- f1
+-l -- f1
+-- -f
+./-f
+'a b'
+f1 - f2
+nosuch
+f1 nosuch f2
+d
+-l d
+f1 d f2
+-x
+-lx f1
+-z f1

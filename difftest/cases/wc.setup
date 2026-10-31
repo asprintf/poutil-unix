@@ -1,0 +1,13 @@
+printf 'hello world\nfoo bar baz\n\nlast' > f1
+printf 'one\ntwo\n' > f2
+: > empty
+printf '\n\n\n' > nl
+printf '  lead and   trail  \n\tx\ty\n' > ws
+printf 'a\0b\377\200c\r\n\tz' > bin
+printf '\303\251\342\202\254 x\n' > utf8
+printf 'a\377b \303 \342\202\n' > bad
+printf 'a\342\200\203b\n' > emsp
+printf '\v\f\r x\n' > odd
+mkdir d
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'

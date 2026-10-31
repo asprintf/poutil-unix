@@ -1,0 +1,15 @@
+# macOS wc does not treat "-" as standard input (the spec allows either); GNU and we do
+-
+-c -
+-l -
+f1 - f2
+# GNU prints a line of zeros after the diagnostic for a directory; macOS and we only the diagnostic
+d
+-l d
+f1 d f2
+# bytes that are no character in UTF-8: undefined by the spec. macOS fails, GNU
+# leaves them out of the count, we count each one as a character
+-m bad
+# macOS wc does not see U+2003 as white space in a UTF-8 locale; the spec says
+# LC_CTYPE decides, so we (like GNU) use iswspace()
+-w emsp

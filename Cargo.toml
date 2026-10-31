@@ -106,6 +106,10 @@ path = "pathchk/pathchk.rs"
 name = "kill"
 path = "kill/kill.rs"
 
+[[bin]]
+name = "wc"
+path = "wc/wc.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

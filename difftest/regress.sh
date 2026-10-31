@@ -399,6 +399,44 @@ eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
 
+#----------------------------------------------------------------------- wc
+fresh
+seq 1 30 > n30
+seq 1 5 > n5
+awk 'BEGIN { for (i = 1; i <= 1500000; i++) print i }' > big
+printf 'a b c\n' > abc
+
+eq "wc from a pipe" "1 3 6" "$(cat abc | "$OURS/wc")"
+eq "wc -l of a long pipe" 100000 "$(seq 1 100000 | "$OURS/wc" -l)"
+eq "wc of two files has a total" "1 3 6 abc
+1 3 6 abc
+2 6 12 total" "$("$OURS/wc" abc abc)"
+eq "wc -c of a big file" "$(wc -c < big | tr -d ' ')" "$("$OURS/wc" -c < big)"
+eq "wc of a big file through a pipe" "1500000 1500000 $(wc -c < big | tr -d ' ')" "$(cat big | "$OURS/wc")"
+"$OURS/wc" abc >&- 2> err
+eq "wc with stdout closed: status" 1 $?
+eq "wc with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/wc" <&- 2> /dev/null
+eq "wc with stdin closed: status" 1 $?
+"$OURS/wc" . 2> /dev/null
+eq "wc of a directory: status" 1 $?
+"$OURS/wc" nosuch abc > out 2> /dev/null
+eq "wc with a missing file: status" 1 $?
+eq "wc with a missing file: the rest is counted, with a total" "1 3 6 abc
+1 3 6 total" "$(cat out)"
+if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	E=$(printf '\303\251')
+	# 100000 lines of "e-acute newline": 64 KB blocks cut some of the characters in two
+	eq "wc -mw counts characters whole over a pipe" "100000 200000" \
+		"$(yes "$E" | head -n 100000 | LC_ALL=en_US.UTF-8 "$OURS/wc" -wm)"
+	eq "wc -c over the same pipe counts bytes" 300000 \
+		"$(yes "$E" | head -n 100000 | LC_ALL=en_US.UTF-8 "$OURS/wc" -c)"
+	eq "wc -m in the C locale counts bytes" 300000 \
+		"$(yes "$E" | head -n 100000 | LC_ALL=C "$OURS/wc" -m)"
+else
+	echo "skip: no en_US.UTF-8 locale"
+fi
+
 #-------------------------------------------------- bytes, not UTF-8
 fresh
 B=$(printf '\377\376')
