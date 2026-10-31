@@ -5,7 +5,9 @@
  */
 
 pub mod getopt;
+pub mod mb;
 pub mod mode;
+pub mod num;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -168,6 +170,33 @@ pub fn write_stdout(prog: &[u8], data: &[u8]) {
 }
 
 /*
+ * Standard output as a Write, through the descriptor itself (see
+ * write_stdout). Wrap it in a BufWriter for buffering.
+ */
+pub struct Stdout(ManuallyDrop<File>);
+
+impl Stdout {
+    pub fn new() -> Stdout {
+        Stdout(borrow_fd(1))
+    }
+}
+
+impl Default for Stdout {
+    fn default() -> Self {
+        Stdout::new()
+    }
+}
+
+impl Write for Stdout {
+    fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
+        self.0.write(b)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/*
  * For utilities that take no options: accept a leading "--", reject any
  * other option (usage error) and return the operands.
  */
@@ -209,6 +238,12 @@ impl std::ops::DerefMut for Input {
             Input::Stdin(f) => f,
             Input::Named(f) => f,
         }
+    }
+}
+
+impl std::io::Read for Input {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        (**self).read(buf)
     }
 }
 
