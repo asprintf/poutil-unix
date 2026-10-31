@@ -19,6 +19,21 @@ fn portable_char(c: u8) -> bool {
 }
 
 /*
+ * A name for a diagnostic: valid UTF-8 as it is, every other byte as \xNN,
+ * so that nothing is silently replaced.
+ */
+fn show(b: &[u8]) -> String {
+    let mut s = String::new();
+    for chunk in b.utf8_chunks() {
+        s.push_str(chunk.valid());
+        for x in chunk.invalid() {
+            s.push_str(&format!("\\x{:02x}", x));
+        }
+    }
+    s
+}
+
+/*
  * The checks that look only at the name: -p (limits and the portable
  * filename character set) and -P (leading hyphen, empty). The limits
  * include the terminating NUL, hence ">=". An empty pathname is an error
@@ -36,7 +51,7 @@ fn check_names(path: &[u8], p: bool, big_p: bool) -> Result<(), String> {
             if c.len() > POSIX_NAME_MAX {
                 return Err(format!(
                     "component {} is {} bytes, limit is {}",
-                    String::from_utf8_lossy(c),
+                    show(c),
                     c.len(),
                     POSIX_NAME_MAX
                 ));
@@ -44,7 +59,7 @@ fn check_names(path: &[u8], p: bool, big_p: bool) -> Result<(), String> {
             if let Some(&b) = c.iter().find(|&&b| !portable_char(b)) {
                 return Err(format!(
                     "component {} has a character outside the portable set ({:#04x})",
-                    String::from_utf8_lossy(c),
+                    show(c),
                     b
                 ));
             }
@@ -86,7 +101,7 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
             let e = std::io::Error::last_os_error();
             return Err(format!(
                 "{}: {}",
-                String::from_utf8_lossy(&dir),
+                show(&dir),
                 posix::strerror(&e)
             ));
         }
@@ -94,9 +109,9 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
             if c.len() > max {
                 return Err(format!(
                     "component {} is {} bytes, limit in {} is {}",
-                    String::from_utf8_lossy(c),
+                    show(c),
                     c.len(),
-                    String::from_utf8_lossy(&dir),
+                    show(&dir),
                     max
                 ));
             }
@@ -112,12 +127,12 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
         match std::fs::metadata(OsStr::from_bytes(&next)) {
             Ok(m) if m.is_dir() => dir = next,
             Ok(_) if comps.peek().is_some() => {
-                return Err(format!("{}: Not a directory", String::from_utf8_lossy(&next)))
+                return Err(format!("{}: Not a directory", show(&next)))
             }
             Ok(_) => {}
             Err(e) if e.raw_os_error() == Some(libc::ENOENT) => exists = false,
             Err(e) => {
-                return Err(format!("{}: {}", String::from_utf8_lossy(&next), posix::strerror(&e)))
+                return Err(format!("{}: {}", show(&next), posix::strerror(&e)))
             }
         }
     }
@@ -161,6 +176,13 @@ mod tests {
     }
 
     #[test]
+    fn show_keeps_bytes_visible() {
+        assert_eq!(show(b"ab"), "ab");
+        assert_eq!(show(b"a\xffb\xfe"), "a\\xffb\\xfe");
+        assert_eq!(show("h\u{e9}".as_bytes()), "h\u{e9}");
+    }
+
+    #[test]
     fn portable_set() {
         assert!(n("a/b.c/D_e-f", true, false));
         assert!(!n("a/b,c", true, false));
@@ -196,5 +218,70 @@ mod tests {
         assert!(check_fs(&[b'/', b'a'].repeat(1000)).is_err());
         assert!(check_fs(format!("/{}", "a".repeat(300)).as_bytes()).is_err());
         assert!(check_fs(b"/etc/passwd/x").is_err());
+    }
+
+    #[test]
+    fn empty_components_are_ignored() {
+        assert_eq!(components(b"//a//b/").collect::<Vec<_>>(), [&b"a"[..], &b"b"[..]]);
+        assert_eq!(components(b"///").count(), 0);
+        assert_eq!(components(b"").count(), 0);
+    }
+
+    #[test]
+    fn limits_apply_per_component_and_to_the_total() {
+        assert!(n(&format!("{}/{}", "a".repeat(14), "b".repeat(14)), true, false));
+        assert!(n(&"aaaaaaaaaaaaaa/".repeat(17), true, false)); /* 255 bytes */
+        assert!(!n(&format!("{}a", "aaaaaaaaaaaaaa/".repeat(17)), true, false)); /* 256 */
+        assert!(!n(&format!("a/{}/b", "c".repeat(15)), true, false));
+    }
+
+    #[test]
+    fn hyphen_rules_for_big_p() {
+        assert!(!n("a/-b", false, true));
+        assert!(!n("a//-b", false, true));
+        assert!(!n("-", false, true));
+        assert!(!n("/-x", false, true));
+        assert!(n("a-b", false, true));
+        assert!(n("a/b-", false, true));
+    }
+
+    #[test]
+    fn empty_pathname_rules() {
+        assert!(n("", false, false));
+        assert!(n("", true, false));
+        assert!(!n("", false, true));
+        assert!(!n("", true, true));
+    }
+
+    #[test]
+    fn every_punctuation_mark_but_three_is_outside_the_portable_set() {
+        for c in "~!@#$%^&*()+=[]{}|;:'\",<>?` \\\t".bytes() {
+            assert!(!portable_char(c), "{c}");
+        }
+        for c in "._-0Zz".bytes() {
+            assert!(portable_char(c), "{c}");
+        }
+        assert!(!portable_char(0));
+        assert!(!portable_char(0xff));
+    }
+
+    #[test]
+    fn messages_name_the_component_losslessly() {
+        let e = check_names(b"a/x\xff", true, false).unwrap_err();
+        assert!(e.contains("x\\xff") && e.contains("(0xff)"), "{e}");
+        let e = check_names("a/bbbbbbbbbbbbbbb".as_bytes(), true, false).unwrap_err();
+        assert!(e.contains("15 bytes, limit is 14"), "{e}");
+        let e = check_names("a/-b".as_bytes(), false, true).unwrap_err();
+        assert!(e.contains("hyphen"), "{e}");
+    }
+
+    #[test]
+    fn file_system_checks_on_odd_paths() {
+        assert!(check_fs(b"").is_ok());
+        assert!(check_fs(b"/").is_ok());
+        assert!(check_fs(b".").is_ok());
+        assert!(check_fs(b"/nonexistent/a/b").is_ok());
+        let e = check_fs(b"/etc/passwd/x").unwrap_err();
+        assert!(e.contains("Not a directory"), "{e}");
     }
 }
