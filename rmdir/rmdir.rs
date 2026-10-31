@@ -16,7 +16,7 @@ fn trim_slashes(p: &[u8]) -> &[u8] {
 /*
  * The directories "rmdir -p" removes for an operand, in order: the operand
  * itself, then each parent in turn ("rmdir -p $(dirname dir)"), up to but
- * not including "." and "/".
+ * not including "." and "/" (however many slashes the root is spelled with).
  */
 fn chain(path: &[u8]) -> Vec<Vec<u8>> {
     let mut out = Vec::new();
@@ -25,7 +25,7 @@ fn chain(path: &[u8]) -> Vec<Vec<u8>> {
         out.push(p.to_vec());
         let Some(i) = p.iter().rposition(|&c| c == b'/') else { break };
         let parent = trim_slashes(&p[..i]);
-        if i == 0 || parent.is_empty() {
+        if parent.is_empty() || parent == b"/" {
             break;
         }
         p = parent;
@@ -80,5 +80,23 @@ mod tests {
         assert_eq!(c("/a/b"), ["/a/b", "/a"]);
         assert_eq!(c("/a"), ["/a"]);
         assert_eq!(c("./a"), ["./a", "."]);
+    }
+
+    #[test]
+    fn chain_edges() {
+        assert_eq!(c("a//b//c"), ["a//b//c", "a//b", "a"]);
+        assert_eq!(c("/"), ["/"]);
+        assert_eq!(c("///"), ["/"]);
+        assert_eq!(c("."), ["."]);
+        assert_eq!(c("a/."), ["a/.", "a"]);
+        assert_eq!(c("a/b/.."), ["a/b/..", "a/b", "a"]);
+        assert_eq!(c("../a"), ["../a", ".."]);
+    }
+
+    #[test]
+    fn chain_never_reaches_the_root() {
+        assert_eq!(c("//a"), ["//a"]);
+        assert_eq!(c("//a/b"), ["//a/b", "//a"]);
+        assert_eq!(c("///a///b///"), ["///a///b", "///a"]);
     }
 }
