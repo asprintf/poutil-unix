@@ -19,3 +19,6 @@
 # machine and useless without the (non-redistributable) suite
 /pcts-*
 /pcts-locale/
+
+# editor swap files
+*.swp
