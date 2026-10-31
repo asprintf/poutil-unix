@@ -114,6 +114,10 @@ path = "wc/wc.rs"
 name = "head"
 path = "head/head.rs"
 
+[[bin]]
+name = "tail"
+path = "tail/tail.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

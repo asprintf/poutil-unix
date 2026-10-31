@@ -1,0 +1,80 @@
+# tail
+n5
+n30
+-n 3 n30
+-n -3 n30
+-n 3 n5
+-n 5 n5
+-n 6 n5
+-n 1 n5
+-n 0 n5
+-n -0 n5
+-n +1 n5
+-n +3 n5
+-n +5 n5
+-n +6 n5
+-n +30 n30
+-n +99 n30
+-n3 n30
+-n+3 n30
+-n 03 n30
+-n 3 -n 2 n30
+-n 3 -c 4 n30
+-c 4 -n 3 n30
+-n 99999999999999999999999 n5
+-n +99999999999999999999999 n5
+-c 99999999999999999999999 n5
+-c 0 n5
+-c 1 n5
+-c 3 n5
+-c -3 n5
+-c 9 n5
+-c 10 n5
+-c 100 n5
+-c +1 n5
+-c +2 n5
+-c +9 n5
+-c +10 n5
+-c +11 n5
+-c +100 n5
+-n 1 nonl
+-n 2 nonl
+-n +2 nonl
+-c 1 nonl
+-c +3 nonl
+-n 3 empty
+-n +1 empty
+-c 3 empty
+-n 3 blank
+-n 1 blank
+-n 2 blank
+-n +4 blank
+-n 2 bin
+-c 5 bin
+-n 1 long
+-n 2 long
+-c 3 long
+-n +3 long
+-c +140003 long
+-n 2 -- n5
+-n 2 -- -f
+-n 2 ./-f
+-n 2 'a b'
+-n 2 -
+-n +2 -
+-c 3 -
+-n 2 nosuch
+nosuch
+-n 2 d
+-n 2 n5 n30
+-n x n5
+-n -x n5
+-n +x n5
+-n +-1 n5
+-n 1.5 n5
+-n
+-x n5
+-3 n5
++3 n5
+-n 3l n5
+-c 3c n5

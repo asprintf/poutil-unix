@@ -399,7 +399,7 @@ eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
 
-#------------------------------------------------------------------ wc head
+#------------------------------------------------------------- wc head tail
 fresh
 seq 1 30 > n30
 seq 1 5 > n5
@@ -465,6 +465,81 @@ eq "head with two files" "==> n5 <==
 
 ==> n5 <==
 1" "$("$OURS/head" -n 1 n5 n5)"
+
+eq "tail of a pipe: last lines" "99998 99999 100000" "$(seq 1 100000 | "$OURS/tail" -n 3 | tr '\n' ' ' | sed 's/ $//')"
+eq "tail of a pipe: last bytes" "100000" "$(seq 1 100000 | "$OURS/tail" -c 7)"
+eq "tail of a pipe: from a line" "99999 100000" "$(seq 1 100000 | "$OURS/tail" -n +99999 | tr '\n' ' ' | sed 's/ $//')"
+eq "tail of a pipe: all of a big stream" 0 "$(cat big | "$OURS/tail" -n 1500000 | cmp - big > /dev/null; echo $?)"
+eq "tail of a pipe: more than there is" 0 "$(cat big | "$OURS/tail" -n 99999999 | cmp - big > /dev/null; echo $?)"
+eq "tail of a pipe: more bytes than there are" 0 "$(cat big | "$OURS/tail" -c 99999999 | cmp - big > /dev/null; echo $?)"
+eq "tail of a big file: last lines" "1499998 1499999 1500000" "$("$OURS/tail" -n 3 big | tr '\n' ' ' | sed 's/ $//')"
+eq "tail of a big file: from the first line is all of it" 0 "$("$OURS/tail" -n +1 big | cmp - big > /dev/null; echo $?)"
+eq "tail of a big file: from the first byte is all of it" 0 "$("$OURS/tail" -c +1 big | cmp - big > /dev/null; echo $?)"
+eq "tail of a big file: last bytes" "1500000" "$("$OURS/tail" -c 8 big | tr -d '\n' | sed 's/^0*//')"
+eq "tail of a big file: same through stdin" "1499999 1500000" "$("$OURS/tail" -n 2 < big | tr '\n' ' ' | sed 's/ $//')"
+eq "tail -n +N skips from the start" "28 29 30" "$("$OURS/tail" -n +28 n30 | tr '\n' ' ' | sed 's/ $//')"
+eq "tail -n 0 prints nothing" 0 "$("$OURS/tail" -n 0 n30 | wc -c | tr -d ' ')"
+eq "tail counts from the offset of a shared stdin" "2 3 4 5" \
+	"$({ read x; "$OURS/tail" -n +1; } < n5 | tr '\n' ' ' | sed 's/ $//')"
+eq "tail -n 10 on a shared stdin starts at the offset" "2 3 4 5" \
+	"$({ read x; "$OURS/tail"; } < n5 | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/tail" n5 >&- 2> err
+eq "tail with stdout closed: status" 1 $?
+eq "tail with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/tail" <&- 2> /dev/null
+eq "tail with stdin closed: status" 1 $?
+"$OURS/tail" . 2> /dev/null
+eq "tail of a directory: status" 1 $?
+"$OURS/tail" nosuch 2> /dev/null
+eq "tail of a missing file: status" 1 $?
+"$OURS/tail" n5 n5 2> /dev/null
+eq "tail with two files is a usage error" 2 $?
+{ "$OURS/tail" -n 1000000 big; echo $? > st; } | head -c 10 > /dev/null
+eq "tail into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+
+# tail -f: appended data arrives, the process keeps running; poll for up to 5 s
+waitfor() {
+	i=0
+	while [ $i -lt 50 ] && [ "$(cat "$1" 2> /dev/null)" != "$2" ]; do
+		sleep 0.1
+		i=$((i + 1))
+	done
+}
+printf 'old\n' > grow
+"$OURS/tail" -f grow > fout &
+p=$!
+waitfor fout old
+echo new >> grow
+waitfor fout "old
+new"
+eq "tail -f: old and appended lines" "old
+new" "$(cat fout)"
+kill -0 $p 2> /dev/null
+eq "tail -f: still running" 0 $?
+kill $p
+reap $p
+printf 'old\n' > grow
+"$OURS/tail" -f -n 0 grow > fout &
+p=$!
+sleep 0.5
+echo new >> grow
+waitfor fout new
+eq "tail -f -n 0: only what is appended" new "$(cat fout)"
+kill $p
+reap $p
+eq "tail -f on a pipe is ignored" b "$(printf 'a\nb\n' | "$OURS/tail" -f -n 1)"
+rm -f ff
+mkfifo ff
+"$OURS/tail" -f ff > fout &
+p=$!
+echo hello > ff
+waitfor fout hello
+eq "tail -f on a named FIFO: data arrives" hello "$(cat fout)"
+sleep 0.3
+kill -0 $p 2> /dev/null
+eq "tail -f on a named FIFO: keeps running after end of file" 0 $?
+kill $p
+reap $p
 
 #-------------------------------------------------- bytes, not UTF-8
 fresh

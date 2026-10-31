@@ -1,0 +1,20 @@
+# the obsolete -number and +number forms were dropped in POSIX.1-2001 ("+" may
+# be taken as an option delimiter, it need not be); GNU and macOS still take them
+-3 n5
++3 n5
+# the synopsis takes at most one file; both others accept several and print headers
+-n 2 n5 n30
+# the last of -c and -n wins here; macOS refuses to have both or either twice
+-c 4 -n 3 n30
+-n 3 -c 4 n30
+-n 3 -n 2 n30
+# macOS rejects a count that does not fit; for us (and GNU) it just means "all"
+-c 99999999999999999999999 n5
+-n +99999999999999999999999 n5
+-n 99999999999999999999999 n5
+# macOS tail does not treat "-" as standard input (the spec allows either)
+-c 3 -
+-n 2 -
+-n +2 -
+# macOS reads a directory without complaint; we report the read error
+-n 2 d
