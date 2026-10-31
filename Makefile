@@ -17,7 +17,7 @@ VSC_GROUP ?= vscgrp1
 OURS ?= /Users/$(VSC_USER)/ours/bin
 BINS = true false echo basename dirname pwd sleep logname tty uname unlink link cat \
 	tee rmdir mkdir mkfifo pathchk env nohup nice time kill \
-	wc head tail tsort uniq expr
+	wc head tail tsort uniq expr sort
 
 deploy: all
 	sudo install -d -o $(VSC_USER) -g $(VSC_GROUP) $(OURS)

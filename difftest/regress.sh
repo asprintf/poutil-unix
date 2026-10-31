@@ -600,6 +600,59 @@ eq "uniq with stdin closed: status" 1 $?
 awk 'BEGIN { for (i = 0; i < 200000; i++) print i % 7 }' | "$OURS/uniq" | head -n 2 > out
 eq "uniq into a closed pipe ends quietly" "0 1" "$(tr '\n' ' ' < out | sed 's/ $//')"
 
+#---------------------------------------------------------------------- sort
+fresh
+printf 'b\na\nc\n' > f
+printf 'a\nb\nc\n' > ok
+"$OURS/sort" f > out
+eq "sort: status and output" "0 a b c" "$? $(tr '\n' ' ' < out | sed 's/ $//')"
+"$OURS/sort" -o f f
+eq "sort -o f f: status" 0 $?
+eq "sort -o f f: the input file is sorted in place" "a b c" "$(tr '\n' ' ' < f | sed 's/ $//')"
+printf 'b\na\n' > f
+"$OURS/sort" -o g f f > /dev/null
+eq "sort -o: output file" "a a b b" "$(tr '\n' ' ' < g | sed 's/ $//')"
+"$OURS/sort" -c ok 2> err
+eq "sort -c of sorted input: status, silence" "0 0" "$? $(wc -c < err | tr -d ' ')"
+printf 'a\nc\nb\n' > un
+"$OURS/sort" -c un > out 2> err
+eq "sort -c of unsorted input: status" 1 $?
+eq "sort -c: nothing on standard output" 0 "$(wc -c < out | tr -d ' ')"
+eq "sort -c: the line is named" "sort: un:3: disorder: b" "$(cat err)"
+"$OURS/sort" -C un 2> err
+eq "sort -C: status and silence" "1 0" "$? $(wc -c < err | tr -d ' ')"
+printf 'a\na\n' | "$OURS/sort" -cu 2> err
+eq "sort -cu of a duplicate: status" 1 $?
+eq "sort -cu: message names standard input" "sort: -:2: disorder: a" "$(cat err)"
+"$OURS/sort" nosuch f > out 2> err
+eq "sort of a missing file: status, no output" "2 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/sort" -o nosuchdir/x f 2> /dev/null
+eq "sort -o into a missing directory: status" 2 $?
+"$OURS/sort" -k 0 f 2> /dev/null
+eq "sort -k 0 is a usage error" 2 $?
+"$OURS/sort" -c -m ok 2> /dev/null
+eq "sort -c -m is a usage error" 2 $?
+"$OURS/sort" -t ab f 2> /dev/null
+eq "sort -t ab is a usage error" 2 $?
+"$OURS/sort" f >&- 2> /dev/null
+eq "sort with stdout closed: status" 2 $?
+"$OURS/sort" <&- 2> /dev/null
+eq "sort with stdin closed: status" 2 $?
+printf 'b\na' | "$OURS/sort" > out
+eq "sort adds the missing newline" "a b" "$(tr '\n' ' ' < out | sed 's/ $//')"
+printf '3\n1\n2\n' | "$OURS/sort" -n - ok > out
+eq "sort - reads standard input among files" "a b c 1 2 3" "$(tr '\n' ' ' < out | sed 's/ $//')"
+awk 'BEGIN { for (i = 200000; i > 0; i--) print i }' | "$OURS/sort" -n | head -n 3 > out
+eq "sort into a closed pipe ends quietly" "1 2 3" "$(tr '\n' ' ' < out | sed 's/ $//')"
+awk 'BEGIN { srand(5); for (i = 0; i < 300000; i++) print int(rand() * 100000) }' > big
+"$OURS/sort" -n big > out
+eq "sort -n of a big file: status" 0 $?
+eq "sort -n of a big file: same line count" "$(wc -l < big | tr -d ' ')" "$(wc -l < out | tr -d ' ')"
+"$OURS/sort" -c -n out
+eq "sort -c -n agrees with sort -n on a big file" 0 $?
+"$OURS/sort" -u -n big > out
+eq "sort -u -n of a big file: distinct values only" "$(sort -n big | uniq | wc -l | tr -d ' ')" "$(wc -l < out | tr -d ' ')"
+
 #---------------------------------------------------------------------- expr
 # the exit status tells a false result (1) from an invalid expression (2)
 fresh

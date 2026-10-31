@@ -130,6 +130,10 @@ path = "uniq/uniq.rs"
 name = "expr"
 path = "expr/expr.rs"
 
+[[bin]]
+name = "sort"
+path = "sort/sort.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

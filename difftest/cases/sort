@@ -1,0 +1,136 @@
+# sort: plain, -r -u, -n, -d -f -i, keys and fields, -t, -m, -c -C, -o, errors
+@
+words
+-r words
+-u words
+-ru words
+-f words
+-fu words
+-fr mixed
+-f mixed
+mixed
+-d dict
+-df dict
+-du dict
+-i nonprint
+-iu nonprint
+-n nums
+-nr nums
+-nu nums
+-n thou
+-nk1 thou
+-b blanks
+-k 2 blanks
+-k 2b blanks
+-b -k 2 blanks
+-k 2,2 blanks
+-bk 2,2 blanks
+-k 2 tabs
+-k 2,2 fields
+-k 2,2n fields
+-k 2,2nr fields
+-k 2n fields
+-k 2n,2 fields
+-n -k 2,2 fields
+-k 3,3 -k 2,2n fields
+-k 3 -k 2n fields
+-r -k 2,2n fields
+-k 2.2 fields
+-k 2.1,2.1 fields
+-k 3.1,3.0 fields
+-k 1.1,1.0 -u fields
+-k 4 fields
+-k 2,1 fields
+-t '|' -k 2 pipes
+-t '|' -k 2,2n pipes
+-t '|' -k 3 pipes
+-t '|' -k 2,2 -k 1,1r pipes
+-t '|' -n -k 2 pipes
+-t '|' -k 4 pipes
+-t ' ' -k 2 blanks
+-t '' words
+-t ab words
+-k 1,1 two
+-k 2,2 -k 1,1 two
+-k 2,2 -k 1,1r two
+-k 1,1 -k 2,2nr two
+-k 2,2 -r two
+-k 2,2 -u two
+-u -k 1,1 two
+-u dups
+-u -k 1,1 dups
+-k 1,1 -u dups
+-o out words
+-o out -r words
+-o out_in out_in
+-o out_in -u out_in sorted
+-oout words
+-m m1 m2
+-m s1 s2
+-mu s1 s2
+-mu m1 m2
+-m -r m2 m1
+-m m1
+-m - m2
+-mn nums nums
+-mu -k 1,1 dups
+-c sorted
+-c unsorted
+-C sorted
+-C unsorted
+-c sdup
+-cu sdup
+-cu sorted
+-Cu sdup
+-c -r unsorted
+-c -k 2,2 two
+-c -k 1,1 two
+-cn nums
+-c empty
+-c m1 m2
+-c -m sorted
+-c -o x sorted
+-cr sorted
+-
+- words
+words words
+words m1
+words -
+empty
+empty words
+nonl
+nonl words
+nls
+nul
+bin
+-r bin
+utf8
+-f utf8
+-d utf8
+-i utf8
+-k 1.2 utf8
+-k 1.1,1.1 utf8
+-t é utf8
+nosuch
+words nosuch
+-o nosuch/out words
+-o d words
+./-f
+-- -f
+d
+-x words
+-k words
+-k 0 words
+-k 1.0 words
+-k 1,0 words
+-k a words
+-k 1x words
+-k 1, words
+-k 1. words
+-k 1.1.1 words
+-o
+-t
+-n -r -k 1 words
+-r -n words
+-nrb words
+-bdfinr words

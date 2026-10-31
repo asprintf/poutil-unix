@@ -1,0 +1,28 @@
+printf 'b\na\nc\nB\nA\na\n' > words
+printf 'x 3 b\ny 1 c\nz 2 a\nw 10 d\nv 2 e\n' > fields
+printf 'b|3|x\na|10|y\nc|2|z\nd||w\ne|2\n' > pipes
+printf '10\n9\n100\n1\n-5\n-10\n0\n+3\n  7\n2.5\n2.25\n.5\n-.5\nabc\n1e3\n007\n-0\n' > nums
+printf '1,000\n999\n1,5\n1.5\n12,345.6\n' > thou
+printf 'a-c\nab\na b\nab-\nA B\n' > dict
+printf 'a\001c\nab\na\002b\nAb\n' > nonprint
+printf 'apple\nBanana\ncherry\nApple\nbanana\nCherry\n' > mixed
+printf 'a  z\nb y\nc   x\n d w\n' > blanks
+printf 'a\ta\nb a\nc\tb\n' > tabs
+printf 'x 1\nx 1\ny 2\nx 1\n' > dups
+printf 'b 2\na 2\nb 1\na 1\n' > two
+printf 'a\nc\ne\n' > m1
+printf 'b\nd\nf\n' > m2
+printf 'a\nb\nb\nc\n' > s1
+printf 'b\nc\nd\n' > s2
+printf 'a\nb\nc\n' > sorted
+printf 'a\nc\nb\n' > unsorted
+printf 'a\na\nb\n' > sdup
+: > empty
+printf 'b\na' > nonl
+printf '\n\n\n' > nls
+printf 'a\0b\na\0a\n' > nul
+printf '\377\nb\n\200\na\n' > bin
+printf '\303\251\ne\n\303\211\nE\nz\n\303\250\n' > utf8
+printf 'dash\nb\n' > ./-f
+printf 'z\ny\n' > out_in
+mkdir d

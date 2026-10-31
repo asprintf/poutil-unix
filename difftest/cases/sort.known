@@ -1,0 +1,21 @@
+# an empty -t: macOS takes it as no separator; GNU and we refuse it
+-t '' words
+# -c takes one file and cannot be combined with -m or -o (the synopsis);
+# macOS looks at the first file only or ignores -o, GNU lets -m win
+-c m1 m2
+-c -m sorted
+-c -o x sorted
+# -d -f -i -n together are undefined; GNU refuses -d with -i or -n
+-bdfinr words
+# bytes that are no characters in a UTF-8 locale: the order is unspecified,
+# macOS puts them elsewhere and GNU stops with "Illegal byte sequence"
+bin
+-r bin
+# GNU on macOS fails in strcoll for any key made of a copy ("-d -i -k"), with
+# "string comparison failed: Illegal byte sequence", even for valid text
+-d utf8
+-i utf8
+-k 1.2 utf8
+-k 1.1,1.1 utf8
+# neither macOS nor GNU take a multibyte character as the separator here
+-t é utf8
