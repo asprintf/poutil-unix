@@ -14,7 +14,9 @@
 # Optional per-utility files next to the case file: UTIL.setup (run in the
 # fresh directory first), UTIL.stdin (standard input instead of /dev/null),
 # UTIL.show (run afterwards; its output is compared like the listing, for
-# modes and file contents).
+# modes and file contents), UTIL.filter (a shell script that rewrites standard
+# output before it is compared, for what the spec leaves open: the padding of
+# wc, the order of tsort).
 #
 # A line "@" means no arguments. Case lines also listed in UTIL.known are
 # reported as "known" (judged acceptable) and not counted as differences.
@@ -47,6 +49,10 @@ run() {
 	(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
 		POSIXLY_CORRECT=1 "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
 	echo $? >"$tmp/r.st"
+	if [ -f "$here/cases/$util.filter" ]; then
+		sh "$here/cases/$util.filter" <"$tmp/r.out" >"$tmp/r.flt" 2>/dev/null
+		mv "$tmp/r.flt" "$tmp/r.out"
+	fi
 	(cd "$work" && ls -1) >"$tmp/r.fs" 2>&1
 	if [ -f "$here/cases/$util.show" ]; then
 		(cd "$work" && env -i PATH=/usr/bin:/bin sh "$here/cases/$util.show") >>"$tmp/r.fs" 2>&1
