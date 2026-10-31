@@ -1,0 +1,3 @@
+mkdir -p d/e
+touch file d/e/f
+mkdir ns; touch ns/f; chmod 000 ns

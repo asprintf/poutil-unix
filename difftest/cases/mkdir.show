@@ -1,0 +1,1 @@
+find . | sort | while IFS= read -r f; do ls -ld "$f" | awk '{print $1, $NF}'; done

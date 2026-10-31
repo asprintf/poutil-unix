@@ -1,0 +1,6 @@
+# a signalled utility gives 128+n, as in sh(1) (macOS time says 1)
+-p sh -c 'kill -9 $$'
+# usage errors: any of 1-125 is allowed; macOS time exits 0 without a utility
+-p
+@
+-x true

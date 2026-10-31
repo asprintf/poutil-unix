@@ -1,0 +1,13 @@
+true
+-p true
+-p echo hi
+-p sh -c 'exit 3'
+-p sh -c 'kill -9 $$'
+-p -- true
+-p nosuchcmd
+-p /etc/passwd
+-p /nonexistent/x
+-p
+@
+-x true
+-p -p true

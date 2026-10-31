@@ -1,0 +1,2 @@
+printf 'old contents\n' > f
+mkdir d

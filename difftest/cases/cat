@@ -1,0 +1,33 @@
+# cat: stdin is /dev/null in difftest, files come from cat.setup
+@
+-
+- -
+-u
+-u f1
+-u -- f1
+f1
+f1 f1
+f1 f2
+f1 f2 f3
+f3
+empty
+empty f1
+f1 empty f2
+bin
+f1 bin
+-- f1
+-- -f
+-f
+-- -
+nosuch
+nosuch f1
+f1 nosuch f2
+d
+d f1
+f1 d f2
+-x
+-ux
+-u -u f1
+-uu f1
+'a b'
+f1 'a b'

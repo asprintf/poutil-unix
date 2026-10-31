@@ -1,0 +1,6 @@
+# macOS rejects a leading hyphen under -p alone; only -P is specified to
+-p -- -a
+# GNU rejects the empty pathname even without -P; the spec (and PCTS, and macOS) only with -P
+''
+-p ''
+a ''

@@ -1,0 +1,18 @@
+@
+f
+-a f
+-i f
+f g
+-a f g
+-ai f
+-- f
+-
+-a -
+d
+f d g
+nosuch/f
+f nosuch/g
+-x
+-x f
+f f
+-a f f

@@ -1,0 +1,13 @@
+echo hi
+echo hi there
+sh -c 'exit 3'
+sh -c 'kill -HUP $$; echo survived'
+sh -c 'trap "" 0; echo $0' a
+-- echo hi
+nosuchcmd
+/nonexistent/x
+/etc/passwd
+/tmp
+@
+-x echo hi
+echo -x

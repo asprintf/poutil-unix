@@ -1,0 +1,50 @@
+@
+a
+a b
+a/b/c
+d
+d/e/f
+d/e/nosuch/x
+/
+//
+/tmp
+.
+..
+./a
+-
+-p a
+-p 'a b'
+-p a,b
+-p a/b.c/D_e-f
+-p -- -a
+-- -a
+-P -- -a
+-P a/-b
+-P a
+-pP a/-b
+-P ''
+''
+-p ''
+a ''
+-p $(printf '%014d' 0)
+-p $(printf '%015d' 0)
+-p $(printf '%014d/%014d' 0 0)
+-p a/$(printf '%015d' 0)
+$(printf '%0255d' 0)
+$(printf '%0256d' 0)
+$(printf '%0255d' 0)/a
+-p $(printf '%0256d' 0)
+$(printf '%0256d/' 0 0 0)
+$(printf '%0256d/' 0 0 0 0 0)
+-p $(printf '%0128d/' 0 0 0)
+file/x
+file/x/y
+ns/f
+ns/nosuch
+d/e/f/g
+nosuch/a/b
+a nosuch d/e
+a ns/f d
+-x a
+-pp a
+-p -P

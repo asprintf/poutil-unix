@@ -1,0 +1,4 @@
+# macOS wraps the list at a width, POSIX allows a space or a newline as separator
+-l
+# macOS rejects an attached option-argument (-s0); XBD 12.2 allows it
+-s0 $$

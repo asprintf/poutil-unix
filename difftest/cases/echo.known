@@ -1,0 +1,2 @@
+# GNU echo takes -n as an option; XSI (and so we) treat it as a string
+-n a

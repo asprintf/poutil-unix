@@ -1,0 +1,84 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+/* rmdir - remove directories. */
+
+use posix::getopt::{Getopt, Opt};
+
+const SYNOPSIS: &str = "rmdir [-p] dir...";
+
+fn trim_slashes(p: &[u8]) -> &[u8] {
+    let mut n = p.len();
+    while n > 1 && p[n - 1] == b'/' {
+        n -= 1;
+    }
+    &p[..n]
+}
+
+/*
+ * The directories "rmdir -p" removes for an operand, in order: the operand
+ * itself, then each parent in turn ("rmdir -p $(dirname dir)"), up to but
+ * not including "." and "/".
+ */
+fn chain(path: &[u8]) -> Vec<Vec<u8>> {
+    let mut out = Vec::new();
+    let mut p = trim_slashes(path);
+    loop {
+        out.push(p.to_vec());
+        let Some(i) = p.iter().rposition(|&c| c == b'/') else { break };
+        let parent = trim_slashes(&p[..i]);
+        if i == 0 || parent.is_empty() {
+            break;
+        }
+        p = parent;
+    }
+    out
+}
+
+fn main() {
+    posix::init();
+    let args = posix::args();
+    let prog = posix::progname(&args);
+    let mut parents = false;
+    let mut g = Getopt::new(&args, b"p");
+    while let Some(o) = g.next() {
+        match o {
+            Opt::Flag(b'p') => parents = true,
+            _ => posix::usage(SYNOPSIS),
+        }
+    }
+    if g.operands().is_empty() {
+        posix::usage(SYNOPSIS);
+    }
+    let mut status = 0;
+    for dir in g.operands() {
+        let targets = if parents { chain(dir) } else { vec![dir.clone()] };
+        for t in targets {
+            if unsafe { libc::rmdir(posix::cstr(&t).as_ptr()) } < 0 {
+                let e = std::io::Error::last_os_error();
+                posix::warn_path(&prog, &t, &posix::strerror(&e));
+                status = 1;
+                break;
+            }
+        }
+    }
+    std::process::exit(status);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn c(p: &str) -> Vec<String> {
+        chain(p.as_bytes()).iter().map(|v| String::from_utf8(v.clone()).unwrap()).collect()
+    }
+
+    #[test]
+    fn parent_chain() {
+        assert_eq!(c("a/b/c"), ["a/b/c", "a/b", "a"]);
+        assert_eq!(c("a"), ["a"]);
+        assert_eq!(c("a/"), ["a"]);
+        assert_eq!(c("a//b//"), ["a//b", "a"]);
+        assert_eq!(c("/a/b"), ["/a/b", "/a"]);
+        assert_eq!(c("/a"), ["/a"]);
+        assert_eq!(c("./a"), ["./a", "."]);
+    }
+}

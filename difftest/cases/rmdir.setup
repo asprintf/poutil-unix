@@ -1,0 +1,2 @@
+mkdir -p a/b/c e f full/sub p/q/r
+touch g full/x

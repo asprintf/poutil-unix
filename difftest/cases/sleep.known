@@ -1,0 +1,2 @@
+# fractional seconds are a BSD/GNU extension; strict POSIX allows integers only
+1.5

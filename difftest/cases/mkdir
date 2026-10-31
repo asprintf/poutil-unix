@@ -1,0 +1,48 @@
+@
+d1
+d1 d2
+d1/
+d1 d1
+ex
+file
+d1/d2
+-p d1/d2/d3
+-p d1/d2/d3/
+-p d1//d2//d3
+-p ex
+-p file
+-p file/x
+-p /tmp
+-p ./d1/../d2
+-p d1 d1
+-m 700 d1
+-m 0 d1
+-m 0 -p d1/d2
+-m 777 d1
+-m 1777 d1
+-m 4755 d1
+-m u=rwx,g=rx,o= d1
+-m u=rwx,go= d1
+-m a-w d1
+-m g+w d1
+-m o+rwx d1
+-m +x d1
+-m =r d1
+-m u+s,g+s d1
+-m a=rx,u+w d1
+-m g=u d1
+-m 'u=rwx,g=u-w' d1
+-m 755 -p d1/d2
+-pm 755 d1/d2
+-m700 d1
+-m xyz d1
+-m 888 d1
+-m u+z d1
+-m '' d1
+-m
+-m 700
+-- -d
+-d
+-x d1
+''
+-p ''

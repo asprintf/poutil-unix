@@ -1,0 +1,8 @@
+# usage errors: any of 1-125 is allowed (ours 2, macOS 1, GNU 125)
+-n x echo hi
+-n 1.5 echo hi
+-n
+-n 5
+-x echo hi
+# GNU nice without a utility prints the niceness, an extension
+@

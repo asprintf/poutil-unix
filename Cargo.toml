@@ -1,0 +1,114 @@
+[package]
+name = "poutil-unix"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-2.0-only AND 0BSD"
+autobins = false
+autolib = false
+
+[lib]
+name = "posix"
+path = "libposix/posix.rs"
+
+[dependencies]
+libc = "0.2"
+
+[[bin]]
+name = "true"
+path = "true/true.rs"
+
+[[bin]]
+name = "false"
+path = "false/false.rs"
+
+
+[[bin]]
+name = "echo"
+path = "echo/echo.rs"
+
+[[bin]]
+name = "basename"
+path = "basename/basename.rs"
+
+[[bin]]
+name = "dirname"
+path = "dirname/dirname.rs"
+
+[[bin]]
+name = "pwd"
+path = "pwd/pwd.rs"
+
+[[bin]]
+name = "sleep"
+path = "sleep/sleep.rs"
+
+[[bin]]
+name = "logname"
+path = "logname/logname.rs"
+
+[[bin]]
+name = "tty"
+path = "tty/tty.rs"
+
+[[bin]]
+name = "uname"
+path = "uname/uname.rs"
+
+[[bin]]
+name = "unlink"
+path = "unlink/unlink.rs"
+
+[[bin]]
+name = "link"
+path = "link/link.rs"
+
+[[bin]]
+name = "cat"
+path = "cat/cat.rs"
+
+[[bin]]
+name = "tee"
+path = "tee/tee.rs"
+
+[[bin]]
+name = "rmdir"
+path = "rmdir/rmdir.rs"
+
+[[bin]]
+name = "mkdir"
+path = "mkdir/mkdir.rs"
+
+[[bin]]
+name = "mkfifo"
+path = "mkfifo/mkfifo.rs"
+
+[[bin]]
+name = "env"
+path = "env/env.rs"
+
+[[bin]]
+name = "nohup"
+path = "nohup/nohup.rs"
+
+[[bin]]
+name = "nice"
+path = "nice/nice.rs"
+
+[[bin]]
+name = "time"
+path = "time/time.rs"
+
+[[bin]]
+name = "pathchk"
+path = "pathchk/pathchk.rs"
+
+[[bin]]
+name = "kill"
+path = "kill/kill.rs"
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1

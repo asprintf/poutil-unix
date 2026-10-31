@@ -1,0 +1,22 @@
+echo hi
+-n 5 echo hi
+-n 0 echo hi
+-n +3 echo hi
+-n 5 -- echo hi
+-- echo hi
+-n 19 echo hi
+-n 5 sh -c 'ps -o nice= -p $$'
+sh -c 'ps -o nice= -p $$'
+-n 3 sh -c 'exit 4'
+-n 5 nosuchcmd
+nosuchcmd
+/etc/passwd
+/nonexistent/x
+-n x echo hi
+-n 1.5 echo hi
+-n
+-n 5
+@
+-x echo hi
+-n -5 echo hi
+-n -5 sh -c 'ps -o nice= -p $$'

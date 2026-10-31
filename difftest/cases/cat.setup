@@ -1,0 +1,8 @@
+printf 'one\ntwo\n' > f1
+printf 'no newline' > f2
+printf '\n\n\n' > f3
+: > empty
+printf 'a\0b\377\200c\r\n\tz' > bin
+printf 'dash file\n' > ./-f
+printf 'spaced\n' > 'a b'
+mkdir d

@@ -1,0 +1,3 @@
+# GNU pwd ignores a stray operand; native pwd rejects it like ours
+''
+extra

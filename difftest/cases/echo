@@ -1,0 +1,17 @@
+@
+# no operands and plain strings
+a
+a b
+'a  b'
+'' a
+# -n and -- are strings under XSI
+-n a
+-- a
+'a\tb'
+'a\nb'
+'a\\b'
+'a\cb' c
+'\0101'
+'\0'
+'\q'
+x\

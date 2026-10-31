@@ -1,0 +1,200 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+/* pathchk - check pathnames. */
+
+use posix::getopt::{Getopt, Opt};
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
+
+const SYNOPSIS: &str = "pathchk [-p] [-P] pathname...";
+
+const POSIX_PATH_MAX: usize = 256;
+const POSIX_NAME_MAX: usize = 14;
+
+fn components(path: &[u8]) -> impl Iterator<Item = &[u8]> {
+    path.split(|&c| c == b'/').filter(|c| !c.is_empty())
+}
+
+fn portable_char(c: u8) -> bool {
+    c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-')
+}
+
+/*
+ * The checks that look only at the name: -p (limits and the portable
+ * filename character set) and -P (leading hyphen, empty). The limits
+ * include the terminating NUL, hence ">=". An empty pathname is an error
+ * only under -P.
+ */
+fn check_names(path: &[u8], p: bool, big_p: bool) -> Result<(), String> {
+    if big_p && path.is_empty() {
+        return Err("empty pathname".into());
+    }
+    if p {
+        if path.len() >= POSIX_PATH_MAX {
+            return Err(format!("pathname is {} bytes, limit is {}", path.len(), POSIX_PATH_MAX - 1));
+        }
+        for c in components(path) {
+            if c.len() > POSIX_NAME_MAX {
+                return Err(format!(
+                    "component {} is {} bytes, limit is {}",
+                    String::from_utf8_lossy(c),
+                    c.len(),
+                    POSIX_NAME_MAX
+                ));
+            }
+            if let Some(&b) = c.iter().find(|&&b| !portable_char(b)) {
+                return Err(format!(
+                    "component {} has a character outside the portable set ({:#04x})",
+                    String::from_utf8_lossy(c),
+                    b
+                ));
+            }
+        }
+    }
+    if big_p && components(path).any(|c| c[0] == b'-') {
+        return Err("a component begins with a hyphen".into());
+    }
+    Ok(())
+}
+
+/* A pathconf limit of a directory; None when there is none. */
+fn limit(dir: &[u8], name: libc::c_int) -> Option<usize> {
+    posix::clear_errno();
+    let r = unsafe { libc::pathconf(posix::cstr(dir).as_ptr(), name) };
+    if r < 0 { None } else { Some(r as usize) }
+}
+
+/*
+ * The checks against the file system: total length, and for each component
+ * the NAME_MAX of its directory, whether that directory is searchable, and
+ * whether the prefix really is a directory. Components that do not exist
+ * are fine as long as they could be created.
+ */
+fn check_fs(path: &[u8]) -> Result<(), String> {
+    if path.is_empty() {
+        return Ok(());
+    }
+    let mut dir: Vec<u8> = if path[0] == b'/' { b"/".to_vec() } else { b".".to_vec() };
+    if let Some(max) = limit(&dir, libc::_PC_PATH_MAX) {
+        if path.len() >= max {
+            return Err(format!("pathname is {} bytes, limit is {}", path.len(), max - 1));
+        }
+    }
+    let mut exists = true;
+    let mut comps = components(path).peekable();
+    while let Some(c) = comps.next() {
+        if exists && unsafe { libc::access(posix::cstr(&dir).as_ptr(), libc::X_OK) } < 0 {
+            let e = std::io::Error::last_os_error();
+            return Err(format!(
+                "{}: {}",
+                String::from_utf8_lossy(&dir),
+                posix::strerror(&e)
+            ));
+        }
+        if let Some(max) = limit(&dir, libc::_PC_NAME_MAX) {
+            if c.len() > max {
+                return Err(format!(
+                    "component {} is {} bytes, limit in {} is {}",
+                    String::from_utf8_lossy(c),
+                    c.len(),
+                    String::from_utf8_lossy(&dir),
+                    max
+                ));
+            }
+        }
+        if !exists {
+            continue;
+        }
+        let mut next = dir.clone();
+        if next != b"/" {
+            next.push(b'/');
+        }
+        next.extend_from_slice(c);
+        match std::fs::metadata(OsStr::from_bytes(&next)) {
+            Ok(m) if m.is_dir() => dir = next,
+            Ok(_) if comps.peek().is_some() => {
+                return Err(format!("{}: Not a directory", String::from_utf8_lossy(&next)))
+            }
+            Ok(_) => {}
+            Err(e) if e.raw_os_error() == Some(libc::ENOENT) => exists = false,
+            Err(e) => {
+                return Err(format!("{}: {}", String::from_utf8_lossy(&next), posix::strerror(&e)))
+            }
+        }
+    }
+    Ok(())
+}
+
+fn main() {
+    posix::init();
+    let args = posix::args();
+    let prog = posix::progname(&args);
+    let (mut p, mut big_p) = (false, false);
+    let mut g = Getopt::new(&args, b"pP");
+    while let Some(o) = g.next() {
+        match o {
+            Opt::Flag(b'p') => p = true,
+            Opt::Flag(b'P') => big_p = true,
+            _ => posix::usage(SYNOPSIS),
+        }
+    }
+    if g.operands().is_empty() {
+        posix::usage(SYNOPSIS);
+    }
+    let mut status = 0;
+    for path in g.operands() {
+        /* -p replaces the file system checks, -P adds to whatever is on */
+        let r = check_names(path, p, big_p).and_then(|_| if p { Ok(()) } else { check_fs(path) });
+        if let Err(msg) = r {
+            posix::warn_path(&prog, path, &msg);
+            status = 1;
+        }
+    }
+    std::process::exit(status);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn n(s: &str, p: bool, big_p: bool) -> bool {
+        check_names(s.as_bytes(), p, big_p).is_ok()
+    }
+
+    #[test]
+    fn portable_set() {
+        assert!(n("a/b.c/D_e-f", true, false));
+        assert!(!n("a/b,c", true, false));
+        assert!(!n("a b", true, false));
+        assert!(!n("a/\u{e9}", true, false));
+        assert!(n("a b", false, false));
+    }
+
+    #[test]
+    fn portable_limits() {
+        assert!(n(&"a".repeat(14), true, false));
+        assert!(!n(&"a".repeat(15), true, false));
+        assert!(n(&format!("{}a", "a/".repeat(127)), true, false)); /* 255 bytes */
+        assert!(!n(&"a/".repeat(128), true, false)); /* 256 bytes */
+        assert!(n(&"a".repeat(15), false, false));
+    }
+
+    #[test]
+    fn hyphen_and_empty() {
+        assert!(!n("a/-b", false, true));
+        assert!(n("a/b-", false, true));
+        assert!(n("-a", false, false));
+        assert!(n("", false, false));
+        assert!(n("", true, false));
+        assert!(!n("", false, true));
+        assert!(!n("", true, true));
+    }
+
+    #[test]
+    fn file_system_checks() {
+        assert!(check_fs(b"/").is_ok());
+        assert!(check_fs(b"/no/such/dir/file").is_ok());
+        assert!(check_fs(&[b'/', b'a'].repeat(1000)).is_err());
+        assert!(check_fs(format!("/{}", "a".repeat(300)).as_bytes()).is_err());
+        assert!(check_fs(b"/etc/passwd/x").is_err());
+    }
+}

@@ -1,0 +1,23 @@
+@
+f1
+f1 f2
+f1 f1
+file
+d
+d/f
+nosuch/f
+-m 600 f1
+-m 0 f1
+-m 777 f1
+-m u=rw,go= f1
+-m a=r f1
+-m u+x f1
+-m g+w,o-r f1
+-m +x f1
+-m bad f1
+-m ''  f1
+-m
+-- f1
+-- -f
+-x f1
+-m 644 f1 f2

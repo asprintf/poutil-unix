@@ -1,0 +1,143 @@
+poutil-unix
+
+Strict POSIX utilities in Rust. One small program per utility, not a
+multicall binary. Written against the SUSv4 (POSIX.1-2008/2016) utility
+pages and checked against the VSC-PCTS conformance suite, the native
+tools of the host system and GNU coreutils.
+
+
+ABOUT THIS PROJECT
+
+This is a passion project. I build it for the love of Unix and to learn
+the POSIX utilities from the inside, one specification page at a time.
+It moves when I have the time and energy: there is no roadmap, no release
+schedule and no promise of support. Being a hobby also means I can afford
+to be picky, so strictness wins over convenience here.
+
+It is not a drop-in replacement for the tools of your system, so do not
+put it ahead of /bin on a machine you care about. Passing the tests is
+also not POSIX certification: this project is not certified, and "POSIX"
+is a trademark of the IEEE.
+
+
+USE OF AI
+
+I wrote this project with Claude Code, Anthropic's AI coding agent. Much
+of the source, the tests and the documentation (this README included)
+was written by Claude Code under my direction. The decisions are mine:
+Rust with only libc, strict POSIX, bytes instead of UTF-8, one binary
+per utility, the layout, and what is left out. I run the privileged
+steps myself, and a utility only counts as done once it passes its unit
+tests, the differential tests and the VSC-PCTS. Commits made with its
+help carry an Assisted-by trailer.
+
+
+STATUS
+
+Implemented, unit tested, difftested and PCTS clean on my machine:
+
+	true false echo basename dirname pwd sleep logname tty uname
+	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
+	time kill
+
+More are planned (expand, unexpand, wc, comm, cmp, head, tsort, and
+onwards through the stream filters, file tools and so on). Deliberately
+left out: sh and the shell builtins, job control, terminal and daemon
+tools. getconf is postponed because of its large per-platform name
+tables.
+
+Only tested on x86_64 macOS so far. The code needs nothing but libc and
+has a few cfg(apple) spots (environ, errno, signal names), so Linux and
+the BSDs will need small fixes. Patches welcome.
+
+
+DESIGN RULES
+
+Strict POSIX. Extensions are rejected, so for example "sleep 1.5" is an
+error, not a feature.
+
+Bytes, not UTF-8. Arguments and file names are handled as byte strings;
+String and std::env::args() are never used for user data.
+
+The only dependency is the libc crate. No clap, no regex crate: grep,
+sed, awk and expr will use regcomp and regexec from libc.
+
+Every utility is a pure function core that can be unit tested plus a
+thin main(). Utilities that talk to the outside world call posix::init()
+first, which restores signal and descriptor state that the Rust runtime
+changes before main() runs. true and false are so small that they do not
+need it and do not use the shared library at all.
+
+Comments are K&R style (slash-star), never double-slash.
+
+
+BUILDING
+
+You need a Rust toolchain (cargo).
+
+	make            build all utilities into target/release
+	make test       run the unit tests
+	make clean
+
+Layout is Unix style rather than a crate tree: one directory per utility
+(cat/cat.rs), shared code in libposix/, a single Cargo.toml with one bin
+entry per utility, and a Makefile wrapper.
+
+
+TESTING
+
+Unit tests: make test.
+
+Differential tests compare our output, exit status and side effects with
+the native tools (/usr/bin) and GNU coreutils (the g-prefixed ones, for
+example from MacPorts: /opt/local/bin/gcat), in the C locale and in
+en_US.UTF-8:
+
+	make && sh difftest/difftest.sh echo basename dirname cat
+
+Test cases live in difftest/cases/UTILITY. A line containing only @ means "no
+arguments". Differences judged acceptable are listed in UTILITY.known
+with the reason in a comment. Optional files: UTILITY.setup (run before),
+UTILITY.stdin (instead of /dev/null) and UTILITY.show (run afterwards,
+its output is compared too). The specification decides who is right;
+macOS and GNU both deviate from it in places.
+
+VSC-PCTS, the POSIX conformance suite from The Open Group, is not
+included and cannot be redistributed, so the scripts I use to
+drive it (macOS, a dedicated test user, a root-owned sudo wrapper) are
+not part of this repository either.
+
+One piece is kept: "make deploy" installs the built utilities, root-owned,
+into the directory that the suite runs put ahead of the system tools in
+PATH. It asks for sudo on purpose. Override VSC_USER, VSC_GROUP or OURS on
+the make command line for a different setup.
+
+
+CONTRIBUTING
+
+Bug reports and patches are welcome, with the caveat above that I answer
+when I can. If you used an AI tool for a patch, say so in the commit
+message with an Assisted-by trailer, as I do.
+
+Commit messages follow the usual Unix style: a subject of about 50
+characters in the imperative, prefixed with the directory it touches,
+then a blank line and a body wrapped at 72 columns that says what changed
+and why. One logical change per commit.
+
+	pathchk: reject an empty pathname only with -P
+
+	The PCTS expects this and macOS agrees. GNU rejects it always;
+	the difference is recorded in difftest/cases/pathchk.known.
+
+	Assisted-by: Claude Code
+
+
+LICENSE
+
+GPL-2.0-only, see LICENSE, except true/true.rs and false/false.rs, which
+are 0BSD (effectively public domain), see LICENSE.0BSD. Each source file
+carries an SPDX-License-Identifier line. The libc crate is used under its
+MIT terms.
+
+The SUSv4 text and the VSC-PCTS archives belong to The Open Group and are
+kept out of this repository.

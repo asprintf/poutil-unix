@@ -1,0 +1,21 @@
+# build output
+/target/
+
+# third-party material that must not be redistributed: the VSC-PCTS
+# archives (priv/) and the copyrighted SUSv4 text (spec/)
+/priv/
+/spec/
+
+# maintainer notes with machine-specific paths
+/HANDOFF.md
+
+# built from pcts-locale/unstripped.c (cc -o pcts-locale/unstripped ...)
+/pcts-locale/unstripped
+
+.DS_Store
+._*
+
+# the author's VSC-PCTS driver scripts and answer files: specific to one
+# machine and useless without the (non-redistributable) suite
+/pcts-*
+/pcts-locale/

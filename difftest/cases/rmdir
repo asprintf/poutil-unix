@@ -1,0 +1,25 @@
+@
+-p
+e
+e f
+e e
+e/
+a/b/c
+-p a/b/c
+-p a/b/c/
+-p a//b//c
+-p e f
+-p a
+-p p/q/r f
+-p ./e
+-p g
+-p full/sub
+g
+full
+nosuch
+-p nosuch/x
+e nosuch f
+-- e
+-x e
+-p -p e
+-p -- e
