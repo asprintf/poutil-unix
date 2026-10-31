@@ -38,13 +38,12 @@ Implemented, unit tested, difftested and PCTS clean on my machine:
 
 	true false echo basename dirname pwd sleep logname tty uname
 	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
-	time kill
+	time kill wc head tail tsort
 
-More are planned (expand, unexpand, wc, comm, cmp, head, tsort, and
-onwards through the stream filters, file tools and so on). Deliberately
-left out: sh and the shell builtins, job control, terminal and daemon
-tools. getconf is postponed because of its large per-platform name
-tables.
+More are planned (expand, unexpand, comm, cmp, and onwards through the
+stream filters, file tools and so on). Deliberately left out: sh and the
+shell builtins, job control, terminal and daemon tools. getconf is
+postponed because of its large per-platform name tables.
 
 Only tested on x86_64 macOS so far. The code needs nothing but libc and
 has a few cfg(apple) spots (environ, errno, signal names), so Linux and
@@ -104,9 +103,11 @@ en_US.UTF-8:
 Test cases live in difftest/cases/UTILITY. A line containing only @ means "no
 arguments". Differences judged acceptable are listed in UTILITY.known
 with the reason in a comment. Optional files: UTILITY.setup (run before),
-UTILITY.stdin (instead of /dev/null) and UTILITY.show (run afterwards,
-its output is compared too). The specification decides who is right;
-macOS and GNU both deviate from it in places.
+UTILITY.stdin (instead of /dev/null), UTILITY.show (run afterwards,
+its output is compared too) and UTILITY.filter (a script that rewrites
+standard output before it is compared, for what the spec leaves open,
+like the padding of wc or the order of tsort). The specification
+decides who is right; macOS and GNU both deviate from it in places.
 
 VSC-PCTS, the POSIX conformance suite from The Open Group, is not
 included and cannot be redistributed, so the scripts I use to
