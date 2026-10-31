@@ -1,0 +1,6 @@
+# ignores every argument and exits 0
+@
+x
+-x
+--
+a b
