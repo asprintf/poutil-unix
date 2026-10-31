@@ -21,11 +21,18 @@
 # A line "@" means no arguments. Case lines also listed in UTIL.known are
 # reported as "known" (judged acceptable) and not counted as differences.
 #
-# Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8")
+# A third reference is optional: if POSIXUTILS_RS names a directory holding
+# built posixutils-rs binaries, UTIL from there is compared too, as a black
+# box (it is only ever run, never read). Lines accepted only for that one are
+# listed in UTIL.known.posixutils; UTIL.known applies to every reference.
+#
+# Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
+# POSIXUTILS_RS (default unset: no third reference)
 
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
 LOCALES=${LOCALES:-"C en_US.UTF-8"}
+RS=${POSIXUTILS_RS:-}
 verbose=0
 [ "$1" = "-v" ] && { verbose=1; shift; }
 [ $# -ge 1 ] || { echo "usage: sh $0 [-v] util..." >&2; exit 2; }
@@ -73,6 +80,7 @@ for util in "$@"; do
 	for r in /usr/bin/$util /bin/$util /opt/local/bin/g$util; do
 		[ -x "$r" ] && refs="$refs $r"
 	done
+	[ -n "$RS" ] && [ -x "$RS/$util" ] && refs="$refs $RS/$util"
 	while IFS= read -r line; do
 		case $line in '' | '#'*) continue ;; esac
 		for loc in $LOCALES; do
@@ -92,11 +100,21 @@ for util in "$@"; do
 				[ "$o_err" = "$r_err" ] || why="$why stderr($o_err/$r_err)"
 				[ "$o_st" = "$r_st" ] || why="$why status($o_st/$r_st)"
 				cmp -s "$tmp/o.fs" "$tmp/r.fs" || why="$why files"
-				if [ -n "$why" ] && grep -qxF -- "$line" "$cases.known" 2>/dev/null; then
-					echo "known $util [$loc] $line  vs $ref:$why"
+				name=$ref is_rs=0
+				if [ -n "$RS" ] && [ "$ref" = "$RS/$util" ]; then
+					name=posixutils-rs is_rs=1
+				fi
+				known=0
+				grep -qxF -- "$line" "$cases.known" 2>/dev/null && known=1
+				if [ $known -eq 0 ] && [ $is_rs -eq 1 ] &&
+				    grep -qxF -- "$line" "$cases.known.posixutils" 2>/dev/null; then
+					known=1
+				fi
+				if [ -n "$why" ] && [ $known -eq 1 ]; then
+					echo "known $util [$loc] $line  vs $name:$why"
 				elif [ -n "$why" ]; then
 					bad=$((bad + 1))
-					echo "DIFF $util [$loc] $line  vs $ref:$why"
+					echo "DIFF $util [$loc] $line  vs $name:$why"
 					if [ $verbose -eq 1 ]; then
 						echo "  ours: $(od -c "$tmp/o.out" | head -3 | tr '\n' '|')"
 						echo "  ref:  $(od -c "$tmp/r.out" | head -3 | tr '\n' '|')"
