@@ -72,10 +72,10 @@ norm() {
 	if [ "$util" = tty ]; then echo "$1"; elif [ "$1" -eq 0 ]; then echo 0; else echo nz; fi
 }
 
-total=0 bad=0
+total=0 bad=0 missing=0
 for util in "$@"; do
 	cases=$here/cases/$util
-	[ -f "$cases" ] || { echo "$util: no case file" >&2; continue; }
+	[ -f "$cases" ] || { echo "$util: no case file" >&2; missing=$((missing + 1)); continue; }
 	refs=
 	for r in /usr/bin/$util /bin/$util /opt/local/bin/g$util; do
 		[ -x "$r" ] && refs="$refs $r"
@@ -125,4 +125,5 @@ for util in "$@"; do
 	done <"$cases"
 done
 echo "difftest: $total comparisons, $bad differences"
-[ "$bad" -eq 0 ]
+[ "$missing" -eq 0 ] || echo "difftest: $missing without a case file" >&2
+[ "$bad" -eq 0 ] && [ "$missing" -eq 0 ]
