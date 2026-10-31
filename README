@@ -49,6 +49,19 @@ stream filters, file tools and so on). Deliberately left out: sh and the
 shell builtins, job control, terminal and daemon tools. getconf is
 postponed because of its large per-platform name tables.
 
+RELATED PROJECTS
+
+posixutils-rs (https://github.com/rustcoreutils/posixutils-rs) is a much
+bigger Rust implementation of the POSIX utilities, MIT licensed, with well
+over a hundred of them. It is far ahead of this project in breadth and
+aims at POSIX.1-2024 plus the extensions that real software needs. I have
+only read its documentation, not its source. This project is smaller and
+picks other priorities: the 2018 edition of the specification (SUSv4),
+extensions refused, bytes instead of UTF-8, every utility run through the
+VSC-PCTS, and the GPL. uutils coreutils is another Rust project, aimed at
+GNU compatibility. If one of those fits your needs better than this does,
+use it.
+
 Only tested on x86_64 macOS so far. The code needs nothing but libc and
 has a few cfg(apple) spots (environ, errno, signal names), so Linux and
 the BSDs will need small fixes. Patches welcome.
