@@ -21,8 +21,9 @@ fn fmt_posix(real: f64, user: f64, sys: f64) -> String {
 }
 
 fn minutes(s: f64) -> String {
-    let m = (s / 60.0).floor();
-    format!("{}m{}s", m as u64, float(s - m * 60.0, 3))
+    /* round to milliseconds first, or 59.9996 would print as "0m60.000s" */
+    let ms = (s * 1000.0).round() as u64;
+    format!("{}m{}s", ms / 60000, float((ms % 60000) as f64 / 1000.0, 3))
 }
 
 /* Without -p the format is up to the implementation. */
@@ -95,5 +96,23 @@ mod tests {
             fmt_default(61.0, 0.5, 0.0),
             "\nreal\t1m1.000s\nuser\t0m0.500s\nsys\t0m0.000s\n"
         );
+    }
+
+    #[test]
+    fn float_and_posix_format_for_long_runs() {
+        assert_eq!(float(0.0, 2), "0.00");
+        assert_eq!(float(1234567.891, 2), "1234567.89");
+        assert_eq!(fmt_posix(3661.5, 0.0, 0.0), "real 3661.50\nuser 0.00\nsys 0.00\n");
+        assert_eq!(fmt_posix(59.999, 0.004, 0.006), "real 60.00\nuser 0.00\nsys 0.01\n");
+    }
+
+    #[test]
+    fn minutes_never_show_sixty_seconds() {
+        assert_eq!(minutes(60.0), "1m0.000s");
+        assert_eq!(minutes(59.9996), "1m0.000s");
+        assert_eq!(minutes(119.9996), "2m0.000s");
+        assert_eq!(minutes(0.0004), "0m0.000s");
+        assert_eq!(minutes(0.0005), "0m0.001s");
+        assert_eq!(minutes(3600.0), "60m0.000s");
     }
 }
