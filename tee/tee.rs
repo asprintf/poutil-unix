@@ -181,4 +181,39 @@ mod tests {
         tee(&mut &[1u8; 300_000][..], &mut sinks, &mut |_, _| n += 1).unwrap();
         assert_eq!(n, 1);
     }
+
+    struct Flaky(u8);
+
+    impl Read for Flaky {
+        fn read(&mut self, b: &mut [u8]) -> io::Result<usize> {
+            self.0 += 1;
+            match self.0 {
+                1 => Err(io::Error::from(io::ErrorKind::Interrupted)),
+                2 => {
+                    b[..3].copy_from_slice(b"abc");
+                    Ok(3)
+                }
+                _ => Err(io::Error::from_raw_os_error(libc::EIO)),
+            }
+        }
+    }
+
+    #[test]
+    fn interrupted_read_is_retried_and_read_error_is_returned() {
+        let out = Rc::new(RefCell::new(vec![]));
+        let mut sinks = vec![sink("o", Box::new(Shared(out.clone())))];
+        let r = tee(&mut Flaky(0), &mut sinks, &mut |_, _| panic!());
+        assert_eq!(r.unwrap_err().raw_os_error(), Some(libc::EIO));
+        assert_eq!(*out.borrow(), b"abc");
+    }
+
+    #[test]
+    fn no_sinks_and_empty_input() {
+        let mut none: Vec<Sink> = vec![];
+        assert!(tee(&mut &b"data"[..], &mut none, &mut |_, _| panic!()).is_ok());
+        let out = Rc::new(RefCell::new(vec![]));
+        let mut sinks = vec![sink("o", Box::new(Shared(out.clone())))];
+        assert!(tee(&mut &b""[..], &mut sinks, &mut |_, _| panic!()).is_ok());
+        assert!(out.borrow().is_empty());
+    }
 }

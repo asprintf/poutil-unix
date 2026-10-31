@@ -1,2 +1,4 @@
 # fractional seconds are a BSD/GNU extension; strict POSIX allows integers only
 1.5
+# BSD and GNU add several operands together; POSIX takes exactly one
+0 0

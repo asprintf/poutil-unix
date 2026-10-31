@@ -11,3 +11,9 @@ true
 @
 -x true
 -p -p true
+# exit statuses pass through
+-p sh -c 'exit 255'
+-p sh -c 'exit 126'
+-p sh -c 'exit 127'
+-p sh -c 'exit 1'
+-p -- sh -c 'exit 4'

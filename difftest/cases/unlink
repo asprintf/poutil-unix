@@ -4,3 +4,13 @@ d
 ''
 -- f
 f f
+# option and path shapes
+-x
+-- -x
+-- f
+d/
+f/
+./f
+nosuch/f
+f -- f
+-- --

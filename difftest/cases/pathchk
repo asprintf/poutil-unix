@@ -48,3 +48,24 @@ a ns/f d
 -x a
 -pp a
 -p -P
+# slashes, dots and punctuation
+-p a//b
+-p a/./b
+-p ///
+-P /-x
+-P a//-b
+-p -P ''
+-p a.b
+-p a~b
+-p a:b
+-pP -- -a
+-p /
+-p ./
+-p a/../b
+-P a/../b
+d/e/f
+d/e/f/g
+file/x
+d/e/../e
+ns/f
+ns/nosuch

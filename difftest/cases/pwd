@@ -6,3 +6,10 @@
 -LP
 -x
 extra
+# -- and stacked options
+--
+-L --
+-P --
+-LL
+-PP
+-LPL

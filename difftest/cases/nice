@@ -20,3 +20,14 @@ nosuchcmd
 -x echo hi
 -n -5 echo hi
 -n -5 sh -c 'ps -o nice= -p $$'
+# increment shapes and clamping
+-n +0 echo hi
+-n -0 echo hi
+-n 007 echo hi
+-n 99999999999 echo hi
+-n5 echo hi
+-n 5 -n 7 sh -c 'ps -o nice= -p $$'
+-n 99999999999 sh -c 'ps -o nice= -p $$'
+-n '' echo hi
+-n ' 5' echo hi
+-n 5x echo hi

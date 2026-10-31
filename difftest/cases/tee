@@ -16,3 +16,12 @@ f nosuch/g
 -x f
 f f
 -a f f
+# flag clusters and odd file names
+-a -i f
+-i -a f g
+-ai -- f
+f/
+''
+f f f
+-a d/x
+-- -a

@@ -75,4 +75,29 @@ mod tests {
         assert_eq!(b("b.c/", Some(".c")), "b");
         assert_eq!(b("b.c", Some("")), "b.c");
     }
+
+    #[test]
+    fn suffix_is_a_string_not_an_extension() {
+        assert_eq!(b("a.c", Some("c")), "a.");
+        assert_eq!(b(".c", Some(".c")), ".c");
+        assert_eq!(b("a/.c", Some(".c")), ".c");
+        assert_eq!(b("a/", Some("a")), "a");
+        assert_eq!(b("a/b", Some("/b")), "b");
+        assert_eq!(b("a.c.c", Some(".c")), "a.c");
+    }
+
+    #[test]
+    fn dots_and_spaces() {
+        assert_eq!(b(".", None), ".");
+        assert_eq!(b("..", None), "..");
+        assert_eq!(b("./", None), ".");
+        assert_eq!(b("//a b//", None), "a b");
+        assert_eq!(b("-a", None), "-a");
+    }
+
+    #[test]
+    fn bytes_are_not_decoded() {
+        assert_eq!(basename(b"x/\xff\xfe.c", Some(b".c")), b"\xff\xfe");
+        assert_eq!(basename(b"\xff/", None), b"\xff");
+    }
 }

@@ -61,3 +61,52 @@ fn main() {
     out.push(b'\n');
     posix::write_stdout(&prog, &out);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::ffi::OsStringExt;
+
+    fn cwd() -> Vec<u8> {
+        std::env::current_dir().unwrap().into_os_string().into_vec()
+    }
+
+    #[test]
+    fn accepts_the_real_directory_in_its_spellings() {
+        let real = cwd();
+        assert!(logical_ok(&real));
+        let mut with_slash = real.clone();
+        with_slash.push(b'/');
+        assert!(logical_ok(&with_slash));
+        let mut double = b"/".to_vec();
+        double.extend_from_slice(&real);
+        assert!(logical_ok(&double));
+    }
+
+    #[test]
+    fn rejects_everything_else() {
+        let real = cwd();
+        assert!(!logical_ok(b""));
+        assert!(!logical_ok(b"relative"));
+        assert!(!logical_ok(b"/"));
+        assert!(!logical_ok(b"/nonexistent/dir"));
+        assert!(!logical_ok(b"/tmp/.."));
+        assert!(!logical_ok(b"/./tmp"));
+        let mut dot = real.clone();
+        dot.extend_from_slice(b"/.");
+        assert!(!logical_ok(&dot));
+        let mut dotdot = real.clone();
+        dotdot.extend_from_slice(b"/../");
+        dotdot.extend_from_slice(real.rsplit(|&c| c == b'/').next().unwrap());
+        assert!(!logical_ok(&dotdot));
+    }
+
+    #[test]
+    fn accepts_a_symlink_to_the_directory() {
+        let link = format!("/tmp/poutil-pwd-link-{}", std::process::id());
+        std::os::unix::fs::symlink(OsStr::from_bytes(&cwd()), &link).unwrap();
+        let ok = logical_ok(link.as_bytes());
+        std::fs::remove_file(&link).unwrap();
+        assert!(ok);
+    }
+}

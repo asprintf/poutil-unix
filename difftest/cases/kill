@@ -39,3 +39,17 @@
 999999
 x
 -x $$
+# exit status names and mixed arguments
+-l 128
+-l 255
+-l 256
+-l ''
+-l 31
+-l 127
+-s TERM -- 999999
+-s KILL -s TERM 999999
+-s TERM 999999 999998
+-TERM -- 999999
+-s 15 999999
+-15 999999
+-s 0 999999

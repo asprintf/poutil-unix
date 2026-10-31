@@ -6,3 +6,12 @@
 -x echo hi
 # GNU nice without a utility prints the niceness, an extension
 @
+# the range of increments is implementation-defined: macOS rejects 99999999999,
+# GNU clamps to 20, ours to 19 (nice(3) stops at NZERO-1)
+-n 99999999999 echo hi
+-n 99999999999 sh -c 'ps -o nice= -p $$'
+# usage errors again (ours 2, macOS 1, GNU 125)
+-n '' echo hi
+-n 5x echo hi
+# macOS and GNU read the increment with strtol and so accept a leading blank; POSIX says decimal integer
+-n ' 5' echo hi

@@ -104,4 +104,31 @@ mod tests {
         assert_eq!(build_env(v(&["A=1", "B=2", "A=3"]), false, &v(&["A=z"])), v(&["A=z", "B=2"]));
         assert_eq!(build_env(v(&["A=1"]), false, &v(&["A=1", "A=2"])), v(&["A=2"]));
     }
+
+    #[test]
+    fn assignment_shapes() {
+        assert!(is_assignment(b"a=b=c"));
+        assert!(is_assignment(b"A B=c"));
+        assert!(is_assignment(b"1a=c"));
+        assert!(is_assignment(b"a-b=c"));
+        assert!(!is_assignment(b"="));
+        assert!(!is_assignment(b""));
+        assert!(!is_assignment(b"/bin/true"));
+    }
+
+    #[test]
+    fn names_are_compared_whole() {
+        assert_eq!(name_of(b"A=1=2"), b"A");
+        assert_eq!(name_of(b"A"), b"A");
+        assert_eq!(build_env(v(&["AB=1"]), false, &v(&["A=2"])), v(&["AB=1", "A=2"]));
+        assert_eq!(build_env(v(&["A=1=2"]), false, &v(&["A=3"])), v(&["A=3"]));
+        assert_eq!(build_env(v(&["A=1"]), false, &v(&["A="])), v(&["A="]));
+    }
+
+    #[test]
+    fn later_assignment_wins_in_place() {
+        assert_eq!(build_env(vec![], true, &v(&["A=1", "B=2", "A=3"])), v(&["A=3", "B=2"]));
+        assert_eq!(build_env(vec![], false, &[]), Vec::<Vec<u8>>::new());
+        assert_eq!(build_env(v(&["X=1"]), false, &[]), v(&["X=1"]));
+    }
 }

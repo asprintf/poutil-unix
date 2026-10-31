@@ -21,3 +21,16 @@ nosuch/f
 -- -f
 -x f1
 -m 644 f1 f2
+# special bits, symbolic modes, repeats
+-m 4755 f1
+-m 0 f1 f2
+-m 600 f1 f1
+-m a-r f1
+-m ug=r f1
+-m 1777 f1
+-m a=rw,u+x f1
+'' 
+f1 d
+d/ f1
+-m 700 -m 755 f1
+-mm

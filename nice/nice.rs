@@ -70,4 +70,18 @@ mod tests {
             assert_eq!(parse_increment(s.as_bytes()), None, "{s}");
         }
     }
+
+    #[test]
+    fn increment_edges() {
+        assert_eq!(parse_increment(b"-0"), Some(0));
+        assert_eq!(parse_increment(b"+0"), Some(0));
+        assert_eq!(parse_increment(b"007"), Some(7));
+        assert_eq!(parse_increment(b"2147483647"), Some(i32::MAX));
+        assert_eq!(parse_increment(b"2147483648"), Some(i32::MAX));
+        assert_eq!(parse_increment(b"-2147483648"), Some(-i32::MAX));
+        for s in ["--5", "+-5", "5 ", "0x5", "\u{663}", "1e1"] {
+            assert_eq!(parse_increment(s.as_bytes()), None, "{s}");
+        }
+        assert_eq!(parse_increment(b"\xff"), None);
+    }
 }

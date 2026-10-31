@@ -74,4 +74,23 @@ mod tests {
         assert_eq!(d("/a"), "/");
         assert_eq!(d("a/b/c"), "a/b");
     }
+
+    #[test]
+    fn trailing_and_repeated_slashes() {
+        assert_eq!(d("///a///b///"), "///a");
+        assert_eq!(d("a/"), ".");
+        assert_eq!(d("./"), ".");
+        assert_eq!(d("/a/"), "/");
+        assert_eq!(d("//a//"), "/");
+        assert_eq!(d("/a/b/"), "/a");
+        assert_eq!(d("a/."), "a");
+        assert_eq!(d("../x"), "..");
+    }
+
+    #[test]
+    fn spaces_and_bytes() {
+        assert_eq!(d("a b/c d"), "a b");
+        assert_eq!(dirname(b"\xff/x"), b"\xff");
+        assert_eq!(dirname(b"\xff"), b".");
+    }
 }

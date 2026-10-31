@@ -13,3 +13,19 @@ a/b//
 a/b/c
 ''
 -- a
+# more slash and dot shapes
+///a///b///
+a/
+./
+/a/
+//a//
+/a/b/
+a/.
+../x
+'a b/c d'
+.//.
+a/b/c/
+a b
+-x
+-- -a
+/a//b

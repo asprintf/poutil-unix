@@ -4,3 +4,16 @@ nonexistent b
 a
 a b c
 a d
+# operands and paths
+-- a b
+a -- b
+a ./b
+./a ./a
+a d/x
+a d/
+a/ b
+a b/
+-x a b
+d d2
+'' ''
+a a2 a3

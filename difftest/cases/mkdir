@@ -46,3 +46,24 @@ d1/d2
 -x d1
 ''
 -p ''
+# dot components, symlinks, clusters, long names
+-p a/./b/../d
+-p a//e///f//
+-m a+x,u-w d1
+-p -m 700 p1/p2/p3
+-pp d1
+-p- d1
+-- -dash
+-p -- -dash2/x
+-p lnk
+lnk
+dang
+-p dang
+-p lnk/x
+$(printf 'a%.0s' $(seq 1 256))
+-p ex/a ex/b
+d1 file/x
+-p d1 file d2
+-m 700 -m 755 d1
+-mm
+-m u+rwx,g+rx,o+rx d1

@@ -98,4 +98,38 @@ mod tests {
     fn backslash_c_stops_everything() {
         assert_eq!(e(&["ab\\cd", "ef"]), (b"ab".to_vec(), true));
     }
+
+    #[test]
+    fn backslash_c_in_the_middle_and_alone() {
+        assert_eq!(e(&["\\c"]), (vec![], true));
+        assert_eq!(e(&["a", "b\\c", "d"]), (b"a b".to_vec(), true));
+        assert_eq!(e(&["\\\\c"]), (b"\\c".to_vec(), false));
+    }
+
+    #[test]
+    fn empty_operands_keep_their_spaces() {
+        assert_eq!(e(&["a", "", "b"]).0, b"a  b");
+        assert_eq!(e(&[""]).0, b"");
+    }
+
+    #[test]
+    fn unknown_and_trailing_backslashes() {
+        assert_eq!(e(&["\\x41", "\\e"]).0, b"\\x41 \\e");
+        assert_eq!(e(&["\\"]).0, b"\\");
+        assert_eq!(e(&["\\\\"]).0, b"\\");
+        assert_eq!(e(&["\\101"]).0, b"\\101");
+    }
+
+    #[test]
+    fn octal_takes_at_most_three_digits() {
+        assert_eq!(e(&["\\01011"]).0, b"A1");
+        assert_eq!(e(&["\\0101\\0102"]).0, b"AB");
+        assert_eq!(e(&["\\0377"]).0, b"\xff");
+    }
+
+    #[test]
+    fn bytes_pass_through() {
+        let v = vec![b"\xff\xfe".to_vec(), b"a\\0377".to_vec()];
+        assert_eq!(expand(&v), (b"\xff\xfe a\xff".to_vec(), false));
+    }
 }

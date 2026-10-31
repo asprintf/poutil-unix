@@ -48,4 +48,17 @@ mod tests {
         assert_eq!(parse(b"1.5"), None);
         assert_eq!(parse(b"1s"), None);
     }
+
+    #[test]
+    fn parsing_edges() {
+        assert_eq!(parse(b"00"), Some(0));
+        assert_eq!(parse(b"0000000000000000000000000001"), Some(1));
+        assert_eq!(parse(b"18446744073709551615"), Some(u64::MAX));
+        assert_eq!(parse(b"18446744073709551616"), Some(u64::MAX));
+        for s in [" 1", "+1", "0x10", "1e3", "1 ", "1\n", "\u{663}"] {
+            assert_eq!(parse(s.as_bytes()), None, "{s}");
+        }
+        assert_eq!(parse(b"0\0"), None);
+        assert_eq!(parse(b"\xff"), None);
+    }
 }

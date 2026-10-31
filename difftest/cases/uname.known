@@ -1,2 +1,4 @@
 # GNU appends extra implementation-defined fields after the standard five
 -a
+# GNU -a adds fields after the standard five, whatever else is given
+-a -s

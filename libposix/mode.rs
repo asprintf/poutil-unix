@@ -169,4 +169,52 @@ mod tests {
             assert_eq!(p(s, 0), None, "{s}");
         }
     }
+
+    #[test]
+    fn octal_edges() {
+        assert_eq!(p("0000", 0o777), Some(0));
+        assert_eq!(p("7777", 0), Some(0o7777));
+        assert_eq!(p("00000007777", 0), Some(0o7777));
+        assert_eq!(p("17777", 0), None);
+        assert_eq!(p("777777777777", 0), None);
+    }
+
+    #[test]
+    fn symbolic_from_the_mkdir_cases() {
+        assert_eq!(p("u=rwx,g=rx,o=", 0), Some(0o750));
+        assert_eq!(p("u=rwx,go=", 0o777), Some(0o700));
+        assert_eq!(p("a=rx,u+w", 0), Some(0o755));
+        assert_eq!(p("u=rwx,g=u-w", 0), Some(0o750));
+        assert_eq!(p("u+s,g+s", 0), Some(0o6000));
+        assert_eq!(p("o+rwx", 0o700), Some(0o707));
+        assert_eq!(p("a-w", 0o777), Some(0o555));
+        assert_eq!(p("g+w", 0o755), Some(0o775));
+        assert_eq!(p("a+x,u-w", 0o666), Some(0o577));
+        assert_eq!(p("a=", 0o777), Some(0));
+        assert_eq!(p("-", 0o640), Some(0o640));
+    }
+
+    #[test]
+    fn without_who_the_umask_is_honoured() {
+        assert_eq!(p("+x", 0), Some(0o111));
+        assert_eq!(p("=r", 0o777), Some(0o444));
+        assert_eq!(parse(b"+w", 0, false, 0o077), Some(0o200));
+        assert_eq!(parse(b"=rwx", 0, false, 0o077), Some(0o700));
+    }
+
+    #[test]
+    fn special_bits_and_file_type_bits() {
+        assert_eq!(p("a+x", 0o4600), Some(0o4711));
+        assert_eq!(p("u-s", 0o4755), Some(0o755));
+        assert_eq!(p("a-t", 0o1777), Some(0o777));
+        assert_eq!(p("a+x", 0o170600), Some(0o711));
+    }
+
+    #[test]
+    fn more_invalid() {
+        for s in ["rwx", " 755", "755 ", "7 5", "0x10", "u=rwx,,g=r", "u=rwxg", "a", "=rwx,", "\u{e9}"] {
+            assert_eq!(p(s, 0), None, "{s}");
+        }
+        assert_eq!(parse(b"\xff", 0, false, 0), None);
+    }
 }

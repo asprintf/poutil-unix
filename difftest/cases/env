@@ -28,3 +28,14 @@ sh -c 'echo $0 $1' a b
 -x
 -i -x
 =x printenv
+# shapes of assignments
+A=1=2 printenv A
+-i A=1 B=2 A=3 /usr/bin/env
+-i A= /usr/bin/env
+-i -i A=1 /usr/bin/env
+A=1 -- true
+-i A=1 B=2 C=3 /usr/bin/env
+-i 1a=c /usr/bin/env
+-i 'a b=c' /usr/bin/env
+-i A=1 /usr/bin/true
+-i A=$(printf 'x%.0s' $(seq 1 5000)) /usr/bin/true

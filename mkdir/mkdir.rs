@@ -135,4 +135,25 @@ mod tests {
         assert_eq!(pre("a//b//"), ["a"]);
         assert_eq!(pre("../x/y"), ["..", "../x"]);
     }
+
+    #[test]
+    fn prefix_edges() {
+        assert_eq!(pre(""), Vec::<String>::new());
+        assert_eq!(pre("/"), Vec::<String>::new());
+        assert_eq!(pre("//"), Vec::<String>::new());
+        assert_eq!(pre("/a"), Vec::<String>::new());
+        assert_eq!(pre("a/b"), ["a"]);
+        assert_eq!(pre("a/./b"), ["a", "a/."]);
+        assert_eq!(pre("a/../b"), ["a", "a/.."]);
+        assert_eq!(pre("//a//b"), ["//a"]);
+        assert_eq!(pre("a/b/c/"), ["a", "a/b"]);
+        assert_eq!(pre("./a"), ["."]);
+        assert_eq!(pre("a//"), Vec::<String>::new());
+        assert_eq!(pre("-d/x"), ["-d"]);
+    }
+
+    #[test]
+    fn prefixes_keep_bytes() {
+        assert_eq!(prefixes(b"\xff/\xfe/z"), [&b"\xff"[..], &b"\xff/\xfe"[..]]);
+    }
 }

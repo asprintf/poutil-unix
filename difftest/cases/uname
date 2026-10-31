@@ -10,3 +10,12 @@
 -mnrsv
 -x
 extra
+# clusters and repeats
+-s -s
+-snrvm
+-mvrns
+-sm -n
+-- -s
+--
+-a -s
+-ss

@@ -23,3 +23,20 @@ e nosuch f
 -x e
 -p -p e
 -p -- e
+# trailing dot, order, symlink, dots
+-p a/b/c/.
+-p a/b/../b/c
+.
+..
+/
+a/b/c a/b
+a/b a/b/c
+-p e/ f/
+e//
+'' e
+lnk
+-p lnk
+-p a/b/c a/b/c
+-p p/q/r p/q
+full/sub full
+-pp e

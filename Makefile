@@ -1,8 +1,11 @@
 all:
 	cargo build --release
 
-test:
+# unit tests, then the checks that need real processes (see difftest/regress.sh);
+# the comparison with other implementations is separate: sh difftest/difftest.sh
+test: all
 	cargo test
+	sh difftest/regress.sh
 
 clean:
 	cargo clean

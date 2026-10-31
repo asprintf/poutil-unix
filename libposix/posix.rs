@@ -243,3 +243,33 @@ pub fn exec_utility(prog: &[u8], argv: &[Vec<u8>], env: Option<&[Vec<u8>]>) -> !
     let missing = matches!(e.raw_os_error(), Some(libc::ENOENT) | Some(libc::ENOTDIR));
     std::process::exit(if missing { 127 } else { 126 })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn progname_is_the_last_component() {
+        assert_eq!(progname(&[b"/usr/bin/cat".to_vec()]), b"cat");
+        assert_eq!(progname(&[b"cat".to_vec()]), b"cat");
+        assert_eq!(progname(&[b"./x/y".to_vec(), b"z".to_vec()]), b"y");
+        assert_eq!(progname(&[]), b"?");
+    }
+
+    #[test]
+    fn strerror_has_no_rust_suffix() {
+        let e = std::io::Error::from_raw_os_error(libc::ENOENT);
+        assert_eq!(strerror(&e), "No such file or directory");
+        let e = std::io::Error::from_raw_os_error(libc::EACCES);
+        assert_eq!(strerror(&e), "Permission denied");
+        let e = std::io::Error::new(std::io::ErrorKind::Other, "boom");
+        assert_eq!(strerror(&e), "boom");
+    }
+
+    #[test]
+    fn cstr_keeps_every_byte() {
+        assert_eq!(cstr(b"abc").as_bytes(), b"abc");
+        assert_eq!(cstr(b"\xff\xfe").as_bytes(), b"\xff\xfe");
+        assert_eq!(cstr(b"").as_bytes(), b"");
+    }
+}

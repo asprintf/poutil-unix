@@ -139,4 +139,67 @@ mod tests {
         assert_eq!(g.by_ref().count(), 0);
         assert_eq!(g.operands().len(), 2);
     }
+
+    #[test]
+    fn lone_dash_after_options_is_an_operand() {
+        let a = v(&["p", "-a", "-", "x"]);
+        let mut g = Getopt::new(&a, b"a");
+        assert_eq!(g.by_ref().count(), 1);
+        assert_eq!(g.operands(), &v(&["-", "x"])[..]);
+    }
+
+    #[test]
+    fn option_argument_may_look_like_an_option() {
+        let a = v(&["p", "-f", "-a", "-f--", "x"]);
+        let mut g = Getopt::new(&a, b"af:");
+        let got: Vec<_> = g.by_ref().collect();
+        assert_eq!(got, vec![Opt::Arg(b'f', b"-a".to_vec()), Opt::Arg(b'f', b"--".to_vec())]);
+        assert_eq!(g.operands(), &v(&["x"])[..]);
+    }
+
+    #[test]
+    fn empty_option_argument() {
+        let a = v(&["p", "-f", "", "y"]);
+        let mut g = Getopt::new(&a, b"f:");
+        assert_eq!(g.by_ref().collect::<Vec<_>>(), vec![Opt::Arg(b'f', vec![])]);
+        assert_eq!(g.operands(), &v(&["y"])[..]);
+    }
+
+    #[test]
+    fn repeated_flags_and_empty_operand() {
+        let a = v(&["p", "-aa", "-a", "", "-a"]);
+        let mut g = Getopt::new(&a, b"a");
+        assert_eq!(g.by_ref().count(), 3);
+        assert_eq!(g.operands(), &v(&["", "-a"])[..]);
+    }
+
+    #[test]
+    fn colon_and_non_utf8_are_unknown() {
+        let a = vec![b"p".to_vec(), b"-:".to_vec(), b"-\xff".to_vec()];
+        let got: Vec<_> = Getopt::new(&a, b"a:").collect();
+        assert_eq!(got, vec![Opt::Unknown(b':'), Opt::Unknown(0xff)]);
+    }
+
+    #[test]
+    fn unknown_inside_a_cluster_keeps_going() {
+        let a = v(&["p", "-azb", "x"]);
+        let mut g = Getopt::new(&a, b"ab");
+        let got: Vec<_> = g.by_ref().collect();
+        assert_eq!(got, vec![Opt::Flag(b'a'), Opt::Unknown(b'z'), Opt::Flag(b'b')]);
+        assert_eq!(g.operands(), &v(&["x"])[..]);
+    }
+
+    #[test]
+    fn second_double_dash_is_an_operand_and_no_arguments() {
+        let a = v(&["p", "--", "--"]);
+        let mut g = Getopt::new(&a, b"a");
+        assert_eq!(g.by_ref().count(), 0);
+        assert_eq!(g.operands(), &v(&["--"])[..]);
+        let a = v(&["p"]);
+        let mut g = Getopt::new(&a, b"a");
+        assert_eq!(g.by_ref().count(), 0);
+        assert!(g.operands().is_empty());
+        let a: Vec<Vec<u8>> = vec![];
+        assert!(Getopt::new(&a, b"a").operands().is_empty());
+    }
 }

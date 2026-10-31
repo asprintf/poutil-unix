@@ -1,0 +1,2 @@
+# macOS accepts more than two operands; POSIX allows at most two
+a b c

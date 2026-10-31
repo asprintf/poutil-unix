@@ -15,3 +15,17 @@ a b
 '\0'
 '\q'
 x\
+# octal limits, empty operands, more escapes
+'\0377'
+'\01011'
+'a\c'
+'\c'
+a '' b
+'\\'
+'\e'
+'\x41'
+'\101'
+'\0101\0102'
+'' ''
+'a\cb' 'c'
+-- -n

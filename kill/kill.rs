@@ -171,4 +171,43 @@ mod tests {
         assert_eq!(signal_for_status(0), None);
         assert_eq!(signal_for_status(200), None);
     }
+
+    #[test]
+    fn every_table_entry_round_trips() {
+        let mut names = std::collections::HashSet::new();
+        let mut nums = std::collections::HashSet::new();
+        for &(name, n) in SIGNALS {
+            assert!(n > 0, "{name}");
+            assert!(names.insert(name), "duplicate name {name}");
+            assert!(nums.insert(n), "duplicate number {n}");
+            assert_eq!(parse_signal(name.as_bytes()), Some(n));
+            assert_eq!(parse_signal(format!("SIG{name}").as_bytes()), Some(n));
+            assert_eq!(parse_signal(name.to_lowercase().as_bytes()), Some(n));
+            assert_eq!(parse_signal(n.to_string().as_bytes()), Some(n));
+            assert_eq!(name_of(n), Some(name));
+        }
+    }
+
+    #[test]
+    fn odd_signal_spellings() {
+        assert_eq!(parse_signal(b"SIGterm"), Some(libc::SIGTERM));
+        assert_eq!(parse_signal(b"01"), Some(1));
+        assert_eq!(parse_signal(b"00"), Some(0));
+        for s in ["SIG", "SIGSIG", "+1", " 1", "1 ", "-1", "ZERO", "EXIT", "99999999999", "\u{e9}"] {
+            assert_eq!(parse_signal(s.as_bytes()), None, "{s}");
+        }
+        assert_eq!(parse_signal(b"\xff"), None);
+        assert_eq!(name_of(0), None);
+    }
+
+    #[test]
+    fn status_boundaries() {
+        assert_eq!(signal_for_status(9), Some("KILL"));
+        assert_eq!(signal_for_status(137), Some("KILL"));
+        assert_eq!(signal_for_status(128), None);
+        assert_eq!(signal_for_status(256), None);
+        assert_eq!(signal_for_status(255), None);
+        assert_eq!(signal_for_status(u32::MAX), None);
+        assert_eq!(signal_for_status(128 + libc::SIGUSR2 as u32), Some("USR2"));
+    }
 }

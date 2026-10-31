@@ -76,7 +76,7 @@ BUILDING
 You need a Rust toolchain (cargo).
 
 	make            build all utilities into target/release
-	make test       run the unit tests
+	make test       run the unit tests and the process-level checks
 	make clean
 
 Layout is Unix style rather than a crate tree: one directory per utility
@@ -86,7 +86,13 @@ entry per utility, and a Makefile wrapper.
 
 TESTING
 
-Unit tests: make test.
+Unit tests (cargo test) cover the pure cores: option parsing, the mode
+grammar, path splitting, escape expansion and so on. Process-level checks
+(sh difftest/regress.sh) cover what only a real process shows: redirections
+such as cat f >> f, closed descriptors, SIGPIPE, descriptor limits, signals
+sent to real processes, umask and inherited signal dispositions. They run
+under a file size limit so that a runaway writer cannot fill the disk.
+"make test" runs both.
 
 Differential tests compare our output, exit status and side effects with
 the native tools (/usr/bin) and GNU coreutils (the g-prefixed ones, for

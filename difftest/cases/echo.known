@@ -1,2 +1,6 @@
 # GNU echo takes -n as an option; XSI (and so we) treat it as a string
 -n a
+# GNU echo also takes \e, \NNN and \xHH; XSI defines only \0num
+'\e'
+'\x41'
+'\101'
