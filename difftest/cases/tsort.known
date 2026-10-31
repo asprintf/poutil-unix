@@ -1,0 +1,8 @@
+# macOS tsort does not treat "-" as standard input (the spec allows either); GNU and we do
+-
+# macOS exits 0 after reporting a cycle; GNU and we exit 1, which the spec allows (">0 on error")
+cycle
+cycle3
+cycles
+# macOS ignores the read error of a directory and exits 0
+d

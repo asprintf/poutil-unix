@@ -399,7 +399,7 @@ eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
 
-#------------------------------------------------------------- wc head tail
+#------------------------------------------------------- wc head tail tsort
 fresh
 seq 1 30 > n30
 seq 1 5 > n5
@@ -540,6 +540,32 @@ kill -0 $p 2> /dev/null
 eq "tail -f on a named FIFO: keeps running after end of file" 0 $?
 kill $p
 reap $p
+
+eq "tsort: the example of the spec" "a b c d e f g h" \
+	"$(printf 'a b\nc c\nd e\ng g\nf g\ne f\nh h\n' | "$OURS/tsort" | tr '\n' ' ' | sed 's/ $//')"
+awk 'BEGIN { srand(7); for (i = 0; i < 40000; i++) { a = int(rand() * 5000); b = int(rand() * 5000); if (a > b) { t = a; a = b; b = t }; print "n" a, "n" b } }' > dag
+"$OURS/tsort" dag > order
+eq "tsort of a big random order: status" 0 $?
+eq "tsort of a big random order: every pair in order" 0 \
+	"$(awk 'NR == FNR { pos[$1] = FNR; next } { if (pos[$1] == "" || pos[$2] == "" || ($1 != $2 && pos[$1] >= pos[$2])) bad++ } END { print bad + 0 }' order dag)"
+eq "tsort of a big random order: each item once" "$(tr -s ' \n' '\n\n' < dag | sort -u | wc -l | tr -d ' ')" "$(sort order | uniq | wc -l | tr -d ' ')"
+eq "tsort of a big random order: no item twice" "$(wc -l < order | tr -d ' ')" "$(sort -u order | wc -l | tr -d ' ')"
+printf 'a b\nb a\nc d\n' | "$OURS/tsort" > out 2> err
+eq "tsort cycle: status" 1 $?
+eq "tsort cycle: every item still printed" "a b c d" "$(sort out | tr '\n' ' ' | sed 's/ $//')"
+eq "tsort cycle: diagnostic" 1 "$(grep -c 'cycle in data' err)"
+printf 'a b c\n' | "$OURS/tsort" > out 2> err
+eq "tsort odd data: status" 1 $?
+eq "tsort odd data: nothing printed" 0 "$(wc -c < out | tr -d ' ')"
+eq "tsort odd data: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+printf 'a b\n' | "$OURS/tsort" >&- 2> err
+eq "tsort with stdout closed: status" 1 $?
+"$OURS/tsort" <&- 2> /dev/null
+eq "tsort with stdin closed: status" 1 $?
+"$OURS/tsort" nosuch 2> /dev/null
+eq "tsort of a missing file: status" 1 $?
+"$OURS/tsort" n5 n5 2> /dev/null
+eq "tsort with two files is a usage error" 2 $?
 
 #-------------------------------------------------- bytes, not UTF-8
 fresh

@@ -1,0 +1,22 @@
+printf 'a b\nc c\nd e\ng g\nf g\ne f\nh h\n' > spec
+printf 'a b c d e f g h\n' > oneline
+printf 'a b\nb c\nc d\n' > chain
+printf 'c d\nb c\na b\n' > rchain
+printf 'a b\nc d\ne f\n' > indep
+printf 'x x\n' > self
+printf 'a a\nb b\nc c\n' > selfs
+printf 'a b a b a b\n' > dup
+printf 'a b\nb a\nc d\n' > cycle
+printf 'a b\nb c\nc a\n' > cycle3
+printf 'a b\nb a\nc d\nd c\n' > cycles
+printf 'a b\nb c\nc\n' > odd
+printf 'a\n' > odd1
+: > empty
+printf '  a \t b \n\n\n b   c  \n' > blanks
+printf 'a\nb\nb\nc\n' > split
+printf 'A a\na aa\n' > case
+printf '\303\251 \342\202\254\n' > utf8
+printf 'a\377 b\200\n' > bin
+printf 'top x\ntop y\nx bot\ny bot\n' > diamond
+printf 'dash a\n' > ./-f
+mkdir d

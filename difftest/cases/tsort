@@ -1,0 +1,30 @@
+# tsort: the order is not fixed by the spec, so stdout is sorted (tsort.filter);
+# the order itself is checked in difftest/regress.sh
+spec
+oneline
+chain
+rchain
+indep
+self
+selfs
+dup
+cycle
+cycle3
+cycles
+odd
+odd1
+empty
+blanks
+split
+case
+utf8
+bin
+diamond
+./-f
+-- spec
+-- -f
+-
+nosuch
+d
+spec chain
+-x spec
