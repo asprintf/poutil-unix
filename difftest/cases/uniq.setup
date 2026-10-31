@@ -1,0 +1,13 @@
+printf 'a\na\nb\na\nc\nc\nc\nd\n' > plain
+printf '#01 foo0 bar0 foo1 bar1\n#02 bar0 foo1 bar1 foo1\n#03 foo0 bar0 foo1 bar1\n#04\n#05 foo0 bar0 foo1 bar1\n#06 foo0 bar0 foo1 bar1\n#07 bar0 foo1 bar1 foo0\n' > spec
+printf 'a b\na  b\n  a b\n\ta b\nx\ty\nx\t\ty\n' > blanks
+: > empty
+printf 'a\na' > nonl
+printf 'a\nb' > nonl2
+printf '\n\n\na\n\n' > emptylines
+printf 'a\0b\na\0b\na\0c\n' > nul
+printf 'a\377\nb\377\nb\377\n\200\n\200\n' > bin
+printf '\303\251a\n\303\250a\n\303\250a\n\342\202\254 x\n\342\202\254 y\n' > utf8
+printf 'A\na\nA\nA\n' > case
+printf 'dash\ndash\n' > ./-f
+mkdir d

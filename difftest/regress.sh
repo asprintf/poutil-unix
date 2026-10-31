@@ -567,6 +567,39 @@ eq "tsort of a missing file: status" 1 $?
 "$OURS/tsort" n5 n5 2> /dev/null
 eq "tsort with two files is a usage error" 2 $?
 
+#---------------------------------------------------------------------- uniq
+fresh
+printf 'a\na\nb\n' > f
+"$OURS/uniq" f f 2> err
+eq "uniq f f: status" 1 $?
+eq "uniq f f: input kept" "a a b" "$(tr '\n' ' ' < f | sed 's/ $//')"
+eq "uniq f f: message" "uniq: f: input file is output file" "$(cat err)"
+"$OURS/uniq" f g
+eq "uniq f g: status" 0 $?
+eq "uniq f g: output file" "a b" "$(tr '\n' ' ' < g | sed 's/ $//')"
+printf 'old old old old old old\n' > g
+"$OURS/uniq" f g
+eq "uniq into a longer file truncates it" "a b" "$(tr '\n' ' ' < g | sed 's/ $//')"
+printf 'keep\n' > g
+"$OURS/uniq" nosuch g 2> /dev/null
+eq "uniq of a missing input leaves the output file alone" "keep" "$(cat g)"
+"$OURS/uniq" f - | tr '\n' ' ' > out
+eq "uniq with - as output is standard output" "a b " "$(cat out)"
+printf 'a\na\n' | "$OURS/uniq" - | tr '\n' ' ' > out
+eq "uniq - reads standard input" "a " "$(cat out)"
+"$OURS/uniq" -d -u f 2> /dev/null
+eq "uniq -d -u is a usage error" 2 $?
+"$OURS/uniq" f g h 2> /dev/null
+eq "uniq with three operands is a usage error" 2 $?
+"$OURS/uniq" -f x f 2> /dev/null
+eq "uniq -f x is a usage error" 2 $?
+"$OURS/uniq" f >&- 2> /dev/null
+eq "uniq with stdout closed: status" 1 $?
+"$OURS/uniq" <&- 2> /dev/null
+eq "uniq with stdin closed: status" 1 $?
+awk 'BEGIN { for (i = 0; i < 200000; i++) print i % 7 }' | "$OURS/uniq" | head -n 2 > out
+eq "uniq into a closed pipe ends quietly" "0 1" "$(tr '\n' ' ' < out | sed 's/ $//')"
+
 #-------------------------------------------------- bytes, not UTF-8
 fresh
 B=$(printf '\377\376')

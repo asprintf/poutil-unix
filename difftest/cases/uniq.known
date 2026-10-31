@@ -1,0 +1,7 @@
+# macOS prints a last line without a newline as it is; GNU and we add the newline
+nonl2
+# macOS compares and prints a line only up to a NUL byte
+nul
+-c nul
+# -d with -u is a usage error here; macOS and GNU accept both
+-d -u plain

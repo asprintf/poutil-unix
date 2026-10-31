@@ -1,0 +1,68 @@
+# uniq: adjacent repeats, the options, fields and characters, operands
+@
+-- plain
+plain
+-c plain
+-d plain
+-u plain
+-c -d plain
+-c -u plain
+-cd plain
+-cu plain
+-f 1 spec
+-c -f 1 spec
+-d -f 1 spec
+-u -f 1 spec
+-d -s 2 spec
+-s 2 spec
+-c -s 1 spec
+-f 1 -s 1 spec
+-f 2 spec
+-f 0 plain
+-s 0 plain
+-f 9 spec
+-s 99 spec
+-c -f 1 -s 2 spec
+-f1 spec
+-s2 spec
+-f 1 -f 2 spec
+blanks
+-f 1 blanks
+-f 2 blanks
+-s 1 blanks
+empty
+-c empty
+nonl
+-c nonl
+nonl2
+emptylines
+-c emptylines
+-d emptylines
+-u emptylines
+nul
+-c nul
+bin
+-c bin
+utf8
+-s 1 utf8
+-c -s 1 utf8
+-f 1 utf8
+case
+-
+- out
+plain out
+-d plain out2
+nosuch
+nosuch out
+plain out extra
+-x plain
+-f x plain
+-f -1 plain
+-f
+-s
+-f 1.5 plain
+./-f
+-- -f
+d
+plain nosuchdir/out
+-d -u plain

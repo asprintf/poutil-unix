@@ -122,6 +122,10 @@ path = "tail/tail.rs"
 name = "tsort"
 path = "tsort/tsort.rs"
 
+[[bin]]
+name = "uniq"
+path = "uniq/uniq.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true
