@@ -1,0 +1,200 @@
+# test: the rules by argument count, the primaries, the XSI operators
+@
+''
+a
+-n
+-z
+'!'
+'('
+')'
+=
+-a
+-o
+-d
+-t
+'!' ''
+'!' a
+'!' '!'
+-n a
+-n ''
+-z ''
+-z a
+-n -n
+-z -z
+-n '!'
+-z '('
+a b
+-q a
+-d file
+-d dir
+-d dlink
+-d nothing
+-d ''
+-f file
+-f dir
+-f link
+-f empty
+-e file
+-e dir
+-e dangling
+-e nothing
+-e link
+-e ''
+-e /
+-h link
+-L link
+-h dlink
+-h dangling
+-h file
+-L nothing
+-s file
+-s empty
+-s dir
+-s nothing
+-s link
+-p fifo
+-p file
+-S file
+-S /var/run/syslog
+-c /dev/null
+-c file
+-b /dev/null
+-b /dev/disk0
+-r file
+-r noperm
+-r nothing
+-r dir
+-w file
+-w ronly
+-w noperm
+-w dir
+-x exe
+-x file
+-x dir
+-x nodir
+-x nothing
+-u suid
+-u file
+-g sgid
+-g file
+-u nothing
+-t 0
+-t 1
+-t 2
+-t 99
+-t x
+-t ''
+-t -1
+-t 99999999999999999999
+a = a
+a = b
+a '!=' a
+a '!=' b
+'' = ''
+'' '!=' ''
+'!' = '!'
+'!' '!=' '!'
+-n = -n
+'(' = ')'
+= = =
+'!' -n ''
+'!' -n a
+'!' -z ''
+'!' -d dir
+'!' -d file
+'!' a b
+'(' a ')'
+'(' '' ')'
+'(' -n ')'
+'(' a b
+a -a b
+a -a ''
+'' -a b
+'' -o b
+a -o ''
+'' -o ''
+a '!=' b '!='
+'!' a = a
+'!' a = b
+'!' '!' = '!'
+'(' -n a ')'
+'(' '!' a ')'
+'(' a = ')'
+'!' '(' a ')'
+-n a -a b
+-d dir -a -f file
+-d dir -a -f dir
+-d file -o -f file
+-d file -o -f dir
+a = a -a b = b
+a = a -a b = c
+a = b -o b = b
+a = b -o b = c
+a -o b -a ''
+'' -a b -o c
+'' -a b -o ''
+1 -lt 2 -a 3 -gt 2
+'(' a = b -o c = c ')' -a d
+'!' '(' a = b ')' -a x
+'!' a = b -a x
+'(' '(' a = a ')' ')' -a '(' b ')'
+'!' '!' a = a -o z
+a -o '(' b = c ')' -o d
+-n = x -o y
+-d = -d -a x
+-z '!=' -z -o ''
+'!' = '!' -a x
+a = b c
+'(' a = b
+a = b ')'
+a -a
+-o a b c d
+a = b -a
+'(' ')' -a x y
+a b c d e
+-q a -a b
+-n a -a -n
+x -a -d
+1 -eq 1
+1 -eq 01
+-1 -lt 0
++5 -gt 4
+10 -gt 9
+9 -gt 10
+10 -ge 10
+10 -le 9
+10 -ne 9
+10 -ne 10
+-0 -eq 0
+0 -eq -0
+99999999999999999999999 -gt 99999999999999999999998
+-5 -lt -3
+a -eq 1
+1 -eq ''
+1 -eq a
+1.5 -eq 1
+' 1' -eq 1
+1 -eq ' 1'
+'' -eq ''
+--1 -eq 1
+a == a
+a '<' b
+a -nt b
+file -nt file
+file -ef file
+-k file
+-O file
+-v x
+-- x
+-- -n
+-n --
+-d -- dir
+./-n
+-f ./-n
+-n -n -n
+-d -d -d
+-z -z -z
+-n -a -n
+'!' '!' '!' a
+'!' '!' '!' ''
+'!' '!' '!' '!' a

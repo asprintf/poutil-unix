@@ -600,6 +600,51 @@ eq "uniq with stdin closed: status" 1 $?
 awk 'BEGIN { for (i = 0; i < 200000; i++) print i % 7 }' | "$OURS/uniq" | head -n 2 > out
 eq "uniq into a closed pipe ends quietly" "0 1" "$(tr '\n' ' ' < out | sed 's/ $//')"
 
+#---------------------------------------------------------------------- test
+# the exit status tells a false result (1) from an error (2); [ is the same program
+fresh
+T="$OURS/test"
+B="$OURS/["
+"$T" a = a
+eq "test true: status" 0 $?
+"$T" a = b
+eq "test false: status" 1 $?
+"$T"
+eq "test with no arguments: false" 1 $?
+"$T" a = b c 2> err
+eq "test a = b c: error status and a diagnostic" "2 1" "$? $(wc -l < err | tr -d ' ')"
+"$T" x -eq 1 2> /dev/null
+eq "test x -eq 1: error status" 2 $?
+"$T" -t x 2> /dev/null
+eq "test -t x: error status" 2 $?
+"$B" a = a ']'
+eq "[ a = a ]: status" 0 $?
+"$B" a = b ']'
+eq "[ a = b ]: status" 1 $?
+"$B" a = a 2> err
+eq "[ without ]: error status and a diagnostic" "2 1" "$? $(wc -l < err | tr -d ' ')"
+"$B" ']'
+eq "[ ]: false" 1 $?
+"$B" 2> /dev/null
+eq "[ alone: error status" 2 $?
+"$T" a = a ']'  2> /dev/null
+eq "test does not take ]: error status" 2 $?
+"$T" -t 0 < /dev/null
+eq "test -t 0 of /dev/null: false" 1 $?
+"$T" -t 9 9< /dev/null
+eq "test -t on a descriptor that is not a terminal: false" 1 $?
+"$T" -e /dev/null >&-
+eq "test with stdout closed still works" 0 $?
+"$T" -d . <&-
+eq "test with stdin closed still works" 0 $?
+touch a; chmod 000 a
+"$T" -r a
+st=$?
+want=1
+[ "$(id -u)" = 0 ] && want=0
+eq "test -r of a file without permission" $want $st
+rm -f a
+
 #---------------------------------------------------------------------- sort
 fresh
 printf 'b\na\nc\n' > f

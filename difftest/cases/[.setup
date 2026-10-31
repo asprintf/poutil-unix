@@ -1,0 +1,20 @@
+printf 'data\n' > file
+: > empty
+mkdir dir
+ln -s file link
+ln -s nothing dangling
+ln -s dir dlink
+mkfifo fifo
+printf 'x\n' > noperm
+chmod 000 noperm
+printf '#!/bin/sh\n' > exe
+chmod 755 exe
+printf 'x\n' > ronly
+chmod 444 ronly
+printf 'x\n' > suid
+chmod 4755 suid
+printf 'x\n' > sgid
+chmod 2755 sgid
+mkdir nodir
+chmod 000 nodir
+printf 'x\n' > ./-n

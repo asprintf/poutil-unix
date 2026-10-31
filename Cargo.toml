@@ -134,6 +134,10 @@ path = "expr/expr.rs"
 name = "sort"
 path = "sort/sort.rs"
 
+[[bin]]
+name = "test"
+path = "test/test.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

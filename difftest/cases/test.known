@@ -1,0 +1,31 @@
+# Extensions: the spec lets an implementation add primaries, we do not.
+# -k -O (more unary primaries), -nt -ef == < (more binary primaries)
+-k file
+-O file
+a -nt b
+file -nt file
+file -ef file
+a == a
+a '<' b
+# Integers are digits with an optional sign, nothing else around them; macOS
+# and GNU skip blanks. macOS fails on a number that does not fit in 64 bits,
+# we compare any length. A -t operand that is no number is an error for us;
+# the others say false.
+' 1' -eq 1
+1 -eq ' 1'
+99999999999999999999999 -gt 99999999999999999999998
+-t -1
+-t 99999999999999999999
+# Three arguments with a binary primary in the middle: the spec says the test
+# is binary, so -a joins two strings ("-n" and "-n" are both not null). GNU
+# and macOS read -n as a unary primary here and fail.
+-n -a -n
+# Where the arguments are more than four the spec is not detailed: = and !=
+# bind tighter than a unary primary ('!' = '!' is a comparison), -d after -a
+# is a string. GNU stops with a syntax error.
+-n a -a -n
+'!' = '!' -a x
+x -a -d
+# macOS does not print a diagnostic for a missing operand after -a
+a -a
+a = b -a
