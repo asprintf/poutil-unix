@@ -399,7 +399,7 @@ eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
 
-#----------------------------------------------------------------------- wc
+#------------------------------------------------------------------ wc head
 fresh
 seq 1 30 > n30
 seq 1 5 > n5
@@ -436,6 +436,35 @@ if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
 else
 	echo "skip: no en_US.UTF-8 locale"
 fi
+
+eq "head of an endless pipe stops" "1 2 3" "$(seq 1 2000000000 | "$OURS/head" -n 3 | tr '\n' ' ' | sed 's/ $//')"
+eq "head of a big file" "1 2 3 4 5" "$("$OURS/head" -n 5 big | tr '\n' ' ' | sed 's/ $//')"
+eq "head -n 1500000 of a big file is all of it" 0 "$("$OURS/head" -n 1500000 big | cmp - big > /dev/null; echo $?)"
+eq "head leaves the shared offset after the last line" "1 2 3 4" \
+	"$({ "$OURS/head" -n 2; "$OURS/head" -n 2; } < n30 | tr '\n' ' ' | sed 's/ $//')"
+eq "head -n 2 and then cat share the offset" "1 2 3 4 5" \
+	"$({ "$OURS/head" -n 2; "$OURS/cat"; } < n5 | tr '\n' ' ' | sed 's/ $//')"
+eq "head - reads standard input" "1 2" "$("$OURS/head" -n 2 - < n5 | tr '\n' ' ' | sed 's/ $//')"
+{ "$OURS/head" -n 1000000 big; echo $? > st; } | head -c 10 > /dev/null
+eq "head into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+"$OURS/head" n5 >&- 2> err
+eq "head with stdout closed: status" 1 $?
+eq "head with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/head" <&- 2> /dev/null
+eq "head with stdin closed: status" 1 $?
+"$OURS/head" nosuch n5 > out 2> /dev/null
+eq "head with a missing file: status" 1 $?
+eq "head with a missing file: no header for it, none for the first" "==> n5 <==
+1
+2
+3
+4
+5" "$(cat out)"
+eq "head with two files" "==> n5 <==
+1
+
+==> n5 <==
+1" "$("$OURS/head" -n 1 n5 n5)"
 
 #-------------------------------------------------- bytes, not UTF-8
 fresh

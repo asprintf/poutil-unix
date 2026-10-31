@@ -1,0 +1,10 @@
+seq 1 30 > n30
+seq 1 5 > n5
+printf 'a\nb\nc' > nonl
+: > empty
+printf '\n\n\n\nx\n' > blank
+printf 'bin\0\377\n\200\r\nz\n' > bin
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'
+for i in 1 2 3; do head -c 70000 /dev/zero | tr '\000' x; echo; done > long
+mkdir d

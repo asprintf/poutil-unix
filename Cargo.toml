@@ -110,6 +110,10 @@ path = "kill/kill.rs"
 name = "wc"
 path = "wc/wc.rs"
 
+[[bin]]
+name = "head"
+path = "head/head.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

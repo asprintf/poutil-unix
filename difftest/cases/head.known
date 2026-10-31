@@ -1,0 +1,19 @@
+# the obsolete -number form was dropped in POSIX.1-2001; both others still take it
+-3 n5
+# no -c in the spec ("there is no -c option"); both others have it
+-c 3 n5
+# the spec wants a positive decimal integer: no sign, no blank. GNU accepts a
+# negative count (all but the last N lines) and "+1"; macOS and GNU accept a blank
+-n -1 n5
+-n +1 n5
+-n ' 1' n5
+# macOS rejects a count of 0 and one that does not fit; GNU and we take 0, and a
+# huge count simply means "all of the file"
+-n 0 n5
+-n 99999999999999999999999 n5
+# macOS head does not treat "-" as standard input; GNU puts quotes around
+# names in the header, the spec says "%s"
+-n 2 - n5
+-n 2 -
+-n 2 n5 -
+-n 2 'a b' n5
