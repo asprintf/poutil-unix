@@ -1,0 +1,5 @@
+# "the application shall ensure" the input is pairs, so an odd count is undefined; posixutils-rs warns and goes on (exit 0), we, macOS and GNU fail
+odd
+odd1
+# posixutils-rs reads text as UTF-8 in every locale and fails on invalid bytes; we read bytes
+bin

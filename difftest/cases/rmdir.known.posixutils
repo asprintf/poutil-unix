@@ -1,0 +1,8 @@
+# the synopsis requires a dir operand; posixutils-rs exits 0 without one, we and macOS report a usage error
+@
+-p
+# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
+-p -p e
+-pp e
+# after e, the walk reaches "." which cannot be removed; we and macOS diagnose that (exit 1), posixutils-rs stops quietly (exit 0); the spec does not say
+-p ./e

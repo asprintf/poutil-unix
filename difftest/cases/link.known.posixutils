@@ -1,0 +1,2 @@
+# BUG in posixutils-rs: "--" after the first operand is an ordinary operand (three operands, so a usage error); it drops the -- and makes the link
+a -- b

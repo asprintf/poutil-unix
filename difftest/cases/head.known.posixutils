@@ -1,0 +1,2 @@
+# the spec says only that the header precedes the output of each file; posixutils-rs also prints one (and an empty body) for a file it cannot open, we, macOS and GNU print none
+-n 2 n5 nosuch n30

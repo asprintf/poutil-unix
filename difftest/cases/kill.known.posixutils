@@ -1,0 +1,2 @@
+# synopsis is kill -l [exit_status], one operand at most; posixutils-rs uses the first and ignores the rest, we and macOS reject it
+-l 1 2

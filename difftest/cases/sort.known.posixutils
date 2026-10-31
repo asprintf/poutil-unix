@@ -1,0 +1,9 @@
+# -n takes "an optional minus-sign" only, so "+3" has no numeric prefix and sorts as 0; posixutils-rs reads the plus sign as part of the number
+-n nums
+-nr nums
+-nu nums
+# first_character must be a positive integer (the form is field.char); posixutils-rs accepts a zero and a third part, we, macOS and GNU reject both
+-k 1.0 words
+-k 1.1.1 words
+# BUG in posixutils-rs: a field_start after field_end is valid and gives an empty key; it reports an error
+-k 2,1 fields

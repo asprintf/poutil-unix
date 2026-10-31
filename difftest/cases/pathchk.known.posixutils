@@ -1,0 +1,9 @@
+# the synopsis requires a pathname operand; posixutils-rs exits 0 without one, we, macOS and GNU report an error
+@
+-p -P
+# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
+-pp a
+# BUG in posixutils-rs: a regular file used as a directory component cannot be used to access or create a file; it reports nothing (exit 0), we, macOS and GNU diagnose Not a directory
+d/e/f/g
+file/x
+file/x/y

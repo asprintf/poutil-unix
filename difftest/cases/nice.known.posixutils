@@ -1,0 +1,2 @@
+# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
+-n 5 -n 7 sh -c 'ps -o nice= -p $$'

@@ -1,0 +1,13 @@
+# synopsis is [-c|-d|-u], so combining them is undefined; posixutils-rs rejects every combination, we accept -c with -d or -u on purpose (macOS and GNU do too)
+-c -d plain
+-c -u plain
+-cd plain
+-cu plain
+# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
+-f 1 -f 2 spec
+# posixutils-rs reads text as UTF-8 in every locale and fails on invalid bytes; we read bytes
+-c bin
+bin
+# in the C locale a byte is a character, so -s counts bytes; posixutils-rs counts UTF-8 characters (all agree in a UTF-8 locale)
+-c -s 1 utf8
+-s 1 utf8

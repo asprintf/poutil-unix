@@ -1,0 +1,3 @@
+# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
+-c -c f1
+-ll f1

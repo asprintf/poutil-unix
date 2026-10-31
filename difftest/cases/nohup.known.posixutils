@@ -1,0 +1,2 @@
+# BUG in posixutils-rs: XCU 1.4 says a utility with OPTIONS "None." shall recognize "--" as a first argument to be discarded; it tries to run a command named --
+-- echo hi

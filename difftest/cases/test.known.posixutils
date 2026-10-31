@@ -1,0 +1,7 @@
+# XSI: "= and != shall have a higher precedence than any unary primary" in the more-than-4-arguments case; posixutils-rs reports "unexpected argument", we, macOS and GNU follow the rule
+-d = -d -a x
+-n = x -o y
+-z '!=' -z -o ''
+# -t needs an integer file descriptor; a bad one is an error (exit 2) for us, macOS and GNU, a quiet false for posixutils-rs
+-t ''
+-t x

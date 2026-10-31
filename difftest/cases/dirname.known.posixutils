@@ -1,0 +1,8 @@
+# OPTIONS is "None." so an unknown option is undefined (XCU 1.4); posixutils-rs takes -x as the string, we, macOS and GNU reject it
+-x
+# step 1 then step 6 make "//" or "/" both correct (implementation-defined)
+//
+# BUG in posixutils-rs: step 2 says a string of only slashes becomes a single slash; it prints ///
+///
+# BUG in posixutils-rs: steps 5 and 7 turn a/. into a; it prints .
+a/.

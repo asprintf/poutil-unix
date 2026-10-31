@@ -1,0 +1,3 @@
+# BUG in posixutils-rs: the spec says "If both -L and -P are specified, the last one shall apply", so a repeated option is fine; it refuses it (clap: cannot be used multiple times)
+-LL
+-PP
