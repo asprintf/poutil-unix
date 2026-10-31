@@ -126,6 +126,10 @@ path = "tsort/tsort.rs"
 name = "uniq"
 path = "uniq/uniq.rs"
 
+[[bin]]
+name = "expr"
+path = "expr/expr.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

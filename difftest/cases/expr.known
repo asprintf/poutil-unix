@@ -1,0 +1,19 @@
+# macOS evaluates both sides of | and &, so an error on the side that is not
+# needed still fails; GNU and we leave it unevaluated
+1 '|' 1 / 0
+0 '&' 1 / 0
+# macOS rejects an empty pattern; GNU and we give 0
+abc : ''
+# macOS takes an operand that is an operator as the operator; the spec allows
+# either ("expr = = =" is "1" for GNU and for us, because the position decides).
+# GNU reads a leading + as a quote for the next word
+= = =
++ = +
+# macOS prints an integer operand in normal form
+00
+# GNU has no limit on the size of an integer, macOS and we stop at 64 bits
+9223372036854775807 + 1
+99999999999999999999 '>' 99999999999999999998
+# length and substr are GNU keywords; the spec leaves them unspecified
+length abc
+substr abc 1 2

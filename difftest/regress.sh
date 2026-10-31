@@ -600,6 +600,38 @@ eq "uniq with stdin closed: status" 1 $?
 awk 'BEGIN { for (i = 0; i < 200000; i++) print i % 7 }' | "$OURS/uniq" | head -n 2 > out
 eq "uniq into a closed pipe ends quietly" "0 1" "$(tr '\n' ' ' < out | sed 's/ $//')"
 
+#---------------------------------------------------------------------- expr
+# the exit status tells a false result (1) from an invalid expression (2)
+fresh
+"$OURS/expr" 1 + 1 > out
+eq "expr true: status and output" "0 2" "$? $(cat out)"
+"$OURS/expr" 1 - 1 > out
+eq "expr zero: status and output" "1 0" "$? $(cat out)"
+"$OURS/expr" a : b > out
+eq "expr no match: status and output" "1 0" "$? $(cat out)"
+"$OURS/expr" a : '\(b\)' > out
+eq "expr empty subexpression: status and a null line" "1 1" "$? $(wc -l < out | tr -d ' ')"
+"$OURS/expr" '' > out
+eq "expr of null: status and a null line" "1 1" "$? $(wc -l < out | tr -d ' ')"
+"$OURS/expr" 1 + 2> /dev/null > out
+eq "expr 1 + : syntax error status" 2 $?
+"$OURS/expr" 2> err > out
+eq "expr without operands: status" 2 $?
+"$OURS/expr" 1 / 0 2> err > out
+eq "expr 1 / 0: status, no output, a diagnostic" "2 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/expr" 9223372036854775807 + 1 2> /dev/null > out
+eq "expr overflow: status above 2" 3 $?
+"$OURS/expr" a : '\(' 2> /dev/null > out
+eq "expr invalid pattern: status 2" 2 $?
+"$OURS/expr" -- -3 + 1 > out
+eq "expr -- -3 + 1" "0 -2" "$? $(cat out)"
+"$OURS/expr" -3 + 1 > out
+eq "expr -3 + 1 (a negative integer without --)" "0 -2" "$? $(cat out)"
+"$OURS/expr" 1 + 1 >&- 2> /dev/null
+eq "expr with stdout closed: status" 1 $?
+"$OURS/expr" 1 \| 1 / 0 > out
+eq "expr 1 | 1 / 0 leaves the right side alone" "0 1" "$? $(cat out)"
+
 #-------------------------------------------------- bytes, not UTF-8
 fresh
 B=$(printf '\377\376')
