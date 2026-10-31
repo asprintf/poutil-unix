@@ -38,7 +38,7 @@ Implemented, unit tested, difftested and PCTS clean on my machine:
 
 	true false echo basename dirname pwd sleep logname tty uname
 	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
-	time kill wc head tail tsort
+	time kill wc head tail tsort uniq expr sort test [
 
 One exception to "clean": tail rejects the obsolete -NUMBER and +NUMBER
 forms, as the 2018 edition of the spec does, so the one old PCTS test
@@ -63,13 +63,17 @@ Bytes, not UTF-8. Arguments and file names are handled as byte strings;
 String and std::env::args() are never used for user data.
 
 The only dependency is the libc crate. No clap, no regex crate: grep,
-sed, awk and expr will use regcomp and regexec from libc.
+sed and awk will use regcomp and regexec from libc, as expr already does.
 
 Every utility is a pure function core that can be unit tested plus a
 thin main(). Utilities that talk to the outside world call posix::init()
 first, which restores signal and descriptor state that the Rust runtime
 changes before main() runs. true and false are so small that they do not
 need it and do not use the shared library at all.
+
+The one program with two names is test: [ is the same binary, which looks
+at the name it was run as. The specification allows that, and "make"
+links the two.
 
 Comments are K&R style (slash-star), never double-slash.
 
@@ -110,7 +114,7 @@ with the reason in a comment. Optional files: UTILITY.setup (run before),
 UTILITY.stdin (instead of /dev/null), UTILITY.show (run afterwards,
 its output is compared too) and UTILITY.filter (a script that rewrites
 standard output before it is compared, for what the spec leaves open,
-like the padding of wc or the order of tsort). The specification
+like the padding of wc and uniq -c or the order of tsort). The specification
 decides who is right; macOS and GNU both deviate from it in places.
 
 VSC-PCTS, the POSIX conformance suite from The Open Group, is not
