@@ -184,6 +184,118 @@ pub fn borrow_fd(fd: i32) -> ManuallyDrop<File> {
     ManuallyDrop::new(unsafe { File::from_raw_fd(fd) })
 }
 
+/*
+ * An input file operand: "-" is standard input (borrowed, never closed),
+ * anything else is opened for reading. Derefs to File either way.
+ */
+pub enum Input {
+    Stdin(ManuallyDrop<File>),
+    Named(File),
+}
+
+impl std::ops::Deref for Input {
+    type Target = File;
+    fn deref(&self) -> &File {
+        match self {
+            Input::Stdin(f) => f,
+            Input::Named(f) => f,
+        }
+    }
+}
+
+impl std::ops::DerefMut for Input {
+    fn deref_mut(&mut self) -> &mut File {
+        match self {
+            Input::Stdin(f) => f,
+            Input::Named(f) => f,
+        }
+    }
+}
+
+impl Input {
+    pub fn is_stdin(&self) -> bool {
+        matches!(self, Input::Stdin(_))
+    }
+}
+
+pub fn open_input(name: &[u8]) -> std::io::Result<Input> {
+    if name == b"-" {
+        return Ok(Input::Stdin(borrow_fd(0)));
+    }
+    File::open(<std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(name))
+        .map(Input::Named)
+}
+
+/* One read(2) that is retried after a signal interrupted it. */
+pub fn read_block<R: std::io::Read>(r: &mut R, buf: &mut [u8]) -> std::io::Result<usize> {
+    loop {
+        match r.read(buf) {
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            other => return other,
+        }
+    }
+}
+
+/* Index of the first byte c in hay (memchr(3)). */
+pub fn find_byte(c: u8, hay: &[u8]) -> Option<usize> {
+    let p = unsafe { libc::memchr(hay.as_ptr() as *const libc::c_void, c as libc::c_int, hay.len()) };
+    if p.is_null() {
+        None
+    } else {
+        Some(p as usize - hay.as_ptr() as usize)
+    }
+}
+
+/*
+ * How many bytes of hay are c. Eight bytes at a time in a plain u64: a byte
+ * of x = word ^ pattern is zero exactly where the input byte was c, and
+ * ((x & 0x7f..) + 0x7f.. | x) & 0x80.. has the top bit set in every byte of
+ * x that is not zero (the 0x7f addition cannot carry into the next byte).
+ * The per-byte results are summed in the eight lanes of one u64 for at most
+ * 255 words before the lanes are added up. It is several times faster than
+ * a byte loop, which the size-optimised build does not vectorise.
+ */
+pub fn count_byte(c: u8, hay: &[u8]) -> u64 {
+    const LO: u64 = 0x0101_0101_0101_0101;
+    const M7: u64 = 0x7f7f_7f7f_7f7f_7f7f;
+    const HI: u64 = 0x8080_8080_8080_8080;
+    const EVEN: u64 = 0x00ff_00ff_00ff_00ff;
+    let pat = LO.wrapping_mul(c as u64);
+    let mut total = 0u64;
+    for block in hay.chunks(255 * 8) {
+        let words = block.chunks_exact(8);
+        let rest = words.remainder();
+        let mut lanes = 0u64;
+        for w in words {
+            let mut a = [0u8; 8];
+            a.copy_from_slice(w);
+            let x = u64::from_ne_bytes(a) ^ pat;
+            let nonzero = (((x & M7).wrapping_add(M7)) | x) & HI;
+            lanes += (!nonzero & HI) >> 7;
+        }
+        let pairs = (lanes & EVEN) + ((lanes >> 8) & EVEN);
+        total += pairs.wrapping_mul(0x0001_0001_0001_0001) >> 48;
+        total += rest.iter().filter(|&&b| b == c).count() as u64;
+    }
+    total
+}
+
+/*
+ * A non-empty string of decimal digits as a number. A value too big for 64
+ * bits becomes u64::MAX, which every caller treats as "more than the file
+ * can hold".
+ */
+pub fn parse_decimal(s: &[u8]) -> Option<u64> {
+    if s.is_empty() || !s.iter().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    let mut n: u64 = 0;
+    for &c in s {
+        n = n.saturating_mul(10).saturating_add((c - b'0') as u64);
+    }
+    Some(n)
+}
+
 /* Command-line bytes as a C string; arguments never contain a NUL. */
 pub fn cstr(b: &[u8]) -> CString {
     CString::new(b).expect("NUL in argument")
@@ -264,6 +376,69 @@ mod tests {
         assert_eq!(strerror(&e), "Permission denied");
         let e = std::io::Error::new(std::io::ErrorKind::Other, "boom");
         assert_eq!(strerror(&e), "boom");
+    }
+
+    #[test]
+    fn find_byte_is_memchr() {
+        assert_eq!(find_byte(b'\n', b"ab\ncd\n"), Some(2));
+        assert_eq!(find_byte(b'\n', b"abcd"), None);
+        assert_eq!(find_byte(b'\n', b""), None);
+        assert_eq!(find_byte(0, b"a\0b"), Some(1));
+        assert_eq!(find_byte(0xff, b"a\xff"), Some(1));
+    }
+
+    #[test]
+    fn count_byte_matches_a_plain_loop() {
+        let naive = |c: u8, h: &[u8]| h.iter().filter(|&&b| b == c).count() as u64;
+        /* every length around the word and block sizes, every alignment */
+        let mut x: u32 = 1;
+        let data: Vec<u8> = (0..9000)
+            .map(|_| {
+                x = x.wrapping_mul(1103515245).wrapping_add(12345);
+                match (x >> 16) % 5 {
+                    0 => b'\n',
+                    1 => 0x0a ^ 0x80,
+                    2 => 0x8a,
+                    3 => 0x0b,
+                    _ => (x >> 8) as u8,
+                }
+            })
+            .collect();
+        for start in 0..9 {
+            for len in (0..40).chain(2030..2050).chain(4080..4100).chain([8000, 8990]) {
+                let h = &data[start..(start + len).min(data.len())];
+                for c in [b'\n', 0x0a ^ 0x80, 0x8a, 0, 0xff, 0x0b] {
+                    assert_eq!(count_byte(c, h), naive(c, h), "start {start} len {len} byte {c}");
+                }
+            }
+        }
+        assert_eq!(count_byte(b'\n', b""), 0);
+        assert_eq!(count_byte(b'\n', &[b'\n'; 100_000]), 100_000);
+        assert_eq!(count_byte(0, &[0u8; 100_003]), 100_003);
+        assert_eq!(count_byte(b'\n', &[0xffu8; 100_000]), 0);
+        /* bytes next to the wanted one, differing in one bit, are not it */
+        assert_eq!(count_byte(b'\n', &[0x0b, 0x8a, 0x0a ^ 0x01, 0x0a ^ 0x40, 0x0a]), 1);
+    }
+
+    #[test]
+    fn parse_decimal_takes_only_digits() {
+        assert_eq!(parse_decimal(b"0"), Some(0));
+        assert_eq!(parse_decimal(b"0042"), Some(42));
+        assert_eq!(parse_decimal(b""), None);
+        assert_eq!(parse_decimal(b"+1"), None);
+        assert_eq!(parse_decimal(b"-1"), None);
+        assert_eq!(parse_decimal(b"1 "), None);
+        assert_eq!(parse_decimal(b"1.5"), None);
+        assert_eq!(parse_decimal(b"\xff"), None);
+        assert_eq!(parse_decimal(b"18446744073709551615"), Some(u64::MAX));
+        assert_eq!(parse_decimal(b"99999999999999999999999999"), Some(u64::MAX));
+    }
+
+    #[test]
+    fn open_input_dash_is_stdin_and_a_missing_file_is_an_error() {
+        assert!(open_input(b"-").unwrap().is_stdin());
+        assert!(!open_input(b"/").unwrap().is_stdin());
+        assert!(open_input(b"/nonexistent/poutil").is_err());
     }
 
     #[test]
