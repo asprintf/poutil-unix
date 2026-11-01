@@ -154,6 +154,10 @@ path = "uuencode/uuencode.rs"
 name = "uudecode"
 path = "uudecode/uudecode.rs"
 
+[[bin]]
+name = "comm"
+path = "comm/comm.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

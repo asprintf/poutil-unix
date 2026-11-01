@@ -1,0 +1,71 @@
+# comm: three columns, the options, operands
+f1 f2
+-1 f1 f2
+-2 f1 f2
+-3 f1 f2
+-12 f1 f2
+-13 f1 f2
+-23 f1 f2
+-123 f1 f2
+-1 -2 f1 f2
+-1 -2 -3 f1 f2
+-3 -2 f1 f2
+-3 -3 f1 f2
+-1 -3 f1 f2
+-2 -3 f1 f2
+f2 f1
+-12 f2 f1
+f1 f1copy
+-3 f1 f1copy
+-12 f1 f1copy
+f1 empty
+empty f1
+empty empty
+-23 empty f1
+-12 f1 empty
+dups1 dups2
+-3 dups1 dups2
+-12 dups1 dups2
+-1 dups2 dups1
+nonl1 f2
+f1 nonl2
+nonl1 nonl2
+nonl1 nonl1
+-12 nonl1 nonl2
+blank1 blank2
+-12 blank1 blank2
+nul1 nul2
+-12 nul1 nul2
+bin1 bin2
+-12 bin1 bin2
+utf1 utf2
+-12 utf1 utf2
+sp1 sp2
+long1 long2
+-12 long1 long2
+- f2
+f1 -
+-12 - f2
+-3 f1 -
+/dev/null f1
+f1 /dev/null
+f1 nosuch
+nosuch f1
+nosuch nosuch
+dir f1
+f1 dir
+noread f1
+f1 noread
+-12 f1 ./-3
+f1 -3
+-12 f1 -3
+-- f1 f2
+-- -3 f1
+-3 -- f1 f2
+f1
+f1 f2 f1
+@
+-x f1 f2
+-4 f1 f2
+-1x f1 f2
+-

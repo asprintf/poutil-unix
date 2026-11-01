@@ -1,0 +1,25 @@
+printf 'apple\nbanana\ncherry\ndate\n' > f1
+printf 'banana\ncherry\ncitron\nelder\n' > f2
+cp f1 f1copy
+: > empty
+printf 'a\na\na\nb\n' > dups1
+printf 'a\nb\nb\n' > dups2
+printf 'apple\nbanana\ncherry' > nonl1
+printf 'cherry\ndate\nzed' > nonl2
+printf '\n\na\nb\n' > blank1
+printf '\na\nc\n' > blank2
+printf 'a\0b\nc\0d\n' > nul1
+printf 'a\0b\nc\0e\n' > nul2
+printf '\200\na\377\nb\377\n' > bin1
+printf '\200\na\377\nc\n' > bin2
+printf 'a\nb\n\303\251\n' > utf1
+printf 'b\n\303\251\n' > utf2
+printf 'a  b\na b\nab\n' > sp1
+printf 'a  b\nab\nb\n' > sp2
+head -c 20000 /dev/zero | tr '\0' x > long1
+echo >> long1
+(head -c 20000 /dev/zero | tr '\0' x; echo y) > long2
+cp f1 ./-3
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
