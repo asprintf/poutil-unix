@@ -1,0 +1,60 @@
+# -w values that are not a plain positive decimal number (+5, ' 5', 1e3, 5.5), the
+# obsolete -5, and a width above what fits (we read it as no limit, macOS and GNU
+# refuse it): the standard leaves these open, we accept digits only
+-5
+-5 text
+-w ' 5' text
+-w '5 ' text
+-w +5 text
+-w 18446744073709551615 text
+-w 18446744073709551616 text
+-w 1e3 text
+-w 5.5 text
+# GNU counts a control character as one column, macOS, posixutils-rs and we as none
+-s -w 5 ctl
+-w 1 ctl
+-w 5 ctl
+-w 6 ctl
+# GNU's --help
+--help
+# macOS only: it reads UTF-8 in the C locale (we, GNU and posixutils-rs see bytes), stops
+# at a NUL byte or an invalid sequence, ignores a directory without a word, has no
+# "-" for standard input, puts a tab differently with -s, and starts with an empty
+# line when one character is wider than the width
+-
+- text
+-b -w 1 cjk
+-b -w 1 utf8
+-b -w 3 bad
+-b -w 3 bin
+-b -w 5 bad
+-s -w 10 utf8text
+-s -w 12 utf8text
+-s -w 20 utf8text
+-s -w 3 mixed
+-s -w 4 mixed
+-s -w 5 cjk
+-s -w 5 comb
+-s -w 5 mixed
+-s -w 6 mixed
+-s -w 7 mixed
+-s -w 8 bin
+-s -w 8 utf8text
+-w 1 bad
+-w 1 cjk
+-w 1 utf8
+-w 2 cjk
+-w 2 comb
+-w 2 utf8
+-w 3 cjk
+-w 3 comb
+-w 4 bad
+-w 4 cjk
+-w 5 bin
+-w 5 comb
+bad
+bin
+dir
+dir text
+text -
+text dir

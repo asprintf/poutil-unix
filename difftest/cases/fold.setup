@@ -1,0 +1,36 @@
+printf 'The quick brown fox jumps over the lazy dog and keeps running far away\nshort\n\nanother fairly long line that needs folding at some column position here\n' > text
+printf 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz\n' > alnum
+printf 'no newline at the end of this somewhat long last line, so fold must keep it so' > nonl
+: > empty
+printf '\n\n\n' > nl
+printf 'a\tb\tc\td\te\tf\tg\th\ti\tj\tk\n' > tabs
+printf '\t\t\t\t\t\t\t\t\t\t\t\n' > tabs2
+printf 'abcdefg\tx\nabcdefgh\tx\nabcdefghi\tx\n' > tabs3
+printf 'ab\bcd\bef\bgh\bij\bkl\bmn\bop\bqr\bst\n' > bs
+printf '\b\b\bab\b\b\b\b\bcd\n' > bs2
+printf 'abcdef\rghijkl\rmnopqr\rstuvwx\n' > cr
+printf 'abcdefgh\r\nijklmnop\r\nqrstuvwx\r\n' > crlf
+printf 'aaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbb cccccccccccccccccccc dddddddddddddddddddd\n' > spaces
+printf 'a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d e f g h i j k l m n o p q r s\n' > spaces2
+printf '          leading blanks then words and more words to wrap around here\n' > lead
+printf 'trailing blanks here and there        \nnext\n' > trail
+printf 'a \t b\t c \td\n' > mixed
+printf 'tab\tseparated\tfields\tin\tone\tline\twith\tmany\tof\tthem\there\n' > tabtext
+printf '\303\251\303\251\303\251\303\251\303\251\303\251\303\251\303\251\303\251\303\251\303\251\303\251\n' > utf8
+printf 'caf\303\251 cr\303\250me br\303\273l\303\251e na\303\257ve \342\202\254uro \303\274ber fa\303\247ade\n' > utf8text
+printf '\344\270\255\346\226\207\344\270\255\346\226\207\344\270\255\346\226\207\344\270\255\346\226\207\344\270\255\346\226\207\n' > cjk
+printf 'e\314\201e\314\201e\314\201e\314\201e\314\201e\314\201e\314\201e\314\201\n' > comb
+printf 'a\303b\303c\303d\303e\303f\303g\303\n' > bad
+printf 'a\0b\0c\0d\0e\0f\0g\0h\0\n\377\200\377\200\n' > bin
+printf '\001\002\003\004\005\006\007\013\014\016\017\n' > ctl
+head -c 5000 /dev/zero | tr '\0' 'x' > long1
+(cat long1; echo; echo tail) > long2
+seq 1 3000 | tr '\n' ' ' > longsp
+echo >> longsp
+printf 'one two\n' > short
+printf 'x' > onech
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'

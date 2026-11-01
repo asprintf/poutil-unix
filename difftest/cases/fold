@@ -1,0 +1,269 @@
+# fold: widths, -b, -s, tabs, backspaces, returns, characters, errors
+@
+text
+alnum
+nonl
+empty
+nl
+tabs
+tabs2
+tabs3
+bs
+bs2
+cr
+crlf
+spaces
+spaces2
+lead
+trail
+mixed
+tabtext
+utf8
+utf8text
+cjk
+comb
+bad
+bin
+ctl
+long1
+long2
+longsp
+short
+onech
+-
+- text
+text -
+text alnum
+nonl text
+empty text
+-w 10 text
+-w 10 alnum
+-w 10 nonl
+-w 10 tabs
+-w 10 bs
+-w 10 cr
+-w 20 text
+-w 40 text
+-w 79 text
+-w 80 text
+-w 81 text
+-w 1 short
+-w 1 text
+-w 1 utf8
+-w 2 text
+-w 2 utf8
+-w 2 cjk
+-w 3 cjk
+-w 4 cjk
+-w 1 cjk
+-w 2 comb
+-w 3 comb
+-w 5 comb
+-w 3 tabs
+-w 7 tabs
+-w 8 tabs
+-w 9 tabs
+-w 15 tabs
+-w 16 tabs
+-w 17 tabs
+-w 8 tabs2
+-w 9 tabs2
+-w 16 tabs2
+-w 8 tabs3
+-w 9 tabs3
+-w 10 tabs3
+-w 1 tabs
+-w 3 bs
+-w 3 bs2
+-w 5 bs2
+-w 1 cr
+-w 3 cr
+-w 6 cr
+-w 7 cr
+-w 8 crlf
+-w 9 crlf
+-w 4 crlf
+-w 1 ctl
+-w 5 ctl
+-w 6 ctl
+-w 5 bin
+-w 4 bad
+-w 1 bad
+-w 5 mixed
+-w 3 mixed
+-w 8 mixed
+-w 100 long1
+-w 4999 long1
+-w 5000 long1
+-w 5001 long1
+-w 99999999999 text
+-w 18446744073709551615 text
+-w 18446744073709551616 text
+-b text
+-b alnum
+-b -w 10 text
+-b -w 10 alnum
+-b -w 10 nonl
+-b -w 10 tabs
+-b -w 10 bs
+-b -w 10 cr
+-b -w 10 utf8
+-b -w 10 utf8text
+-b -w 10 cjk
+-b -w 11 cjk
+-b -w 12 cjk
+-b -w 5 comb
+-b -w 6 comb
+-b -w 1 utf8
+-b -w 2 utf8
+-b -w 3 utf8
+-b -w 1 cjk
+-b -w 3 cjk
+-b -w 4 cjk
+-b -w 5 bad
+-b -w 3 bad
+-b -w 3 bin
+-b -w 1 short
+-b -w 7 mixed
+-b -w 8 tabs
+-b -w 9 tabs3
+-bw10 text
+-bw 10 text
+-b -w10 text
+-s text
+-s alnum
+-s nonl
+-s -w 10 text
+-s -w 10 alnum
+-s -w 10 nonl
+-s -w 10 spaces
+-s -w 20 spaces
+-s -w 21 spaces
+-s -w 22 spaces
+-s -w 40 spaces
+-s -w 41 spaces
+-s -w 10 spaces2
+-s -w 11 spaces2
+-s -w 1 spaces2
+-s -w 2 spaces2
+-s -w 3 spaces2
+-s -w 5 lead
+-s -w 10 lead
+-s -w 11 lead
+-s -w 12 lead
+-s -w 20 lead
+-s -w 40 lead
+-s -w 30 trail
+-s -w 5 trail
+-s -w 8 trail
+-s -w 10 mixed
+-s -w 5 mixed
+-s -w 4 mixed
+-s -w 3 mixed
+-s -w 6 mixed
+-s -w 7 mixed
+-s -w 8 mixed
+-s -w 9 mixed
+-s -w 10 tabtext
+-s -w 12 tabtext
+-s -w 16 tabtext
+-s -w 17 tabtext
+-s -w 20 tabtext
+-s -w 7 tabs
+-s -w 8 tabs
+-s -w 9 tabs
+-s -w 15 tabs
+-s -w 16 tabs
+-s -w 17 tabs
+-s -w 8 tabs3
+-s -w 9 tabs3
+-s -w 10 tabs3
+-s -w 11 tabs3
+-s -w 9 tabs2
+-s -w 15 tabs2
+-s -w 17 tabs2
+-s -w 10 bs
+-s -w 10 cr
+-s -w 3 bs
+-s -w 20 utf8text
+-s -w 10 utf8text
+-s -w 12 utf8text
+-s -w 8 utf8text
+-s -w 5 cjk
+-s -w 5 comb
+-s -w 8 bin
+-s -w 5 ctl
+-s -w 1 short
+-s -w 3 short
+-s -w 4 short
+-s -w 7 short
+-s -w 8 short
+-s -w 80 longsp
+-s -w 60 longsp
+-s -w 37 longsp
+-s -w 100 long2
+-s -b -w 10 text
+-s -b -w 10 spaces
+-s -b -w 10 utf8text
+-s -b -w 7 mixed
+-s -b -w 8 tabtext
+-s -b -w 9 tabtext
+-s -b -w 12 tabtext
+-s -b -w 5 cjk
+-s -b -w 20 longsp
+-bs -w 10 text
+-sb -w 10 text
+-bsw 10 text
+-sbw10 text
+-s -s text
+-b -b text
+-w 10 -w 20 text
+-w 20 -w 10 text
+-sw 10 -b text
+-w 10 -s -b text
+-w text
+-w 0 text
+-w -1 text
+-w +5 text
+-w 5.5 text
+-w 0x10 text
+-w 010 text
+-w ' 5' text
+-w '5 ' text
+-w '' text
+-w abc text
+-w 1e3 text
+-w
+-5 text
+-5
+-sw text
+-- text
+-w 10 -- text
+-s -- text
+-- -w 10 text
+nosuch
+nosuch text
+text nosuch
+text nosuch alnum
+nosuch nosuch2
+-w 10 nosuch text
+dir
+dir text
+text dir
+noread
+noread text
+text noread
+./-f
+./-f text
+'a b'
+'a b' text
+-x text
+-x
+-bx text
+text -x
+-h
+--help
+-w
+-b -w
+-s -w
+-bw
