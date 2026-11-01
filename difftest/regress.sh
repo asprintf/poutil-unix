@@ -130,6 +130,85 @@ echo fifo-data > ff &
 eq "cat of a fifo" fifo-data "$("$OURS/cat" ff)"
 wait
 
+# the output may be reached by another name: hard link, symlink, stdin
+fresh
+echo hi > o
+ln o hard
+ln -s o soft
+: > e
+"$OURS/cat" o >> hard 2> /dev/null
+eq "cat o >> hard link of o: refused" "1 hi" "$? $(cat o)"
+"$OURS/cat" o >> soft 2> /dev/null
+eq "cat o >> symlink to o: refused" "1 hi" "$? $(cat o)"
+"$OURS/cat" soft >> o 2> /dev/null
+eq "cat symlink >> o: refused" "1 hi" "$? $(cat o)"
+"$OURS/cat" < o >> soft 2> /dev/null
+eq "cat < o >> symlink to o: refused" "1 hi" "$? $(cat o)"
+"$OURS/cat" e >> e
+eq "cat of an empty file onto itself: nothing to copy, no error" "0 0" "$? $(wc -c < e | tr -d ' ')"
+
+# unreadable input, input that is a directory on stdin, shared offsets
+echo x > unr
+chmod 000 unr
+echo y > ok
+"$OURS/cat" unr ok > out 2> err
+eq "cat unreadable ok: status" 1 $?
+eq "cat unreadable ok: the readable file is copied" y "$(cat out)"
+eq "cat unreadable ok: one diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+chmod 644 unr
+"$OURS/cat" < . > out 2> err
+eq "cat < directory: status" 1 $?
+eq "cat < directory: nothing copied" 0 "$(wc -c < out | tr -d ' ')"
+printf '0123456789' > ten
+eq "cat continues where the shared offset is" 456789 "$({ dd bs=1 count=4 of=/dev/null 2> /dev/null; "$OURS/cat"; } < ten)"
+eq "cat of an endless file stops when the reader is gone" 100000 "$("$OURS/cat" /dev/zero | head -c 100000 | wc -c | tr -d ' ')"
+printf a > na
+printf b > nb
+printf 'a\0b' > nul
+eq "cat: files without a final newline are joined as they are" 6162 "$("$OURS/cat" na nb | hex)"
+eq "cat of a file with a NUL byte" 610062 "$("$OURS/cat" nul | hex)"
+
+# data goes out as it arrives, with and without -u
+t0=$(date +%s)
+{ echo first; sleep 2; echo second; } | "$OURS/cat" | { read l1; t1=$(date +%s); read l2; echo "$l1 $l2 $((t1 - t0))" > lat1; } &
+{ echo first; sleep 2; echo second; } | "$OURS/cat" -u | { read l1; t1=$(date +%s); read l2; echo "$l1 $l2 $((t1 - t0))" > lat2; } &
+wait
+eq "cat: the first line is passed on before the writer is done" ok "$(awk '{ print ($1 == "first" && $2 == "second" && $3 <= 1) ? "ok" : "bad " $0 }' lat1)"
+eq "cat -u: the first line is passed on before the writer is done" ok "$(awk '{ print ($1 == "first" && $2 == "second" && $3 <= 1) ? "ok" : "bad " $0 }' lat2)"
+
+#--------------------------------------------------------------------- echo
+fresh
+eq "echo: no operand is a newline" 0a "$("$OURS/echo" | hex)"
+eq "echo a b: one blank between, a newline after" 6120620a "$("$OURS/echo" a b | hex)"
+eq "echo -n a: -n is a string under XSI" 2d6e20610a "$("$OURS/echo" -n a | hex)"
+eq "echo -- a: so is --" 2d2d20610a "$("$OURS/echo" -- a | hex)"
+eq "echo: \\a \\b \\f \\r \\t \\v" 07080c0d090b0a "$("$OURS/echo" '\a\b\f\r\t\v' | hex)"
+eq "echo: \\n" 0a0a "$("$OURS/echo" '\n' | hex)"
+eq "echo: \\\\" 5c0a "$("$OURS/echo" '\\' | hex)"
+eq "echo: \\0101 is A" 410a "$("$OURS/echo" '\0101' | hex)"
+eq "echo: \\0 is a NUL byte" 000a "$("$OURS/echo" '\0' | hex)"
+eq "echo: \\0 takes at most three more digits" 41310a "$("$OURS/echo" '\01011' | hex)"
+eq "echo: \\c stops everything, the newline too" 61 "$("$OURS/echo" 'a\cb' c | hex)"
+eq "echo: \\c in a later operand keeps what came before" 6120 "$("$OURS/echo" a '\c' b | hex)"
+eq "echo: \\c alone prints nothing" "" "$("$OURS/echo" '\c' | hex)"
+eq "echo: an unknown escape does not fail" 0 "$("$OURS/echo" '\q' > /dev/null; echo $?)"
+eq "echo: bytes that are not characters pass through" ff80780a "$("$OURS/echo" "$(printf '\377\200x')" | hex)"
+big=$(awk 'BEGIN { s = sprintf("%100000s", ""); gsub(/ /, "x", s); printf "%s", s }')
+eq "echo: a 100000-byte operand" 100001 "$("$OURS/echo" "$big" | wc -c | tr -d ' ')"
+eq "echo: 20000 operands" "$(seq 1 20000 | tr '\n' ' ' | sed 's/ $//')" "$("$OURS/echo" $(seq 1 20000))"
+"$OURS/echo" hi <&- > /dev/null
+eq "echo with stdin closed: status" 0 $?
+"$OURS/echo" hi >&- 2> err
+eq "echo with stdout closed: status" 1 $?
+eq "echo with stdout closed: one diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+{ "$OURS/echo" $(seq 1 50000); echo $? > st; } | head -c 10 > /dev/null
+eq "echo into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	E=$(printf '\303\251')
+	eq "echo: a multibyte character passes through" "c3a90a" "$(LC_ALL=en_US.UTF-8 "$OURS/echo" "$E" | hex)"
+	eq "echo: an escape next to a multibyte character" "c3a9090a" "$(LC_ALL=en_US.UTF-8 "$OURS/echo" "$E\\t" | hex)"
+fi
+
 #---------------------------------------------------------------------- tee
 fresh
 echo x | "$OURS/tee" a a > /dev/null
@@ -167,6 +246,53 @@ eq "tee 400 files: all written" 1 "$(cat m* | sort -u | wc -l | tr -d ' ')"
 eq "tee out of descriptors: status" 1 "$(cat st)"
 eq "tee out of descriptors: stdout still written" x "$(cat out)"
 eq "tee out of descriptors: diagnostics" yes "$([ "$(wc -l < err | tr -d ' ')" -gt 0 ] && echo yes)"
+
+# an unwritable file is reported, the other files and stdout still get the data
+fresh
+echo old > ro
+chmod 444 ro
+echo x | "$OURS/tee" ro g > out 2> err
+eq "tee read-only file: status" 1 $?
+eq "tee read-only file: stdout written" x "$(cat out)"
+eq "tee read-only file: the next file written" x "$(cat g)"
+eq "tee read-only file: it stays as it was" old "$(cat ro)"
+eq "tee read-only file: one diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+echo x | "$OURS/tee" /dev/null > out
+eq "tee /dev/null: stdout written" x "$(cat out)"
+printf 'no newline' | "$OURS/tee" nn > out
+eq "tee: a last line without newline stays so" "no newline|no newline" "$(cat nn)|$(cat out)"
+: | "$OURS/tee" empty > out
+eq "tee of empty input: empty file made" "0 0" "$(wc -c < empty | tr -d ' ') $(wc -c < out | tr -d ' ')"
+printf 'longer old contents\n' > tr
+echo s | "$OURS/tee" tr > /dev/null
+eq "tee truncates an existing file" s "$(cat tr)"
+printf 'a\n' > ap
+printf 'b' | "$OURS/tee" -a ap > /dev/null
+printf 'c\n' | "$OURS/tee" -a ap > /dev/null
+eq "tee -a twice: appends every time, no newline added" "a bc" "$(cat ap | tr '\n' ' ' | sed 's/ $//')"
+
+# -i: SIGINT is ignored; without it the default action applies. A background
+# job of this sh ignores SIGINT already, so perl puts the default back first.
+# (a script, not a shell function: $! must be the pid of tee itself)
+cat > "$tmp/dfl_int" <<'EOF2'
+#!/usr/bin/perl
+$SIG{INT} = "DEFAULT";
+exec @ARGV;
+EOF2
+chmod 755 "$tmp/dfl_int"
+{ echo first; sleep 2; echo second; } | "$tmp/dfl_int" "$OURS/tee" -i ti > ti.out &
+p1=$!
+{ echo first; sleep 2; echo second; } | "$tmp/dfl_int" "$OURS/tee" tn > tn.out &
+p2=$!
+sleep 1
+kill -INT $p1 $p2
+reap $p1
+eq "tee -i survives SIGINT: status" 0 $?
+reap $p2
+eq "tee without -i dies of SIGINT: status" 130 $?
+eq "tee -i survives SIGINT: the file has everything" "first second" "$(tr '\n' ' ' < ti | sed 's/ $//')"
+eq "tee -i survives SIGINT: so does stdout" "first second" "$(tr '\n' ' ' < ti.out | sed 's/ $//')"
+eq "tee without -i: only what came before the signal" first "$(cat tn)"
 
 #------------------------------------------------------- mkdir mkfifo rmdir
 fresh
@@ -217,6 +343,23 @@ eq "mkfifo under umask 077" prw------- "$(mode f4)"
 eq "mkfifo existing: status" 1 $?
 "$OURS/mkfifo" -m 0 f5 f6
 eq "mkfifo -m 0 f5 f6: both made" "p--------- p---------" "$(mode f5) $(mode f6)"
+"$OURS/mkfifo" f7
+eq "mkfifo without -m under umask 022: a=rw minus umask" prw-r--r-- "$(mode f7)"
+"$OURS/mkfifo" f1 f8 2> /dev/null
+eq "mkfifo existing then new: status" 1 $?
+eq "mkfifo existing then new: the later operand is still made" p "$(mode f8 | cut -c1)"
+"$OURS/mkfifo" f9 f9 2> /dev/null
+eq "mkfifo f9 f9: second fails" 1 $?
+"$OURS/mkfifo" rt
+echo through > rt &
+eq "mkfifo: it is a pipe and it carries data" "pipe through" "$([ -p rt ] && echo pipe) $(cat rt)"
+wait
+mkdir ro
+chmod 555 ro
+"$OURS/mkfifo" ro/f 2> /dev/null
+eq "mkfifo in a read-only directory: status" 1 $?
+eq "mkfifo in a read-only directory: nothing made" "" "$(ls ro)"
+chmod 755 ro
 
 mkdir -p a/b/c
 touch a/keep
@@ -286,6 +429,43 @@ eq "unlink of a directory: refused" "1 kept" "$? $([ -d d ] && echo kept)"
 "$OURS/unlink" b
 "$OURS/unlink" b 2> /dev/null
 eq "unlink twice: second fails" 1 $?
+
+# hard links share the data and the link count, unlink drops one name
+fresh
+echo data > h1
+"$OURS/link" h1 h2
+"$OURS/link" h2 h3
+eq "link: three names, link count 3" 3 "$(ls -l h1 | awk '{print $2}')"
+echo more >> h3
+eq "link: a write through one name shows through the others" "data more" "$(cat h1 | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/unlink" h1
+eq "unlink: the count drops and the data stays" "2 data more" "$(ls -l h2 | awk '{print $2}') $(cat h2 | tr '\n' ' ' | sed 's/ $//')"
+mkdir sub
+"$OURS/link" h2 sub/../h4
+eq "link through a .. component: same inode" "$(ls -i h2 | awk '{print $1}')" "$(ls -i h4 | awk '{print $1}')"
+"$OURS/link" nosuch h5 2> /dev/null
+eq "link of a missing file: status" 1 $?
+eq "link of a missing file: nothing made" "" "$([ -e h5 ] && echo made)"
+"$OURS/link" h2 nodir/h6 2> /dev/null
+eq "link into a missing directory: status" 1 $?
+mkdir ro
+chmod 555 ro
+"$OURS/link" h2 ro/h7 2> /dev/null
+eq "link into a read-only directory: status" 1 $?
+eq "link into a read-only directory: nothing made" "" "$(ls ro)"
+chmod 755 ro
+"$OURS/link" h2 ro/h8
+chmod 555 ro
+"$OURS/unlink" ro/h8 2> /dev/null
+eq "unlink in a read-only directory: refused, the name stays" "1 h8" "$? $(ls ro)"
+chmod 755 ro
+ln -s nowhere dang
+"$OURS/unlink" dang
+eq "unlink of a dangling symlink" "0 gone" "$? $([ -L dang ] || echo gone)"
+"$OURS/link" h2 h9 > out 2> err
+eq "link is silent when it succeeds" "0 0" "$(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/unlink" h9 > out 2> err
+eq "unlink is silent when it succeeds" "0 0" "$(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
 
 #------------------------------------------------------------- kill
 fresh
@@ -380,6 +560,126 @@ eq "nice -n -5: runs the utility even if it cannot raise priority" ran "$out"
 "$OURS/nice" -n 5 sh -c 'exit 3'
 eq "nice: status" 3 $?
 
+# nice: the values really change (ps shows them); this system stops at 19
+nv='ps -o nice= -p $$'
+base=$(ps -o nice= -p $$ | tr -d ' ')
+# add A B: A + B, at most 19
+add() {
+	s=$(($1 + $2))
+	[ "$s" -gt 19 ] && s=19
+	echo "$s"
+}
+eq "nice: the default increment is 10" "$(add "$base" 10)" "$("$OURS/nice" sh -c "$nv" | tr -d ' ')"
+eq "nice -n 0: unchanged" "$base" "$("$OURS/nice" -n 0 sh -c "$nv" | tr -d ' ')"
+eq "nice -n 7" "$(add "$base" 7)" "$("$OURS/nice" -n 7 sh -c "$nv" | tr -d ' ')"
+eq "nice nested: increments add up" "$(add "$base" 7)" "$("$OURS/nice" -n 3 "$OURS/nice" -n 4 sh -c "$nv" | tr -d ' ')"
+eq "nice nested: the sum stops at the maximum" 19 "$("$OURS/nice" -n 15 "$OURS/nice" -n 15 sh -c "$nv" | tr -d ' ')"
+eq "nice -n 100: clamped" 19 "$("$OURS/nice" -n 100 sh -c "$nv" | tr -d ' ')"
+eq "nice: the parent keeps its own value" "$base" "$("$OURS/nice" -n 5 true; ps -o nice= -p $$ | tr -d ' ')"
+eq "nice: arguments of the utility are not options" "-n|--|x" "$("$OURS/nice" -n 2 sh -c 'echo "$1|$2|$3"' sh -n -- x)"
+eq "nice: standard input and output reach the utility" through "$(echo through | "$OURS/nice" cat)"
+eq "nice: standard error reaches the caller" err "$("$OURS/nice" sh -c 'echo err >&2' 2>&1 > /dev/null)"
+
+# time: what the figures mean
+t=$("$OURS/time" -p sleep 1 2>&1)
+eq "time -p sleep 1: real is a little over 1" ok "$(echo "$t" | awk '$1 == "real" { print ($2 >= 1 && $2 < 3) ? "ok" : "bad " $2 }')"
+eq "time -p sleep 1: almost no CPU" ok "$(echo "$t" | awk '$1 == "user" || $1 == "sys" { s += $2 } END { print (s < 0.5) ? "ok" : "bad " s }')"
+eq "time -p: real, user, sys in that order" "real user sys" "$(echo "$t" | awk '{ printf "%s ", $1 }' | sed 's/ $//')"
+t=$("$OURS/time" -p sh -c 'awk "BEGIN { for (i = 0; i < 3000000; i++) x += i }"' 2>&1)
+eq "time -p: CPU time of a grandchild is counted" ok "$(echo "$t" | awk '$1 == "user" || $1 == "sys" { s += $2 } END { print (s >= 0.05) ? "ok" : "bad " s }')"
+out=$("$OURS/time" -p sh -c 'echo to-out; echo to-err >&2' 2> t)
+eq "time: stdout carries only the utility's" to-out "$out"
+eq "time: the utility's stderr comes first, then the figures" "to-err real user sys" "$(awk '{ printf "%s ", $1 }' t | sed 's/ $//')"
+eq "time: standard input reaches the utility" through "$(echo through | "$OURS/time" -p cat 2> /dev/null)"
+"$OURS/time" -p sh -c 'kill -9 $$' > /dev/null 2> t
+eq "time: a signalled utility is still timed" 3 "$(grep -Ec '^(real|user|sys) ' t)"
+if [ "$(LC_ALL=de_DE.UTF-8 locale decimal_point 2> /dev/null)" = , ]; then
+	LC_ALL=de_DE.UTF-8 "$OURS/time" -p true 2> t
+	eq "time -p uses the radix character of LC_NUMERIC" 3 "$(grep -Ec '^(real|user|sys) [0-9]+,[0-9][0-9]$' t)"
+else
+	echo "skip: no de_DE.UTF-8 locale"
+fi
+"$OURS/time" -p ./nosuchcmd > /dev/null 2> t
+eq "time of a missing utility: status" 127 $?
+
+#------------------------------------------------- nohup on a terminal
+# script(1) gives the command a pseudo-terminal for stdin, stdout and stderr.
+export OURS
+if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /dev/null 2>&1; then
+	# ttyrun CMD: run the shell command CMD on a pseudo-terminal, screen text in ./ty
+	ttyrun() {
+		/usr/bin/script -q /dev/null sh -c "$1" < /dev/null > ty 2>&1
+	}
+	W=$(pwd -P)/tw
+	export W
+	rm -rf "$W"
+	mkdir "$W" "$W/ro" "$W/home"
+	cd "$W" || exit 1
+
+	ttyrun '"$OURS/nohup" sh -c "echo out; echo err >&2"'
+	eq "nohup on a terminal: output goes to nohup.out" "out err" "$(tr '\n' ' ' < nohup.out | sed 's/ $//')"
+	eq "nohup on a terminal: created with mode 0600" -rw------- "$(mode nohup.out)"
+	eq "nohup on a terminal: the screen shows the message, not the output" "1 0" \
+		"$(grep -c 'nohup.out' ty) $(grep -Ec '^(out|err)' ty)"
+
+	rm -f nohup.out
+	printf 'old\n' > nohup.out
+	chmod 644 nohup.out
+	ttyrun '"$OURS/nohup" echo new'
+	eq "nohup appends to an existing nohup.out" "old new" "$(tr '\n' ' ' < nohup.out | sed 's/ $//')"
+	eq "nohup leaves the mode of an existing nohup.out" -rw-r--r-- "$(mode nohup.out)"
+	rm -f nohup.out
+
+	chmod 555 ro
+	ttyrun 'cd "$W/ro" && HOME="$W/home" "$OURS/nohup" echo viahome'
+	eq "nohup falls back to HOME/nohup.out" "viahome" "$(cat home/nohup.out)"
+	eq "nohup in HOME: mode 0600" -rw------- "$(mode home/nohup.out)"
+	eq "nohup in HOME: the message names that file" 1 "$(grep -c "$W/home/nohup.out" ty)"
+	eq "nohup in HOME: nothing in the directory that failed" "" "$(ls ro)"
+	rm -f home/nohup.out
+
+	rm -f marker
+	ttyrun 'cd "$W/ro" && HOME="$W/ro" "$OURS/nohup" touch "$W/marker"; echo $? > "$W/st"'
+	eq "nohup with no place for nohup.out: status" 127 "$(cat st)"
+	eq "nohup with no place for nohup.out: the utility is not run" "" "$([ -e marker ] && echo ran)"
+	chmod 755 ro
+
+	ttyrun '"$OURS/nohup" sh -c "echo o; echo e >&2" > f'
+	eq "nohup: stderr on a terminal follows a redirected stdout" "o e" "$(tr '\n' ' ' < f | sed 's/ $//')"
+	eq "nohup: nothing created when stdout is not a terminal" "" "$([ -e nohup.out ] && echo made)"
+
+	ttyrun '"$OURS/nohup" sh -c "echo o; echo e >&2" 2> e2'
+	eq "nohup: stdout on a terminal, stderr redirected: output in nohup.out" o "$(cat nohup.out)"
+	eq "nohup: stdout on a terminal, stderr redirected: the message goes to stderr" "1" "$(grep -c nohup.out e2)"
+	rm -f nohup.out
+
+	ttyrun '"$OURS/nohup" sh -c "echo e >&2" >&-'
+	eq "nohup: stderr on a terminal, stdout closed: nohup.out" e "$(cat nohup.out)"
+	rm -f nohup.out
+
+	ttyrun '"$OURS/nohup" echo hi > f 2> g'
+	eq "nohup: no terminal for stdout or stderr: output untouched" "hi|0" "$(cat f)|$(wc -c < g | tr -d ' ')"
+	eq "nohup: no terminal for stdout or stderr: no nohup.out" "" "$([ -e nohup.out ] && echo made)"
+
+	ttyrun '"$OURS/nohup" sh -c "exit 5"; echo $? > "$W/st"'
+	eq "nohup on a terminal: exit status of the utility" 5 "$(cat st)"
+	ttyrun '"$OURS/nohup" ./nosuchcmd; echo $? > "$W/st"'
+	eq "nohup on a terminal: utility not found" 127 "$(cat st)"
+	: > noexec
+	chmod 644 noexec
+	ttyrun '"$OURS/nohup" ./noexec; echo $? > "$W/st"'
+	eq "nohup on a terminal: utility not executable" 126 "$(cat st)"
+	rm -f nohup.out
+
+	ttyrun '"$OURS/nohup" sh -c "kill -HUP \$\$; echo survived"'
+	eq "nohup on a terminal: SIGHUP is ignored by the utility" survived "$(cat nohup.out)"
+	cd "$tmp" || exit 1
+	rm -rf "$W"
+	fresh
+else
+	echo "skip: no script(1)"
+fi
+
 #----------------------------------------------------- sleep tty logname
 fresh
 "$OURS/sleep" 0
@@ -393,11 +693,76 @@ sleep 1
 eq "sleep with a huge time: still asleep after a second" 0 $?
 "$OURS/kill" $p
 reap $p
+t0=$(date +%s)
+"$OURS/sleep" 1
+t1=$(date +%s)
+eq "sleep 1: takes at least a second, not much more" ok "$([ $((t1 - t0)) -ge 1 ] && [ $((t1 - t0)) -le 2 ] && echo ok)"
+"$OURS/sleep" 100 &
+p=$!
+sleep 1
+kill -TERM $p
+reap $p
+eq "sleep: SIGTERM ends it with the default action" 143 $?
+{
+	"$OURS/sleep" 100 &
+	p=$!
+	sleep 1
+	kill -ALRM $p
+	sleep 1
+	if kill -0 $p; then
+		kill $p
+		reap $p
+		r=ignored
+	else
+		reap $p
+		r=$?
+	fi
+} 2> /dev/null
+case $r in
+ignored | 0 | 142) r=allowed ;;
+esac
+eq "sleep: SIGALRM is ignored, exits 0 or takes the default action" allowed "$r"
+"$OURS/sleep" 0 < /dev/null > out 2> err
+eq "sleep 0: no output at all" "0 0" "$(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/sleep" 0 <&- >&- 2>&-
+eq "sleep 0 with every standard descriptor closed" 0 $?
+"$OURS/sleep" 1 1 2> /dev/null
+eq "sleep 1 1: one operand only" 2 $?
 "$OURS/tty" < /dev/null > out
 eq "tty on /dev/null: status" 1 $?
 eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
+
+#---------------------------------------------------------------------- uname
+# the system's own figures, from sysctl, are the reference
+fresh
+s=$(sysctl -n kern.ostype)
+n=$(sysctl -n kern.hostname)
+r=$(sysctl -n kern.osrelease)
+v=$(sysctl -n kern.version)
+m=$(sysctl -n hw.machine)
+eq "uname: no option means -s" "$s" "$("$OURS/uname")"
+eq "uname -s" "$s" "$("$OURS/uname" -s)"
+eq "uname -n" "$n" "$("$OURS/uname" -n)"
+eq "uname -r" "$r" "$("$OURS/uname" -r)"
+eq "uname -v" "$v" "$("$OURS/uname" -v)"
+eq "uname -m" "$m" "$("$OURS/uname" -m)"
+eq "uname -a: all five, in the order of the format" "$s $n $r $v $m" "$("$OURS/uname" -a)"
+eq "uname -a: one line" 1 "$("$OURS/uname" -a | wc -l | tr -d ' ')"
+eq "uname -mnrsv: the order does not depend on the options" "$s $n $r $v $m" "$("$OURS/uname" -mnrsv)"
+eq "uname -vm -s: options given in two words" "$s $v $m" "$("$OURS/uname" -vm -s)"
+eq "uname -rn: no trailing blank" "$n $r" "$("$OURS/uname" -rn)"
+eq "uname -a -s: -a stays the whole set" "$s $n $r $v $m" "$("$OURS/uname" -a -s)"
+eq "uname -s ends in one newline" "$(printf '%s\n_' "$s")" "$("$OURS/uname" -s; echo _)"
+"$OURS/uname" -x > out 2> err
+eq "uname -x: usage error" "2 0" "$? $(wc -c < out | tr -d ' ')"
+eq "uname -x: a diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/uname" extra > out 2> /dev/null
+eq "uname with an operand: usage error, no output" "2 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/uname" -a >&- 2> err
+eq "uname with stdout closed: status" 1 $?
+eq "uname with stdout closed: a diagnostic" 1 "$(wc -l < err | tr -d ' ')"
 
 #------------------------------------------------------- wc head tail tsort
 fresh
@@ -566,6 +931,45 @@ eq "tsort with stdin closed: status" 1 $?
 eq "tsort of a missing file: status" 1 $?
 "$OURS/tsort" n5 n5 2> /dev/null
 eq "tsort with two files is a usage error" 2 $?
+
+# "-" is standard input here; the pieces of a slow pipe are joined into items
+eq "tsort -: standard input" "a b" "$(printf 'a b\n' | "$OURS/tsort" - | tr '\n' ' ' | sed 's/ $//')"
+eq "tsort: a pair arriving in pieces over a slow pipe" "a b c" \
+	"$({ printf 'a '; sleep 1; printf 'b\nb c\n'; } | "$OURS/tsort" | tr '\n' ' ' | sed 's/ $//')"
+eq "tsort: an item cut in two by a slow pipe" "ab c" \
+	"$({ printf 'a'; sleep 1; printf 'b c\n'; } | "$OURS/tsort" | tr '\n' ' ' | sed 's/ $//')"
+
+# the report of a cycle names the items on it and nothing else
+printf 'a b\nb c\nc a\nc d\n' | "$OURS/tsort" > out 2> err
+eq "tsort cycle of three: status" 1 $?
+eq "tsort cycle of three: every item once" "a b c d" "$(sort out | tr '\n' ' ' | sed 's/ $//')"
+eq "tsort cycle of three: the report names a b c" "a b c" "$(grep -v 'cycle in data' err | sed 's/^tsort: //' | sort | tr '\n' ' ' | sed 's/ $//')"
+printf 'a b\nb a\nc d\nd c\n' | "$OURS/tsort" > out 2> err
+eq "tsort two separate cycles: both reported" 2 "$(grep -c 'cycle in data' err)"
+eq "tsort two separate cycles: every item once" "a b c d" "$(sort out | tr '\n' ' ' | sed 's/ $//')"
+printf 'a a\n' | "$OURS/tsort" > out 2> err
+eq "tsort a a: an item before itself is no cycle" "0 a 0" "$? $(cat out) $(wc -c < err | tr -d ' ')"
+
+# very long chains are sorted without recursion; a small stack would show it
+awk 'BEGIN { for (i = 1; i < 1000000; i++) printf "%d %d\n", i, i + 1 }' > chain
+awk 'BEGIN { for (i = 999999; i >= 1; i--) printf "%d %d\n", i, i + 1 }' > rchain
+awk 'BEGIN { for (i = 1; i <= 1000000; i++) printf "%d\n", i }' > seq1m
+(
+	ulimit -s 1024
+	"$OURS/tsort" chain > out1
+	echo $? > st1
+	"$OURS/tsort" rchain > out2
+	echo $? > st2
+)
+eq "tsort of a chain of a million items, small stack: status" "0 0" "$(cat st1) $(cat st2)"
+eq "tsort of a chain of a million items: in order" 0 "$(cmp out1 seq1m > /dev/null 2>&1; echo $?)"
+eq "tsort of the same chain written backwards: in order" 0 "$(cmp out2 seq1m > /dev/null 2>&1; echo $?)"
+{ "$OURS/tsort" chain; echo $? > st; } | head -c 10 > /dev/null
+eq "tsort into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+eq "tsort: a million copies of one pair" "a b" "$(yes 'a b' | head -n 1000000 | "$OURS/tsort" | tr '\n' ' ' | sed 's/ $//')"
+awk 'BEGIN { s = sprintf("%1000000s", ""); gsub(/ /, "y", s); print s, "z" }' > longitem
+"$OURS/tsort" longitem > out
+eq "tsort: an item of a million bytes" "1000001 2" "$(head -n 1 out | wc -c | tr -d ' ') $(wc -l < out | tr -d ' ')"
 
 #---------------------------------------------------------------------- uniq
 fresh
