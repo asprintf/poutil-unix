@@ -89,7 +89,7 @@ fn main() {
     posix::init();
     let args = posix::args();
     let prog = posix::progname(&args);
-    let mut rest = &args[1..];
+    let mut rest = &args[1.min(args.len())..];
     let mut sig = libc::SIGTERM;
     let bad = |s: &[u8]| -> ! {
         posix::warn_path(&prog, s, "invalid signal");

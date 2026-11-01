@@ -61,7 +61,7 @@ fn main() {
     posix::init();
     let args = posix::args();
     let prog = posix::progname(&args);
-    let (mut out, nonl) = expand(&args[1..]);
+    let (mut out, nonl) = expand(&args[1.min(args.len())..]);
     if !nonl {
         out.push(b'\n');
     }
