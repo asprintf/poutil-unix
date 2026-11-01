@@ -1,0 +1,56 @@
+# cksum: the CRC, the length, the name; stdin; errors
+@
+-
+- -
+empty
+a
+check
+f1
+f2
+f1 f2
+f2 f1
+f1 f1
+empty a check
+nl
+nul
+z8
+l7
+l8
+l9
+bin
+bytes
+l255
+l256
+l257
+l65535
+l65536
+l65537
+blk
+blk1
+seq
+m16a
+m16b
+seq12
+a - f1
+- f1
+f1 -
+nosuch
+nosuch f1
+f1 nosuch f2
+nosuch nosuch2
+dir
+dir f1
+noread
+noread f1
+-- f1
+-- -f
+-f
+./-f
+'a b'
+'a b' f1
+-x
+-x f1
+-- -x
+f1 -x
+-- -- f1
+-h

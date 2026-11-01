@@ -1,0 +1,30 @@
+: > empty
+printf 'a' > a
+printf '123456789' > check
+printf 'hello world\nfoo bar baz\n\nlast' > f1
+printf 'one\ntwo\n' > f2
+printf '\n' > nl
+printf '\000' > nul
+printf '\000\000\000\000\000\000\000\000' > z8
+printf 'abcdefg' > l7
+printf 'abcdefgh' > l8
+printf 'abcdefghi' > l9
+printf 'a\0b\377\200c\r\n\tz' > bin
+cp "$(dirname "$0")/uuencode.bytes" bytes
+head -c 255 bytes > l255
+head -c 256 /dev/zero > l256
+head -c 257 /dev/zero > l257
+head -c 65535 /dev/zero | tr '\0' 'x' > l65535
+head -c 65536 /dev/zero | tr '\0' 'x' > l65536
+head -c 65537 /dev/zero | tr '\0' 'x' > l65537
+head -c 262144 /dev/zero > blk
+(head -c 262144 /dev/zero; printf z) > blk1
+seq 1 200000 > seq
+head -c 16777215 seq > m16a
+head -c 16777216 /dev/zero > m16b
+(cat seq seq seq seq seq seq seq seq seq seq seq seq) > seq12
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'

@@ -1,0 +1,7 @@
+# macOS cksum has no "-" for standard input and reads a file called "-": the
+# standard leaves it to the implementation; we and GNU read standard input
+-
+- -
+a - f1
+- f1
+f1 -

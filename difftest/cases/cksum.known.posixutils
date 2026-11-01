@@ -1,0 +1,3 @@
+# their option parser takes options after operands and -h as help
+f1 -x
+-h

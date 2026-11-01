@@ -162,6 +162,10 @@ path = "comm/comm.rs"
 name = "cmp"
 path = "cmp/cmp.rs"
 
+[[bin]]
+name = "cksum"
+path = "cksum/cksum.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true
