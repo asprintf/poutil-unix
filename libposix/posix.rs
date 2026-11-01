@@ -4,10 +4,12 @@
  * POSIX getopt, and process startup conventions.
  */
 
+pub mod cal;
 pub mod getopt;
 pub mod mb;
 pub mod mode;
 pub mod num;
+pub mod prompt;
 pub mod tabs;
 
 use std::ffi::CString;
