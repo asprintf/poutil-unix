@@ -2,3 +2,15 @@
 -a
 # GNU -a adds fields after the standard five, whatever else is given
 -a -s
+# GNU -a again adds its extra fields, however the options are spelled
+-a -a
+-as
+-sa
+-nrsvm -a
+# -i -o -p are extensions (GNU has all three, macOS -o and -p); the 2018 edition has -a -m -n -r -s -v only
+-A
+-i
+-o
+-p
+# GNU takes --s as an abbreviated long option
+--s

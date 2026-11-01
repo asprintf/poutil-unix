@@ -4,3 +4,6 @@
 -p
 @
 -x true
+# macOS time(1) has an -x option (plist output); POSIX has -p only
+-p -x true
+-px true

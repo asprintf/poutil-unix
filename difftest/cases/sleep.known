@@ -2,3 +2,16 @@
 1.5
 # BSD and GNU add several operands together; POSIX takes exactly one
 0 0
+# the operand is a non-negative decimal integer: no sign, no fraction, no exponent,
+# no hexadecimal, no unit suffix (BSD and GNU accept all of these)
++0
+0.
+.0
+0.0
+0e0
+0x0
+0s
+1e-9
+# several operands, as above
+-- 0 0
+0 0 0

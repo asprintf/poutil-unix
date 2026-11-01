@@ -4,3 +4,8 @@
 '\e'
 '\x41'
 '\101'
+# GNU takes -n (alone) as an option, as above; XSI has it as a string
+-n
+-n -n
+# only \0num is defined; any other escape, \1 for one, is unspecified (GNU reads it as octal)
+'\1'

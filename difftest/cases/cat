@@ -31,3 +31,25 @@ f1 d f2
 -uu f1
 'a b'
 f1 'a b'
+# more operand shapes
+./-
+- f1
+f1 -
+-- - f1
+-u -
+-u f1 - f2
+f2 f1
+f2 f2
+f3 f3
+bin bin
+empty empty
+.
+./f1
+f1/
+''
+f1 ''
+f1 . f2
+-u -x
+-u -- -f
+-- -- f1
+f1 ./-f

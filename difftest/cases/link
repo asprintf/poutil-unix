@@ -17,3 +17,23 @@ a b/
 d d2
 '' ''
 a a2 a3
+# more path shapes
+a ./a2
+a2 a3
+a .
+a ..
+a /
+. x
+.. x
+'' a
+a ''
+a/. b
+a a/
+a b -- 
+-- a -- b
+-- -- --
+a d/a
+a d/../x
+a nosuch/../x
+d/ d2/
+a a2 a

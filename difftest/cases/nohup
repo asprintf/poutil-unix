@@ -11,3 +11,24 @@ nosuchcmd
 @
 -x echo hi
 echo -x
+# statuses, streams and arguments
+sh -c 'exit 0'
+sh -c 'exit 126'
+sh -c 'exit 127'
+sh -c 'exit 255'
+sh -c 'kill -s TERM $$'
+sh -c 'kill -9 $$'
+sh -c 'echo out; echo err >&2'
+sh -c 'echo err >&2; exit 4'
+sh -c 'echo "$1|$2|$3"' sh -n -- x
+-- sh -c 'echo $0' name
+-- -- echo hi
+sh -c 'kill -s HUP $$; echo alive; exit 7'
+sh -c 'trap "" HUP; kill -s HUP $$; echo alive'
+sh -c 'trap - HUP; kill -s HUP $$; echo alive'
+echo -n
+/bin/echo hi
+./nosuch
+''
+.
+..

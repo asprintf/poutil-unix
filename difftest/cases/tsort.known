@@ -6,3 +6,13 @@ cycle3
 cycles
 # macOS ignores the read error of a directory and exits 0
 d
+# macOS does not take "-" as standard input, as above
+-- -
+# macOS exits 0 after reporting a cycle, as above
+-- cycle
+cyc3d
+cycle4
+# macOS ignores the read error of a directory, as above
+.
+# items are separated by <blank> (space, tab) and newline: a CR belongs to the item, as in ours and macOS; GNU treats it as white space
+crlf

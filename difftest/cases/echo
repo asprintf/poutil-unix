@@ -29,3 +29,45 @@ a '' b
 '' ''
 'a\cb' 'c'
 -- -n
+# each escape alone, next to text, and the edges of \0num
+'\a'
+'\b'
+'\f'
+'\r'
+'\v'
+'\t\t'
+'a\tb\tc'
+'\n\n'
+'a\nb' 'c\nd'
+'\\n'
+'\\\\'
+'\\c'
+'a\'
+'\0' x
+'\00'
+'\000'
+'\0000'
+'\08'
+'\0400'
+'\011'
+'\0111'
+'\012'
+'\1'
+'\01'
+'a\c' b
+a 'b\c' c
+a '\c' b
+'\cb'
+'a\0cb'
+'\'
+'\\\'
+# strings that look like options
+-n
+-nn a
+-n -n
+a -n
+-e a
+-E a
+--help
+--version
+-

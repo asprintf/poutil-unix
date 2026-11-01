@@ -34,3 +34,23 @@ f1 d
 d/ f1
 -m 700 -m 755 f1
 -mm
+# more mode shapes
+-m 600 -m 700 f1
+-m a+rwx f1
+-m o= f1
+-m =rwx f1
+-m u=r,g=w,o=x f1
+-m 07777 f1
+-m 10000 f1
+-m 8 f1
+-m 6 f1
+-m +r f1
+-m ,u f1
+-m u, f1
+-m u=,g=u f1
+-m g=u f1
+-m 0600 -- f1
+-m 644 f1 d/f
+-m 644 d/ f1
+f1/
+d/f1

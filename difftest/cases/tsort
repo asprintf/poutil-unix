@@ -28,3 +28,24 @@ nosuch
 d
 spec chain
 -x spec
+# more shapes of input
+cyc3d
+crlf
+nonl
+nonl2
+spaceonly
+nlonly
+tabs
+longchain
+triangle
+cycle4
+selfmid
+fan
+spec nosuch
+nosuch spec
+''
+.
+-- cycle
+-- -
+-- -- spec
+-

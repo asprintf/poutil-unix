@@ -19,3 +19,22 @@ extra
 --
 -a -s
 -ss
+# more option shapes
+-a -a
+-nn
+-mm -m
+-s extra
+-
+-sa
+-as
+--s
+-s --
+-S
+-A
+-o
+-p
+-i
+-rn -sv
+-m -v -r -n -s
+-nrsvm -a
+-- -- -s

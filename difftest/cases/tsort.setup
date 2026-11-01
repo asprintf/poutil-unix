@@ -20,3 +20,15 @@ printf 'a\377 b\200\n' > bin
 printf 'top x\ntop y\nx bot\ny bot\n' > diamond
 printf 'dash a\n' > ./-f
 mkdir d
+printf 'a b\nb c\nc a\nc d\n' > cyc3d
+printf 'a\r b\r\n' > crlf
+printf 'a b\n\n\n\nc d' > nonl
+printf 'a b' > nonl2
+printf ' \n' > spaceonly
+printf '\n' > nlonly
+printf 'a\tb\nb\tc\n' > tabs
+printf 'a b\nb c\nc d\nd e\ne f\nf g\ng h\nh i\ni j\n' > longchain
+printf 'x y\ny z\nx z\n' > triangle
+printf 'a b\nc d\nb c\nd a\n' > cycle4
+printf '1 2\n2 3\n3 3\n3 4\n' > selfmid
+printf 'a b\na c\na d\nb d\nc d\n' > fan

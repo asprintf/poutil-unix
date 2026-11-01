@@ -13,3 +13,17 @@ abc
 -0
 000000000000000000000000000
 0 
+# other shapes of the operand (all short: any tool that accepts one only waits a moment)
++0
+0.
+.0
+0.0
+0e0
+0x0
+0,0
+-- 0 0
+0 0 0
+-s 0
+0s
+1e-9
+٠

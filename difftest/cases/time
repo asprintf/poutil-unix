@@ -17,3 +17,19 @@ true
 -p sh -c 'exit 127'
 -p sh -c 'exit 1'
 -p -- sh -c 'exit 4'
+# streams, arguments and signals
+-p sh -c 'echo out; echo err >&2'
+-p sh -c 'exit 0'
+-p sh -c 'kill -s TERM $$'
+-p sh -c 'kill -s HUP $$'
+-p -- sh -c 'echo "$1|$2" ' sh -p x
+-p sh -c 'echo "$1|$2|$3"' sh -n -- x
+-p echo -p
+-pp true
+-p -x true
+-px true
+-p ''
+-p .
+-p ./nosuch
+-p -- -- true
+-p sleep 0

@@ -1,3 +1,5 @@
 # GNU mkfifo refuses setuid/sticky bits; the mode operand is chmod's, so POSIX and macOS allow them
 -m 4755 f1
 -m 1777 f1
+# same as 4755 above: GNU refuses the setuid bit
+-m 07777 f1
