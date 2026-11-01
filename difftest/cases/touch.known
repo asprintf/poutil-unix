@@ -1,0 +1,53 @@
+# Times a file system cannot hold. APFS clamps them (to about 1677 and 2262) and says yes, and macOS
+# and GNU touch pass that on. The spec says touch shall exit immediately with an error status when the
+# time cannot be represented as the file's timestamp (-t and -d), so ours reads the times back, refuses,
+# and puts the old times back.
+-t 230001010000 f
+-t 999912312359 f
+-d 9999-12-31T23:59:59Z f
+-d 2263-01-01T00:00:00Z f
+-d 1600-01-01T00:00:00Z f
+-d 99999-01-01T00:00:00Z f
+# macOS touch -d stores -1 (1969-12-31T23:59:59Z) for a time near the lower limit; GNU and ours store the
+# time asked for (-9223372036, the same number Python's calendar.timegm gives).
+-d 1677-09-21T00:12:44Z f
+# -t values outside the ranges the spec lists (MM 01-12, DD 01-31, hh 00-23, mm 00-59, SS 00-60): macOS
+# accepts garbage and normalises (month 13, hour 24, 'abcdefgh', second 61); ours is a usage error.
+-t abcdefgh f
+-t 7a111210 f
+-t 13011010 f
+-t 01321010 f
+-t 01012410 f
+-t 01011060 f
+-t 00011010 f
+-t 0711121015.61 f
+# a day that does not exist in the month (Feb 29 of 2023, Feb 30): the spec only gives [01,31]. macOS
+# normalises to March; GNU and ours refuse. A judgement call.
+-t 202302290000 f
+-t 02300000 f
+# -r, -t and -d are alternatives in the synopsis. macOS accepts several and uses one; GNU takes -r with -d
+# as an offset from the reference (an extension). The spec does not say what several do: ours is a usage error.
+-t 200711121015 -r ref f
+-r ref -t 200711121015 f
+-r ref -d 2007-11-12T10:15:30Z f
+-d 2007-11-12T10:15:30Z -t 200711121015 f
+# -d is YYYY-MM-DDThh:mm:SS[.frac|,frac][Z]: four or more year digits, two-digit fields, T or one space, a
+# capital Z, and DD in 01-31. Both references are more lenient.
+-d 207-11-12T10:15:30 f
+-d 2007-1-12T10:15:30 f
+-d 07-11-12T10:15:30 f
+-d 2007-11-00T10:15:30 f
+# GNU's free-form date strings are extensions the spec does not have.
+-d now f
+-d yesterday f
+-d @0 f
+-d '' f
+-d 2007-11-12 f
+-d 2007-11-12T10:15 f
+-d 2007/11/12T10:15:30 f
+-d 2007-11-12T10:15:30+01:00 f
+-d 2007-11-12t10:15:30 f
+-d 2007-11-12T10:15:30z f
+# SS is [00,60] for -d too ("as with -t"); GNU rejects 60 in -d, ours and macOS accept.
+-d 2007-11-12T10:15:60Z f
+-d 2007-11-12T23:59:60Z f

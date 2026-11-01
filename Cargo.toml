@@ -79,6 +79,10 @@ name = "rm"
 path = "rm/rm.rs"
 
 [[bin]]
+name = "touch"
+path = "touch/touch.rs"
+
+[[bin]]
 name = "mkdir"
 path = "mkdir/mkdir.rs"
 

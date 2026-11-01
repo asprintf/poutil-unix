@@ -1823,6 +1823,203 @@ else
 	echo "skip: rm on a terminal (no script(1), or running as root)"
 fi
 
+#-------------------------------------------------------------------- touch
+# mt/at FILE: modification and access time in seconds (BSD stat, else GNU stat)
+mt() { stat -f %m "$1" 2> /dev/null || stat -c %Y "$1"; }
+at() { stat -f %a "$1" 2> /dev/null || stat -c %X "$1"; }
+
+fresh
+"$OURS/touch" new
+eq "touch of a missing file creates it empty, status 0" "0 0 file" "$? $(wc -c < new | tr -d ' ') $([ -f new ] && echo file)"
+eq "touch: a created file gets 0666 less the umask 022" -rw-r--r-- "$(mode new)"
+(umask 077; "$OURS/touch" private)
+eq "touch: a created file under umask 077" -rw------- "$(mode private)"
+(umask 0; "$OURS/touch" open)
+eq "touch: a created file under umask 0" -rw-rw-rw- "$(mode open)"
+echo data > keep
+"$OURS/touch" keep
+eq "touch of an existing file leaves the contents" data "$(cat keep)"
+rm -f new private open keep
+
+echo x > f
+"$OURS/touch" -d 2001-01-01T00:00:00Z f
+before=$(mt f)
+"$OURS/touch" f
+eq "touch f sets both times to now" "1 1" "$([ "$(mt f)" -gt "$before" ] && echo 1) $([ "$(at f)" -gt "$before" ] && echo 1)"
+
+# -a and -m change one time and leave the other
+"$OURS/touch" -d 2001-01-01T00:00:00Z f
+"$OURS/touch" -m -d 2002-02-02T00:00:00Z f
+eq "touch -m -d: modification only" "978307200 1012608000" "$(at f) $(mt f)"
+"$OURS/touch" -a -d 2003-03-03T00:00:00Z f
+eq "touch -a -d: access only" "1046649600 1012608000" "$(at f) $(mt f)"
+"$OURS/touch" -am -d 2010-10-10T00:00:00Z f
+eq "touch -am -d: both" "1286668800 1286668800" "$(at f) $(mt f)"
+"$OURS/touch" -d 2001-01-01T00:00:00Z f
+"$OURS/touch" -m f
+eq "touch -m (now): access time untouched, modification time moved" "978307200 1" "$(at f) $([ "$(mt f)" -gt 1286668800 ] && echo 1)"
+"$OURS/touch" -d 2001-01-01T00:00:00Z f
+"$OURS/touch" -a f
+eq "touch -a (now): modification time untouched, access time moved" "978307200 1" "$(mt f) $([ "$(at f)" -gt 1286668800 ] && echo 1)"
+
+# -r: each time from the reference
+echo r > ref
+"$OURS/touch" -a -d 2003-03-03T00:00:00Z ref
+"$OURS/touch" -m -d 2002-02-02T00:00:00Z ref
+echo x > g
+"$OURS/touch" -r ref g
+eq "touch -r copies both times" "1046649600 1012608000" "$(at g) $(mt g)"
+"$OURS/touch" -d 2010-10-10T00:00:00Z g
+"$OURS/touch" -a -r ref g
+eq "touch -a -r: only the access time is copied" "1046649600 1286668800" "$(at g) $(mt g)"
+"$OURS/touch" -d 2010-10-10T00:00:00Z g
+"$OURS/touch" -m -r ref g
+eq "touch -m -r: only the modification time is copied" "1286668800 1012608000" "$(at g) $(mt g)"
+ln -s ref lref
+"$OURS/touch" -d 2010-10-10T00:00:00Z g
+"$OURS/touch" -r lref g
+eq "touch -r follows a symbolic link to the reference" "1046649600 1012608000" "$(at g) $(mt g)"
+"$OURS/touch" -d 2010-10-10T00:00:00Z g
+"$OURS/touch" -r nosuch g f 2> e
+eq "touch -r with a missing reference: status 1, a diagnostic, nothing touched" "1 1 1286668800" "$? $(wc -l < e | tr -d ' ') $(mt g)"
+eq "touch -r with a missing reference names it" 1 "$(grep -c nosuch e)"
+"$OURS/touch" -c -r nosuch newone 2> /dev/null
+eq "touch -c -r nosuch: still an error" "1 absent" "$? $([ -e newone ] || echo absent)"
+"$OURS/touch" -r ref newfromref
+eq "touch -r creates a missing file with the reference's times" "1046649600 1012608000" "$(at newfromref) $(mt newfromref)"
+rm -f g ref lref newfromref
+
+# -t and -d in several zones: what a time without Z means is decided by TZ
+for z in UTC0:1194862530 EST5EDT:1194880530 EET-2EEST:1194855330; do
+	tz=${z%%:*} want=${z##*:}
+	TZ=$tz "$OURS/touch" -t 200711121015.30 f
+	eq "touch -t 200711121015.30 under TZ=$tz" "$want $want" "$(mt f) $(at f)"
+	TZ=$tz "$OURS/touch" -t 0711121015.30 f
+	eq "touch -t 0711121015.30 (two-digit year) under TZ=$tz" "$want" "$(mt f)"
+	TZ=$tz "$OURS/touch" -d 2007-11-12T10:15:30 f
+	eq "touch -d 2007-11-12T10:15:30 under TZ=$tz" "$want" "$(mt f)"
+	TZ=$tz "$OURS/touch" -d '2007-11-12 10:15:30' f
+	eq "touch -d with a space under TZ=$tz" "$want" "$(mt f)"
+	TZ=$tz "$OURS/touch" -d 2007-11-12T10:15:30Z f
+	eq "touch -d ...Z ignores TZ=$tz" 1194862530 "$(mt f)"
+done
+TZ=EST5EDT "$OURS/touch" -t 200707121015 f
+eq "touch -t in summer time under TZ=EST5EDT" 1184249700 "$(mt f)"
+TZ=EST5EDT "$OURS/touch" -d 2007-07-12T10:15:00 f
+eq "touch -d in summer time under TZ=EST5EDT" 1184249700 "$(mt f)"
+
+# the century rule, the second 60, the Epoch and 2038
+TZ=UTC0 "$OURS/touch" -t 6901010000 f
+eq "touch -t 6901010000 is 1969" -31536000 "$(mt f)"
+TZ=UTC0 "$OURS/touch" -t 6812312359 f
+eq "touch -t 6812312359 is 2068" 3124223940 "$(mt f)"
+TZ=UTC0 "$OURS/touch" -t 199812312359.60 f
+eq "touch -t ....60 is one second after .59" 915148800 "$(mt f)"
+"$OURS/touch" -d 1998-12-31T23:59:60Z f
+eq "touch -d ...:60Z is one second after :59" 915148800 "$(mt f)"
+TZ=UTC0 "$OURS/touch" -t 190001010000 f
+eq "touch -t 190001010000: before the Epoch is fine where the file system holds it" -2208988800 "$(mt f)"
+"$OURS/touch" -d 1969-12-31T23:59:59Z f
+eq "touch -d 1969-12-31T23:59:59Z" -1 "$(mt f)"
+TZ=UTC0 "$OURS/touch" -t 203801010000 f
+eq "touch -t 203801010000 (the spec's minimum)" 2145916800 "$(mt f)"
+TZ=UTC0 "$OURS/touch" -t 210001010000 f
+eq "touch -t 210001010000" 4102444800 "$(mt f)"
+
+# fractions of a second
+"$OURS/touch" -d 2007-11-12T10:15:30.123456789Z f
+if stat -f %Fm f > /dev/null 2>&1; then
+	eq "touch -d keeps nanoseconds" 1194862530.123456789 "$(stat -f %Fm f)"
+	"$OURS/touch" -d 2007-11-12T10:15:30,5Z f
+	eq "touch -d accepts a comma fraction" 1194862530.500000000 "$(stat -f %Fm f)"
+	"$OURS/touch" -d 2007-11-12T10:15:30.9999999999Z f
+	eq "touch -d cuts a fraction beyond nanoseconds" 1194862530.999999999 "$(stat -f %Fm f)"
+else
+	echo "skip: touch fractions (no BSD stat)"
+fi
+
+# the time cannot be a file timestamp: error, and the file keeps its times
+"$OURS/touch" -d 2001-01-01T00:00:00Z f g_untouched
+"$OURS/touch" -d 2001-01-01T00:00:00Z g_untouched
+"$OURS/touch" -d 99999-01-01T00:00:00Z f g_untouched 2> e
+eq "touch: a time no file can hold: status 1" 1 $?
+eq "touch: ... a single diagnostic, and it stops (the second file is not looked at)" "1 978307200 978307200" "$(wc -l < e | tr -d ' ') $(mt f) $(mt g_untouched)"
+"$OURS/touch" -d 2001-01-01T00:00:00Z newfile_never 2> /dev/null
+rm -f newfile_never
+"$OURS/touch" -d 99999-01-01T00:00:00Z created_then_refused 2> /dev/null
+eq "touch: ... the same for a file it had to create: status 1" 1 $?
+rm -f created_then_refused g_untouched
+
+# invalid arguments: a diagnostic, nothing touched, status 2 (usage)
+echo x > h
+for bad in "-t 13010000" "-t 0101000" "-t 01010000.6" "-d 2007-11-12" "-d 2007-11-12T10:15" "-t abc" "-d ''"; do
+	eval "\"\$OURS/touch\" $bad h" 2> e
+	eq "touch $bad: status 2 and a diagnostic" "2 1" "$? $([ -s e ] && echo 1)"
+done
+"$OURS/touch" -r ref -t 200711121015 h 2> /dev/null
+eq "touch -r and -t together: usage error" 2 $?
+"$OURS/touch" -t 200711121015 -d 2007-11-12T10:15:30Z h 2> /dev/null
+eq "touch -t and -d together: usage error" 2 $?
+"$OURS/touch" 2> e
+eq "touch with no operand: status 2 and a usage line" "2 usage" "$? $(sed 's/:.*//;q' e)"
+"$OURS/touch" -a 2> /dev/null
+eq "touch -a with no operand: status 2" 2 $?
+"$OURS/touch" -r 2> /dev/null
+eq "touch -r with no argument: status 2" 2 $?
+"$OURS/touch" -x h 2> /dev/null
+eq "touch -x: status 2" 2 $?
+
+# -c
+"$OURS/touch" -c absent > o 2> e
+eq "touch -c of a missing file: status 0, silent, nothing created" "0 0 0 absent" "$? $(wc -c < o | tr -d ' ') $(wc -c < e | tr -d ' ') $([ -e absent ] || echo absent)"
+"$OURS/touch" -c nodir/x h 2> e
+eq "touch -c nodir/x: silent" "0 0" "$? $(wc -c < e | tr -d ' ')"
+"$OURS/touch" -c h
+eq "touch -c of an existing file still touches it" 1 "$([ "$(mt h)" -gt 1286668800 ] && echo 1)"
+
+# options are not looked for after the first operand; -- ends them
+"$OURS/touch" h -m
+eq "touch h -m: -m is a file name" "-m" "$(ls -- -m)"
+rm -f -- -m
+"$OURS/touch" -- -m
+eq "touch -- -m: creates -m" "-m" "$(ls -- -m)"
+"$OURS/touch" h --
+eq "touch h --: creates a file named --" "made" "$([ -f ./-- ] && echo made)"
+rm -f -- -m ./--
+
+# errors do not stop the other operands
+"$OURS/touch" -d 2001-01-01T00:00:00Z h
+"$OURS/touch" nodir/x h f2 2> e
+eq "touch: an error for one operand, the others are done, status 1" "1 1 1 1" "$? $(wc -l < e | tr -d ' ') $([ "$(mt h)" -gt 1286668800 ] && echo 1) $([ -f f2 ] && echo 1)"
+"$OURS/touch" plain_file_x/y 2> /dev/null
+rm -f f2
+
+# links and directories
+echo t > target
+ln -s target lnk
+"$OURS/touch" -d 2001-01-01T00:00:00Z target
+"$OURS/touch" lnk
+eq "touch of a symbolic link touches the target" 1 "$([ "$(mt target)" -gt 1286668800 ] && echo 1)"
+ln -s nowhere dang
+"$OURS/touch" dang
+eq "touch of a dangling link creates its target" "file" "$([ -f nowhere ] && echo file)"
+rm -f nowhere
+"$OURS/touch" -c dang
+eq "touch -c of a dangling link creates nothing" "" "$([ -e nowhere ] && echo made)"
+mkdir dd
+"$OURS/touch" -d 2001-01-01T00:00:00Z dd
+eq "touch of a directory" 978307200 "$(mt dd)"
+rm -rf dd lnk dang target
+
+# descriptors
+"$OURS/touch" cl >&-
+eq "touch with stdout closed: status 0" "0 file" "$? $([ -f cl ] && echo file)"
+"$OURS/touch" nodir/x 2>&-
+eq "touch with stderr closed, an error: status 1" 1 $?
+"$OURS/touch" cl < /dev/null <&-
+eq "touch with stdin closed" 0 $?
+rm -f cl
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then

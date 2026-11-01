@@ -1,0 +1,24 @@
+# -t ....60: SS may be 60, and then the time is one second after the one with SS=59 (spec, -t). posixutils-rs
+# sets the time of SS=59.
+-t 199912312359.60 f
+# -t [[CC]YY]MMDDhhmm[.SS]: SS is exactly two digits. posixutils-rs takes one, or three, as well.
+-t 07111210.1 f
+-t 07111210.123 f
+-t 0711121015.6 f
+# repeated options with an option-argument (-t -t, -r -r, -d -d): the spec says nothing against it, and for
+# options of the same kind the last one is the one that counts; posixutils-rs (clap) refuses them.
+-t 200711121015 -t 199911121015 f
+-r ref -r f f
+-d 2007-11-12T10:15:30Z -d 2001-01-01T00:00:00Z f
+# options after the first operand are operands (PCTS touch 62: "touch f -m" creates ./-m)
+f -m
+f --
+# the synopsis is "touch [-acm] [-r ref_file|-t time|-d date_time] file...": at least one file operand.
+# posixutils-rs succeeds without one.
+@
+-c
+-a
+-m
+-r ref
+-t 200711121015
+-d 2007-11-12T10:15:30Z

@@ -1,0 +1,8 @@
+for x in f g h; do echo data > $x; done
+mkdir d
+ln -s f lf
+ln -s nowhere dang
+echo ref > ref
+/usr/bin/touch -a -t 199501011111 ref
+/usr/bin/touch -m -t 199001010101 ref
+/usr/bin/touch -t 200001010000 f g h d
