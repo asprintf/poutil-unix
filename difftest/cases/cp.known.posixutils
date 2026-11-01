@@ -1,0 +1,9 @@
+# options and -- after the first operand are operands (PCTS cp 97: "cp file1 file2 -p" copies into the
+# directory ./-p, "cp file1 file2 --" into the directory ./--). posixutils-rs takes them as options.
+a x -p
+a --
+# -H and -L are listed in the synopsis only with -R, but nothing in the spec makes them an error without it
+# (a link is followed anyway). posixutils-rs insists on -R.
+-H la x
+-L la x
+a -- 

@@ -87,6 +87,10 @@ name = "date"
 path = "date/date.rs"
 
 [[bin]]
+name = "cp"
+path = "cp/cp.rs"
+
+[[bin]]
 name = "mkdir"
 path = "mkdir/mkdir.rs"
 

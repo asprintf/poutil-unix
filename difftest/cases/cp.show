@@ -1,0 +1,15 @@
+now=$(date +%s)
+tag() {
+	d=$((now - ${1%%.*}))
+	if [ "$d" -ge -5 ] && [ "$d" -le 120 ]; then echo now; else echo "$1"; fi
+}
+find . | sort | while IFS= read -r f; do
+	if [ -L "$f" ]; then
+		echo "$f -> $(readlink "$f")"
+		continue
+	fi
+	set -- $(stat -f '%Sp %z %m' "$f")
+	c=
+	[ -f "$f" ] && c=$(cat "$f" 2>/dev/null | cksum | cut -d' ' -f1)
+	echo "$f $1 size=$2 m=$(tag "$3") sum=$c"
+done

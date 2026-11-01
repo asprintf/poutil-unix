@@ -1,0 +1,15 @@
+# -x (do not cross a mount point) is an extension of macOS and GNU; the spec has no such option.
+-x a x
+# -r: no longer in the spec ("may be present in some implementations"); PCTS still runs cp -r. Ours is -R
+# (links are copied as links, special files are recreated), like GNU. macOS -r follows every link, so it
+# fails on the dangling link in the hierarchy.
+-r d x
+-rp d x
+-r d tgt
+# A directory copied into itself or into something below itself (the destination d/d, d/new, ... lies in
+# the hierarchy being copied). The spec does not say. macOS copies what was there at the start and says
+# yes; GNU makes the directory and then refuses; ours refuses before anything is made.
+-R d ld
+-R d d
+-R d d/new
+-R d d/sub/new

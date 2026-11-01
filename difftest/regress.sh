@@ -2090,6 +2090,232 @@ eq "date does not read its standard input" "left" "$(echo left | { "$OURS/date" 
 "$OURS/date" +%Y 2>&- > /dev/null
 eq "date with stderr closed: fine" 0 $?
 
+#----------------------------------------------------------------------- cp
+fresh
+echo hello > a
+"$OURS/cp" a b
+eq "cp a b: status 0 and the same contents" "0 hello" "$? $(cat b)"
+eq "cp: a new file has the mode of the source less the umask 022" "$(mode a)" "$(mode b)"
+chmod 751 a
+(umask 077; "$OURS/cp" a um077)
+eq "cp under umask 077: mode 700 from 751" -rwx------ "$(mode um077)"
+(umask 0; "$OURS/cp" a um0)
+eq "cp under umask 0: mode 751" -rwxr-x--x "$(mode um0)"
+chmod 4755 a
+"$OURS/cp" a sid
+eq "cp: the set-user-ID bit is not copied" -rwxr-xr-x "$(mode sid)"
+chmod 644 a
+echo old > keep; chmod 600 keep
+"$OURS/cp" a keep
+eq "cp over an existing file: contents replaced, its mode kept" "hello -rw-------" "$(cat keep) $(mode keep)"
+rm -f b um077 um0 sid keep
+
+# the destination name rules
+mkdir dir
+echo second > a2
+"$OURS/cp" a a2 dir
+eq "cp a a2 dir: both land in dir" "a a2" "$(ls dir | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/cp" a dir/
+eq "cp a dir/: into the directory" hello "$(cat dir/a)"
+"$OURS/cp" a dir/x/ 2> /dev/null
+eq "cp a dir/x/ (x does not exist): an error" 1 $?
+"$OURS/cp" a a2 nosuchdir 2> e
+eq "cp a a2 nosuchdir: status 1, nothing made" "1 absent" "$? $([ -e nosuchdir ] || echo absent)"
+echo f > plainf
+"$OURS/cp" a a2 plainf 2> e
+eq "cp a a2 plainf: not a directory, status 1, plainf untouched" "1 f" "$? $(cat plainf)"
+"$OURS/cp" a 2> e
+eq "cp with one operand: usage" "2 usage" "$? $(sed 's/:.*//;q' e)"
+"$OURS/cp" 2> /dev/null
+eq "cp with no operand: usage, status 2" 2 $?
+"$OURS/cp" -Q a x 2> /dev/null
+eq "cp -Q: usage, status 2" 2 $?
+rm -rf dir plainf a2
+
+# -i reads its line byte by byte
+echo new > n1; echo old1 > t1; echo old2 > t2
+eq "cp -i: the answer line only is read from a shared standard input" "REST" "$(printf 'y\nREST\n' | { "$OURS/cp" -i n1 t2 2> /dev/null; cat; })"
+echo old1 > t1
+printf 'n\ny\n' | "$OURS/cp" -i n1 t1 2> e
+eq "cp -i with n: the file stays, status 0" "0 old1" "$? $(cat t1)"
+eq "cp -i: the prompt names the destination" 1 "$(grep -c 't1' e)"
+"$OURS/cp" -i n1 t1 < /dev/null 2> /dev/null
+eq "cp -i: end of file is a no" "0 old1" "$? $(cat t1)"
+"$OURS/cp" -i n1 t1 <&- 2> /dev/null
+eq "cp -i: a closed standard input is a no" "0 old1" "$? $(cat t1)"
+printf 'y\n' | "$OURS/cp" -i n1 t1 2> /dev/null
+eq "cp -i with y: copied" new "$(cat t1)"
+printf 'n\nn\nn\n' | "$OURS/cp" -i n1 fresh_name 2> e
+eq "cp -i to a new name: no question" "0 0 new" "$? $(wc -c < e | tr -d ' ') $(cat fresh_name)"
+rm -f n1 t1 t2 fresh_name
+
+# not truncating what cannot be replaced by something better
+echo precious > dst
+echo secret > unread; chmod 000 unread
+"$OURS/cp" unread dst 2> e
+eq "cp of an unreadable source: status 1, the destination keeps its contents" "1 precious" "$? $(cat dst)"
+chmod 644 unread; rm -f unread dst
+
+# a failed source does not stop the others
+echo b > srcb; mkdir into
+"$OURS/cp" nosuch srcb into 2> e
+eq "cp nosuch srcb into: status 1, srcb is copied" "1 b" "$? $(cat into/srcb)"
+rm -rf into srcb
+
+# a write error: the file size limit, with SIGXFSZ ignored so that write() reports EFBIG
+head -c 200000 /dev/zero > big
+(trap '' XFSZ; ulimit -f 20 2> /dev/null; "$OURS/cp" big small_out 2> e; echo $? > st)
+eq "cp when the file size limit stops the write: status 1 and a diagnostic" "1 1" "$(cat st) $([ -s e ] && echo 1)"
+(trap '' XFSZ; ulimit -f 20 2> /dev/null; "$OURS/cp" big out1 big_too 2> e; echo $? > st) 2> /dev/null
+rm -f small_out big_too out1 st
+
+# big and odd contents
+head -c 3000000 /dev/urandom > rnd
+"$OURS/cp" rnd rnd2
+eq "cp of 3 MB of random bytes is identical" 0 "$(cmp rnd rnd2 > /dev/null; echo $?)"
+printf 'a\0b\0\0\n' > nul
+"$OURS/cp" nul nul2
+eq "cp keeps NUL bytes" 0 "$(cmp nul nul2 > /dev/null; echo $?)"
+: > empty
+"$OURS/cp" empty empty2
+eq "cp of an empty file" "0 0" "$? $(wc -c < empty2 | tr -d ' ')"
+rm -f rnd rnd2 nul nul2 empty empty2
+
+# special names and special destinations
+echo dash > ./-
+"$OURS/cp" -- - dashcopy
+eq "cp -- - x: \"-\" is a file name" dash "$(cat dashcopy)"
+echo data > dd
+"$OURS/cp" dd /dev/null
+eq "cp onto /dev/null" 0 $?
+"$OURS/cp" /dev/null emptied
+eq "cp /dev/null x makes an empty regular file" "0 0 file" "$? $(wc -c < emptied | tr -d ' ') $([ -f emptied ] && echo file)"
+mkfifo ff
+(echo through-the-fifo > ff &)
+"$OURS/cp" ff fromfifo
+eq "cp of a FIFO without -R reads it as data" "through-the-fifo" "$(cat fromfifo)"
+"$OURS/cp" -R ff fifocopy
+eq "cp -R of a FIFO makes a FIFO" 1 "$([ -p fifocopy ] && echo 1)"
+rm -f ./- dashcopy dd emptied ff fromfifo fifocopy
+
+# -p
+echo p > pf; chmod 640 pf
+"$OURS/touch" -d 2001-01-01T00:00:00Z pf
+"$OURS/cp" -p pf pf2
+eq "cp -p: times and mode" "$(stat -f '%m %Sp' pf 2> /dev/null || stat -c '%Y %A' pf)" "$(stat -f '%m %Sp' pf2 2> /dev/null || stat -c '%Y %A' pf2)"
+"$OURS/cp" pf pf3
+eq "cp without -p: the copy is new" 1 "$([ "$(stat -f %m pf3 2> /dev/null || stat -c %Y pf3)" -gt 978307200 ] && echo 1)"
+rm -f pf pf2 pf3
+
+# hierarchies
+mkdir -p t/a/b t/c; echo 1 > t/a/b/f; echo 2 > t/c/g; echo 3 > t/top; : > t/c/empty
+ln -s top t/lnk; ln -s ../c t/a/up; ln -s nowhere t/dang
+ln t/top t/hard1; ln t/top t/hard2
+"$OURS/cp" -R t tc 2> e
+eq "cp -R: status 0, silent" "0 0" "$? $(wc -c < e | tr -d ' ')"
+eq "cp -R: the same names" "$(cd t && find . | sort)" "$(cd tc && find . | sort)"
+eq "cp -R: links are copied as links (the default)" "top ../c nowhere" "$(readlink tc/lnk) $(readlink tc/a/up) $(readlink tc/dang)"
+eq "cp -R: hard links are not kept (three files)" "1 1 1" "$(ls -l tc/top tc/hard1 tc/hard2 | awk '{print $2}' | tr '\n' ' ' | sed 's/ $//' | sed 's/ /,/g;s/,/ /g')"
+eq "cp -R: contents" "1 2 3" "$(cat tc/a/b/f tc/c/g tc/top | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/cp" -RL t tl 2> e
+eq "cp -RL: the dangling link in the tree is the one error" "1 1" "$? $(wc -l < e | tr -d ' ')"
+eq "cp -RL: the other links were followed" "regular regular" "$([ -f tl/lnk ] && [ ! -L tl/lnk ] && echo regular) $([ -d tl/a/up ] && [ ! -L tl/a/up ] && echo regular)"
+rm -rf tc tl
+"$OURS/cp" -R t/ tslash
+eq "cp -R t/ x" "$(cd t && find . | sort)" "$(cd tslash && find . | sort)"
+mkdir existing
+"$OURS/cp" -R t existing
+eq "cp -R t existing: lands below it" "$(cd t && find . | sort)" "$(cd existing/t && find . | sort)"
+"$OURS/cp" -R t/. existing2 2> /dev/null; mkdir existing3
+"$OURS/cp" -R t/. existing3
+eq "cp -R t/. dir: the contents, not t itself" "$(cd t && find . | sort)" "$(cd existing3 && find . | sort)"
+rm -rf tslash existing existing2 existing3
+
+# a directory is never copied into itself; nothing is created
+"$OURS/cp" -R t t/inside 2> e
+eq "cp -R t t/inside: refused, nothing made" "1 absent" "$? $([ -e t/inside ] || echo absent)"
+"$OURS/cp" -R t t 2> e
+eq "cp -R t t: refused (it would go to t/t)" "1 absent" "$? $([ -e t/t ] || echo absent)"
+"$OURS/cp" -R . t/dot 2> /dev/null
+eq "cp -R . t/dot: refused" "1 absent" "$? $([ -e t/dot ] || echo absent)"
+ln -s . t/selfloop
+"$OURS/cp" -RL t tloop 2> /dev/null
+eq "cp -RL over a link to the directory itself ends, with an error" 1 $?
+rm -rf tloop t/selfloop
+
+# read-only directories are copied, and end up read-only
+mkdir -p ro/inner; echo x > ro/inner/f; chmod 555 ro/inner ro
+"$OURS/cp" -R ro roc 2> e
+eq "cp -R of read-only directories: status 0" "0 x" "$? $(cat roc/inner/f)"
+eq "cp -R: the read-only modes are kept" "dr-xr-xr-x dr-xr-xr-x" "$(ls -ld roc | cut -c1-10) $(ls -ld roc/inner | cut -c1-10)"
+chmod -R u+rwx ro roc; rm -rf ro roc
+(umask 077; "$OURS/cp" -R t tum)
+eq "cp -R under umask 077: directories 700" "drwx------ drwx------" "$(ls -ld tum | cut -c1-10) $(ls -ld tum/a/b | cut -c1-10)"
+rm -rf tum
+
+# a destination in the way
+mkdir blocker; echo file > blocker/a
+"$OURS/cp" -R t blocker 2> e
+eq "cp -R t blocker: blocker/t is made; blocker/a (a file) does not matter" "0" "$?"
+rm -rf blocker
+mkdir dst2; echo file > dst2/a
+"$OURS/cp" -R t/. dst2 2> e
+eq "cp -R t/. dst2 where dst2/a is a file: the one error, the rest copied" "1 1 3" "$? $(wc -l < e | tr -d ' ') $(cat dst2/top)"
+rm -rf dst2
+echo notadir > notadir
+"$OURS/cp" -R t notadir 2> e
+eq "cp -R t notadir: error, the file is left" "1 notadir" "$? $(cat notadir)"
+rm -f notadir
+
+# deep and wide
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 200 ]; do
+		mkdir dd || exit 1
+		cd dd || exit 1
+		: > f
+		i=$((i + 1))
+	done
+)
+"$OURS/cp" -R deep deepc 2> e
+eq "cp -R of a tree 200 levels deep" "0" "$?"
+eq "cp -R of a deep tree: same shape" "$(cd deep && find . | wc -l | tr -d ' ')" "$(cd deepc && find . | wc -l | tr -d ' ')"
+rm -rf deepc
+(ulimit -n 12; exec "$OURS/cp" -R deep deepc2 2> e); echo $? > st
+eq "cp -R with 12 descriptors allowed: still fine (no descriptor per level)" "0" "$(cat st)"
+rm -rf deep deepc2 st
+mkdir longp
+(
+	cd longp || exit 1
+	i=0
+	while [ $i -lt 700 ]; do
+		mkdir dd || exit 1
+		cd dd || exit 1
+		i=$((i + 1))
+	done
+)
+"$OURS/cp" -R longp longpc 2> e
+eq "cp -R of a tree deeper than PATH_MAX: an error, not a crash" "1" "$?"
+eq "cp -R of a tree deeper than PATH_MAX: a diagnostic" 1 "$([ -s e ] && echo 1)"
+rm -rf longp longpc
+mkdir wide
+( cd wide && i=0 && while [ $i -lt 3000 ]; do : > "file$i"; i=$((i + 1)); done )
+"$OURS/cp" -R wide widec
+eq "cp -R of a directory with 3000 entries" "3000" "$(ls widec | wc -l | tr -d ' ')"
+rm -rf wide widec
+
+# descriptors
+echo x > cs
+"$OURS/cp" cs cs2 >&-
+eq "cp with stdout closed" "0 x" "$? $(cat cs2)"
+"$OURS/cp" nosuch cs3 2>&-
+eq "cp with stderr closed and an error: status 1" 1 $?
+"$OURS/cp" cs cs4 <&-
+eq "cp with stdin closed" "0 x" "$? $(cat cs4)"
+rm -rf cs cs2 cs4 t
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then

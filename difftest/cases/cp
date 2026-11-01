@@ -1,0 +1,187 @@
+# one file to a new name, an existing file, a directory, several files
+a x
+a b
+a empty
+empty x
+a d
+a tgt
+a b c tgt
+a b tgt/
+a tgt/
+a tgt/new
+a b c
+a b nosuch
+a b ld
+a nosuch tgt
+nosuch x
+nosuch tgt
+a nosuch c tgt
+nosuch a tgt
+a b nosuch
+# nothing to do, or something wrong with the operands
+@
+a
+-x a x
+-Q a x
+a x -p
+-- a x
+a -- 
+-- -- a
+# a file onto itself, through a link, through a hard link
+a a
+a la
+la a
+a ./a
+a d/../a
+a tgt tgt
+a b b
+# permissions: the mode of a new file is the source's, an existing file keeps its own
+a x
+b x
+a b
+b a
+a ro/new
+a ro
+ro/none x
+a rof
+-f a rof
+-fi a rof
+-i a rof
+nosrc x
+nosrc b
+-f nosrc b
+-p nosrc x
+# -i
+-i a b
+-i a x
+-i a b c tgt
+-i a empty
+-i -f a b
+-f -i a b
+-i a ro
+# -p
+-p a x
+-p b x
+-p a b
+-p a tgt
+-p a b c tgt
+-p la x
+-pP la x
+-p empty x
+# dangling and linked destinations
+a dang
+a ldx
+a ld
+a lf
+-f a ldx
+# source links, no -R
+la x
+ld x
+ldx x
+dang x
+-P la x
+-P ld x
+-P dang x
+-P ldx x
+-H la x
+-L la x
+-P la b
+-P la la2
+-P la ld
+-Pp la x
+# directories
+d x
+d tgt
+-R d x
+-R d tgt
+-R d tgt/
+-R d d2
+-R d d
+-R d d/new
+-R d d/sub/new
+-R d tgt d2
+-R d d2 d3
+-R d a
+-R d b
+-R d dang
+-R d ld
+-R d ff
+-R d/ x
+-R d// x
+-R d/. x
+-R d/. tgt
+-R tgt x
+-R tgt tgt2
+-R d empty tgt
+-R d nosuch tgt
+-R a x
+-R a b
+-R a tgt
+-R a b c tgt
+-R empty x
+-R d ro
+-R d ro/new
+-r d x
+-r a x
+-r d tgt
+-rp d x
+-Rp d x
+-Rp d tgt
+-Rp a x
+-Rf d x
+-Ri d x
+-Rip d x
+# links in and under a hierarchy
+-R d x
+-RH d x
+-RL d x
+-RP d x
+-RLp d x
+-RHp d x
+-RPp d x
+-RL d tgt
+-R la x
+-RH la x
+-RL la x
+-RP la x
+-R ld x
+-RH ld x
+-RL ld x
+-RP ld x
+-R ld tgt
+-RH ld tgt
+-RL ld tgt
+-RP ld tgt
+-R ld/ x
+-RH ld/ x
+-RP ld/ x
+-R ldx x
+-RH ldx x
+-RL ldx x
+-R dang x
+-RH dang x
+-RL dang x
+-RP dang x
+-R -H -L -P la x
+-R -P -L -H la x
+-R -L -P la x
+-R -P -H la x
+-RLP la x
+-RHL la x
+-P -R la x
+-L -R la x
+-RH la la2
+-RL la la2
+# special files
+-R ff x
+-R ff tgt
+-Rp ff x
+-R ff b
+-R ff ff2
+-R d ff
+-R ff ff
+# the operand "-" and operands that look like options
+-- a -
+-- - x
+-- a -p
+-p a b

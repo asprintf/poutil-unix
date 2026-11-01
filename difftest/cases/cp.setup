@@ -1,0 +1,12 @@
+echo AAA > a; echo BBB > b; echo CCC > c
+: > empty
+mkdir d d/sub d/empty tgt ro
+echo x > d/x; echo y > d/sub/y
+ln -s a la; ln -s d ld; ln -s nowhere dang; ln -s d/x ldx
+ln -s ../a d/inner; ln -s sub d/sublink; ln -s nowhere d/dangling
+echo r > rof
+echo s > nosrc
+mkfifo ff
+chmod 640 a; chmod 755 b; chmod 444 rof; chmod 000 nosrc; chmod 750 d/sub
+/usr/bin/touch -t 200001010000 a b c empty d d/sub d/empty d/x d/sub/y tgt ro rof nosrc ff
+chmod 555 ro
