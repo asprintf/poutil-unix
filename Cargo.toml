@@ -83,6 +83,10 @@ name = "touch"
 path = "touch/touch.rs"
 
 [[bin]]
+name = "date"
+path = "date/date.rs"
+
+[[bin]]
 name = "mkdir"
 path = "mkdir/mkdir.rs"
 

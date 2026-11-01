@@ -2020,6 +2020,76 @@ eq "touch with stderr closed, an error: status 1" 1 $?
 eq "touch with stdin closed" 0 $?
 rm -f cl
 
+#--------------------------------------------------------------------- date
+fresh
+eq "date: the default format has the shape of the POSIX one" 1 "$("$OURS/date" | grep -Ec '^[A-Z][a-z]{2} [A-Z][a-z]{2} [ 0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-6][0-9] [A-Za-z0-9+-]* [0-9]{4}$')"
+eq "date: the default output is the one of +%a %b %e %H:%M:%S %Z %Y" "$("$OURS/date" '+%a %b %e %H:%M' )" "$("$OURS/date" | sed 's/:[0-9][0-9] .* [0-9]*$//; s/ [0-9]\{4\}$//' | cut -c1-16)"
+eq "date: the output ends with a newline and has one line" 1 "$("$OURS/date" | wc -l | tr -d ' ')"
+eq "date +%n gives two newlines" "2" "$("$OURS/date" +%n | wc -l | tr -d ' ')"
+eq "date + (empty format) gives an empty line" "1 0" "$("$OURS/date" + | wc -l | tr -d ' ') $("$OURS/date" + | tr -d '\n' | wc -c | tr -d ' ')"
+eq "date +%% gives a percent sign" "%" "$("$OURS/date" +%%)"
+eq "date: text between conversions is copied" "[x]" "$("$OURS/date" '+[x]')"
+
+# the time zone: TZ, and -u as if TZ were UTC0
+eq "TZ=JST-9 date +%Z" JST "$(TZ=JST-9 "$OURS/date" +%Z)"
+eq "TZ=EST5EDT date +%Z is EST or EDT" 1 "$(TZ=EST5EDT "$OURS/date" +%Z | grep -Ec '^E[SD]T$')"
+eq "TZ=EST5EDT date -u +%Z is UTC" UTC "$(TZ=EST5EDT "$OURS/date" -u +%Z)"
+eq "date -u +%Z with no TZ" UTC "$(env -u TZ "$OURS/date" -u +%Z)"
+eq "date -u ignores TZ=JST-9 for the hour" "$("$OURS/date" -u +%Y%j%H)" "$(TZ=JST-9 "$OURS/date" -u +%Y%j%H)"
+eq "TZ=UTC0 date and date -u agree" "$(TZ=UTC0 "$OURS/date" +%Y%j%H)" "$("$OURS/date" -u +%Y%j%H)"
+eq "TZ=JST-9 is nine hours ahead of -u" 9 "$(a=$(TZ=JST-9 "$OURS/date" +%H); b=$("$OURS/date" -u +%H); echo $(( (10#$a - 10#$b + 24) % 24 )))"
+eq "date -u in the default format ends in UTC and the year" 1 "$("$OURS/date" -u | grep -Ec ' UTC [0-9]{4}$')"
+eq "a null TZ is the same as an unset one" "$(env -u TZ "$OURS/date" +%Z)" "$(TZ= "$OURS/date" +%Z)"
+
+# the operand: one at most; a format starts with +; options before it, -- ends them
+"$OURS/date" +%Y +%m 2> /dev/null
+eq "date with two operands: usage error" 2 $?
+"$OURS/date" -x 2> /dev/null
+eq "date -x: usage error" 2 $?
+"$OURS/date" nonsense 2> e
+eq "date nonsense: usage error" "2 usage" "$? $(sed 's/:.*//;q' e)"
+eq "date -- +%Y" "$("$OURS/date" +%Y)" "$("$OURS/date" -- +%Y)"
+eq "date -u -- +%Y" "$("$OURS/date" -u +%Y)" "$("$OURS/date" -u -- +%Y)"
+"$OURS/date" '+%Q' > o 2> e
+eq "date +%Q: a diagnostic naming it, nothing on stdout, status 1" "1 0 1" "$? $(wc -c < o | tr -d ' ') $(grep -c '%Q' e)"
+"$OURS/date" '+text%' > o 2> e
+eq "date: a format ending in % is refused whole" "1 0" "$? $(wc -c < o | tr -d ' ')"
+
+# bytes that are not text
+B=$(printf '\377\376')
+eq "date keeps raw bytes in the format" "fffe0a" "$("$OURS/date" "+$B" | od -An -tx1 | tr -d ' \n')"
+RB=$(printf '+\377%%Y\376')
+eq "date keeps raw bytes around a conversion" "ff$(date +%Y | tr -d '\n' | od -An -tx1 | tr -d ' \n')fe0a" "$("$OURS/date" "$RB" | od -An -tx1 | tr -d ' \n')"
+big=$(head -c 100000 /dev/zero | tr '\0' 'a')
+eq "date with a 100000 byte format" 100001 "$("$OURS/date" "+$big" | wc -c | tr -d ' ')"
+eq "date with 20000 conversions" "$(( 20000 * 4 + 1 ))" "$("$OURS/date" "+$(i=0; while [ $i -lt 2000 ]; do printf '%%Y%%Y%%Y%%Y%%Y%%Y%%Y%%Y%%Y%%Y'; i=$((i+1)); done)" | wc -c | tr -d ' ')"
+
+# the set form must not set anything here: invalid forms are refused, and without privilege it fails
+before=$("$OURS/date" +%Y%j%H)
+"$OURS/date" 13011200 2> e
+eq "date 13011200 (month 13): status 2, a diagnostic, clock untouched" "2 1 $before" "$? $(grep -c 'invalid' e) $("$OURS/date" +%Y%j%H)"
+"$OURS/date" 0229120023 2> /dev/null
+eq "date 0229120023 (no Feb 29 in 2023): status 2" 2 $?
+"$OURS/date" 1112101a 2> /dev/null
+eq "date with a letter in the digits: usage error" 2 $?
+if [ "$(id -u)" != 0 ]; then
+	"$OURS/date" 0101000070 2> e
+	eq "date 0101000070 without privilege: status 1, cannot set date, clock untouched" "1 1 $before" "$? $(grep -c 'cannot set date' e) $("$OURS/date" +%Y%j%H)"
+	"$OURS/date" -u 0101000070 2> e
+	eq "date -u 0101000070 without privilege: status 1" 1 $?
+else
+	echo "skip: date set form (running as root: it would set the clock)"
+fi
+
+# descriptors
+"$OURS/date" +%Y >&- 2> /dev/null
+eq "date with stdout closed: status 1" 1 $?
+"$OURS/date" +%Y < /dev/null <&- > /dev/null
+eq "date with stdin closed: fine" 0 $?
+eq "date does not read its standard input" "left" "$(echo left | { "$OURS/date" > /dev/null; cat; })"
+"$OURS/date" +%Y 2>&- > /dev/null
+eq "date with stderr closed: fine" 0 $?
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then

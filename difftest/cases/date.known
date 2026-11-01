@@ -1,0 +1,14 @@
+# Conversion specifiers that the spec's list does not have, and a % that ends the format: what they mean is
+# not defined. macOS and GNU date give them a meaning (%s seconds since the Epoch, %z numeric zone, %N
+# nanoseconds, %k blank-padded hour, %-d without padding, a lone % as a % ...). Ours refuses them, nothing is
+# written, like it refuses sleep 1.5: this project does not take extensions.
++%Q
++%
++%E
++%Ea
++%Oc
++%-d
++%s
++%z
++%N
++%k

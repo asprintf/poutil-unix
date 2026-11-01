@@ -1,0 +1,93 @@
+# the default output, in UTC and in the local zone
+@
+-u
+-u -u
+# literal text, and the escapes
++
++hello
+'+a b  c'
++%%
++%%%%
++a%%b
++%n
++%t
+'+%Y%n%Y'
+# fields that do not change within a run of the tests
++%Y
++%C
++%y
++%Y%m%d
++%C%y
++%Z
+-u +%Z
++%e
++%d
++%m
++%b
++%h
++%B
++%a
++%A
++%j
++%u
++%w
++%U
++%V
++%W
++%D
++%x
++%p
++%I
+'+%a %b %e'
+'+%A, %B %d, %Y'
+'+DATE: %m/%d/%y%nTIME: HH'
++%Y%%
+# E and O modifiers are the plain value where the locale has no alternatives
++%EC
++%EY
++%Ey
++%Od
++%Oe
++%Om
++%Ou
++%OU
++%OV
++%Ow
++%OW
++%Oy
++%Ex
++%Ec
+# the operand may follow --
+-- +%Y
+-u -- +%Y
+-u+%Y
+# not valid: more than one operand, an unknown option, a bad specifier or a bad set form
++%Y +%m
+-u +%Y +%m
+-x
+-x +%Y
++%Q
++%
++%E
++%Ea
++%Oc
++%-d
++%s
++%z
++%N
++%k
+''
+x
+now
+-1
+1
+12345
+1301120000
+0001120000
+0132120000
+0112250000
+0112126100
+0229120023
+1112101a
+-u 1301120000
+-u 0132120000
