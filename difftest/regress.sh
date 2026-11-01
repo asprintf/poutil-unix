@@ -1123,5 +1123,180 @@ eq "cmp of big equal files" 0 $?
 "$OURS/cmp" -l n1 n2 | head -n 1 > out
 eq "cmp into a closed pipe ends quietly" "2000001 12 170" "$(tr -s ' ' < out | sed 's/^ //')"
 
+# cksum: standard input, descriptors, a stream that arrives in pieces
+printf a > ck1
+seq 1 300000 > big
+eq "cksum: a known file" "1220704766 1 ck1" "$("$OURS/cksum" ck1)"
+eq "cksum of standard input has no name" "1220704766 1" "$("$OURS/cksum" < ck1)"
+eq "cksum - is standard input and keeps its name" "1220704766 1 -" "$("$OURS/cksum" - < ck1)"
+"$OURS/cksum" <&- > out 2> err
+eq "cksum with stdin closed: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/cksum" - <&- > out 2> err
+eq "cksum - with stdin closed: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/cksum" ck1 >&- 2> /dev/null
+eq "cksum with stdout closed: status 1" 1 $?
+"$OURS/cksum" . ck1 > out 2> err
+eq "cksum of a directory then a file: both reported" "1 1220704766 1 ck1 1" "$? $(cat out) $(wc -l < err | tr -d ' ')"
+eq "cksum of a big file through a pipe equals the file" "$("$OURS/cksum" big | sed 's/ big$//')" "$(cat big | "$OURS/cksum")"
+eq "cksum of a big file arriving in 1000-byte pieces" "$("$OURS/cksum" big | sed 's/ big$//')" "$(dd if=big bs=1000 2> /dev/null | "$OURS/cksum")"
+
+# id: the same numbers whichever way they are asked for, descriptors
+eq "id -u is the number of the id line" "$("$OURS/id" | sed 's/^uid=\([0-9]*\).*/\1/')" "$("$OURS/id" -r -u)"
+eq "id -u -n is the name in the id line" "$("$OURS/id" | sed 's/^uid=[0-9]*(\([^)]*\)).*/\1/')" "$("$OURS/id" -u -n)"
+eq "id -g -n is the name after gid=" "$("$OURS/id" | sed 's/^uid=[0-9]*([^)]*) gid=[0-9]*(\([^)]*\)).*/\1/')" "$("$OURS/id" -r -g -n)"
+eq "id -G and id -G -n list the same number of groups" "$("$OURS/id" -G | wc -w | tr -d ' ')" "$("$OURS/id" -G -n | wc -w | tr -d ' ')"
+eq "id root starts with the id of root" "uid=0(root) gid=0(" "$("$OURS/id" root | cut -c1-18)"
+eq "id -u root" 0 "$("$OURS/id" -u root)"
+"$OURS/id" nosuch > out 2> err
+eq "id of an unknown user: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/id" -u >&- 2> /dev/null
+eq "id with stdout closed: status 1" 1 $?
+"$OURS/id" -n 2> /dev/null
+eq "id -n alone is a usage error" 2 $?
+"$OURS/id" -G -g 2> /dev/null
+eq "id -G -g is a usage error" 2 $?
+"$OURS/id" a b 2> /dev/null
+eq "id with two operands is a usage error" 2 $?
+eq "id works with standard input closed" 0 "$("$OURS/id" -u <&- > /dev/null 2>&1; echo $?)"
+
+#----------------------------------------------------- paste fold cut
+seq 1 5000 > pbig
+printf '1\n2\n3\n' > p1
+printf 'a\nb\n' > p2
+eq "paste: two files side by side" "1 a|2 b|3 " "$("$OURS/paste" -d ' ' p1 p2 | tr '\n' '|' | sed 's/|$//')"
+eq "paste -s: lines of a file on one line" "1,2,3" "$("$OURS/paste" -s -d, p1)"
+eq "paste: the standard input is shared by its \"-\" operands" "1 2|3 " "$("$OURS/paste" -d ' ' - - < p1 | tr '\n' '|' | sed 's/|$//')"
+eq "paste of one file is the file" 0 "$("$OURS/paste" pbig | cmp - pbig > /dev/null; echo $?)"
+eq "paste of one file through a pipe is the file" 0 "$(cat pbig | "$OURS/paste" - | cmp - pbig > /dev/null; echo $?)"
+eq "paste - - of a pipe: half as many lines" 2500 "$(cat pbig | "$OURS/paste" - - | wc -l | tr -d ' ')"
+eq "paste -s of a big file: one line" 1 "$("$OURS/paste" -s pbig | wc -l | tr -d ' ')"
+"$OURS/paste" p1 nosuch > out 2> err
+eq "paste with a file that cannot be opened: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+eq "paste -s goes on after a file that cannot be opened" "1 6109620a6109620a 1" "$("$OURS/paste" -s p2 nosuch p2 > out 2> err; echo $?) $(hex < out) $(wc -l < err | tr -d ' ')"
+"$OURS/paste" p1 >&- 2> /dev/null
+eq "paste with stdout closed: status 1" 1 $?
+"$OURS/paste" - <&- > out 2> err
+eq "paste - with stdin closed: status 1, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/paste" 2> /dev/null
+eq "paste with no operand is a usage error" 2 $?
+"$OURS/paste" -d '' p1 2> /dev/null
+eq "paste -d '' is an error" 1 $?
+"$OURS/paste" -d 'a\' p1 2> /dev/null
+eq "paste -d with a lone backslash at the end is an error" 1 $?
+seq 1 300000 > pmax
+{ "$OURS/paste" pmax pmax; echo $? > st; } | head -c 10 > /dev/null
+eq "paste into a closed pipe ends quietly" 0 "$([ "$(cat st)" -ne 0 ] && echo 0 || echo 1)"
+start=$(date +%s)
+{ printf 'a\nb\n'; sleep 3; } | "$OURS/paste" - - | { read -r line; date +%s > t1; }
+eq "paste answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
+
+# fold
+eq "fold: lines of 80 columns by default" "80 80 40" "$(head -c 200 /dev/zero | tr '\000' x | "$OURS/fold" | awk '{ printf "%s%d", s, length($0); s = " " }')"
+eq "fold -w 5 -s: after the last blank within the width" "ab |cd ef" "$(printf 'ab cd ef\n' | "$OURS/fold" -s -w 5 | tr '\n' '|' | sed 's/|$//')"
+eq "fold: a last line without a newline stays without" "61620a6364" "$(printf 'abcd' | "$OURS/fold" -w 2 | hex)"
+eq "fold of a big file with a width that fits is the file" 0 "$("$OURS/fold" -w 100 pbig | cmp - pbig > /dev/null; echo $?)"
+eq "fold of a big pipe is the same as of the file" 0 "$(cat pbig | "$OURS/fold" -w 2 | cmp - "$("$OURS/fold" -w 2 pbig > fo; echo fo)" > /dev/null; echo $?)"
+head -c 300000 /dev/zero | tr '\000' x > fl
+eq "fold: a line of 300000 bytes (no newline) in 7-byte pieces" 42857 "$("$OURS/fold" -b -w 7 fl | wc -l | tr -d ' ')"
+eq "fold: -w 18446744073709551615 never folds" 300000 "$("$OURS/fold" -w 18446744073709551615 fl | wc -c | tr -d ' ')"
+"$OURS/fold" -w 0 pbig > out 2> err
+eq "fold -w 0: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/fold" pbig >&- 2> /dev/null
+eq "fold with stdout closed: status 1" 1 $?
+"$OURS/fold" <&- > out 2> err
+eq "fold with stdin closed: status 1, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/fold" nosuch p1 > out 2> err
+eq "fold goes on after a file that cannot be opened" "1 6 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+{ "$OURS/fold" -w 1 fl; echo $? > st; } | head -c 10 > /dev/null
+eq "fold into a closed pipe ends quietly" 0 "$([ "$(cat st)" -ne 0 ] && echo 0 || echo 1)"
+start=$(date +%s)
+{ printf 'abcdef\n'; sleep 3; } | "$OURS/fold" -w 3 | { read -r line; date +%s > t1; }
+eq "fold answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
+if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	eq "fold: a UTF-8 character cut by the end of a read stays whole" "e697a50a65" "$({ printf '\346\227'; sleep 1; printf '\245e\n'; } | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 2 | hex | cut -c1-10)"
+	eq "fold: two CJK characters need four columns" "e697a50ae697a5" "$(printf '\346\227\245\346\227\245' | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 3 | hex)"
+fi
+
+# cut
+awk 'BEGIN { for (i = 1; i <= 5000; i++) printf "%d:%d:%d\n", i, i * 7, i % 13 }' > cf
+eq "cut -b against awk substr" 0 "$("$OURS/cut" -b 2-3 pbig | cmp - "$(awk '{ print substr($0, 2, 2) }' pbig > aw; echo aw)" > /dev/null; echo $?)"
+eq "cut -f against awk -F:" 0 "$("$OURS/cut" -d: -f2 cf | cmp - "$(awk -F: '{ print $2 }' cf > aw; echo aw)" > /dev/null; echo $?)"
+eq "cut -f 3,1 -d: is in the order of the input" 0 "$("$OURS/cut" -d: -f3,1 cf | cmp - "$(awk -F: '{ print $1 ":" $3 }' cf > aw; echo aw)" > /dev/null; echo $?)"
+eq "cut -c of a pipe equals cut -c of the file" 0 "$(cat cf | "$OURS/cut" -c 2-5 | cmp - "$("$OURS/cut" -c 2-5 cf > cu; echo cu)" > /dev/null; echo $?)"
+eq "cut: a last line without a newline gets one" "610a" "$(printf 'ab' | "$OURS/cut" -b 1 | hex)"
+eq "cut -s drops a line with no delimiter" "620a" "$(printf 'a\nx:b\n' | "$OURS/cut" -s -d: -f2 | hex)"
+eq "cut -f keeps a line with no delimiter" "610a620a" "$(printf 'a\nx:b\n' | "$OURS/cut" -d: -f2 | hex)"
+eq "cut -n: a start inside a character moves back" "c3a90a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -n -b 2 | hex)"
+eq "cut -n: an end inside a character drops the character" "0a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -n -b 1 | hex)"
+eq "cut -b may cut a character in two" "c30a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -b 1 | hex)"
+eq "cut -c takes a whole character" "c3a90a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -c 1 | hex)"
+head -c 300000 /dev/zero | tr '\000' x > cl
+echo >> cl
+eq "cut: a line of 300000 bytes" 100 "$("$OURS/cut" -b 299901-300000 cl | tr -d '\n' | wc -c | tr -d ' ')"
+eq "cut -f of a line of 300000 bytes" 300001 "$("$OURS/cut" -d: -f1 cl | wc -c | tr -d ' ')"
+"$OURS/cut" -b 0 p1 > out 2> err
+eq "cut -b 0: status 1, a diagnostic, no output" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/cut" -b 3-1 p1 2> /dev/null
+eq "cut -b 3-1 (a range that runs backwards) is an error" 1 $?
+"$OURS/cut" p1 2> /dev/null
+eq "cut without -b -c -f is a usage error" 2 $?
+"$OURS/cut" -b 1 -c 1 p1 2> /dev/null
+eq "cut -b -c is a usage error" 2 $?
+"$OURS/cut" -c 1 -n p1 2> /dev/null
+eq "cut -c -n is a usage error" 2 $?
+"$OURS/cut" -b 1 -d: p1 2> /dev/null
+eq "cut -b -d is a usage error" 2 $?
+"$OURS/cut" -f 1 -d ab p1 2> /dev/null
+eq "cut -d with two characters is an error" 1 $?
+"$OURS/cut" -b 1 p1 nosuch p2 > out 2> err; st=$?
+eq "cut goes on after a file that cannot be opened" "1 1 2 3 a b 1" "$st $(tr '\n' ' ' < out | sed 's/ $//') $(wc -l < err | tr -d ' ')"
+"$OURS/cut" -b 1 pbig >&- 2> /dev/null
+eq "cut with stdout closed: status 1" 1 $?
+"$OURS/cut" -b 1 <&- > out 2> err
+eq "cut with stdin closed: status 1, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+{ "$OURS/cut" -b 1 pbig pbig pbig pbig pbig pbig pbig pbig pbig pbig; echo $? > st; } | head -c 10 > /dev/null
+eq "cut into a closed pipe ends quietly" 0 "$([ "$(cat st)" -ne 0 ] && echo 0 || echo 1)"
+start=$(date +%s)
+{ printf 'abc\n'; sleep 3; } | "$OURS/cut" -b 1 | { read -r line; date +%s > t1; }
+eq "cut answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
+
+# GA39: output that cannot be written (a closed pipe, SIGPIPE ignored) gets a
+# diagnostic on standard error and a status other than 0 (PCTS 801)
+gaw() {
+	rm -f st err
+	( trap '' PIPE; sleep 1; eval "$2" 2> err; echo $? > st ) | true
+	eq "$1: a closed pipe with SIGPIPE ignored: diagnostic and non-zero status" "1 1" \
+		"$([ "$(cat st)" -ne 0 ] && echo 1 || echo 0) $([ -s err ] && echo 1 || echo 0)"
+}
+gaw cksum 'echo x | "$OURS/cksum"'
+gaw id '"$OURS/id"'
+gaw paste 'echo x | "$OURS/paste" -'
+gaw fold 'echo x | "$OURS/fold"'
+gaw cut 'echo x | "$OURS/cut" -f 1'
+
+# argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
+# No utility may index args[0] or args[1..] blindly and abort.
+if command -v cc > /dev/null 2>&1; then
+	cat > nullargv.c <<'CEOF'
+#include <unistd.h>
+extern char **environ;
+int main(int argc, char **argv) { (void)argc; execve(argv[1], 0, environ); return 127; }
+CEOF
+	if cc -o nullargv nullargv.c 2> /dev/null; then
+		crashed=
+		for b in "$OURS"/*; do
+			[ -f "$b" ] && [ -x "$b" ] || continue
+			case $b in *.d | *.rlib) continue ;; esac
+			./nullargv "$b" < /dev/null > /dev/null 2>&1
+			case $? in 132 | 133 | 134 | 139) crashed="$crashed ${b##*/}" ;; esac
+		done
+		eq "no utility crashes when started with a null argv" "" "$crashed"
+	else
+		echo "skip: no C compiler that works"
+	fi
+else
+	echo "skip: no C compiler"
+fi
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]
