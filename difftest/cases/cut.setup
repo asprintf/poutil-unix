@@ -1,0 +1,27 @@
+printf 'abcdef\nxyz\n\nlast\n' > f
+printf 'no newline at the end' > nonl
+printf 'a:b:c\nnodelim\n::\n:x\nx:\n:::\n' > c
+printf 'a\tb\tc\nnodelim\n\t\n\tx\nx\t\n' > t
+printf 'one two  three\tfour\n' > sp
+: > empty
+printf '\n\n\n' > nl
+printf '\303\251a\342\202\254b\n\344\270\255\346\226\207x\n\303\251\303\251\303\251\n' > u
+printf 'a\303\251\342\202\254:b\344\270\255\n\303\251:\342\202\254:\344\270\255\n' > uc
+printf '\342\202\254\n\342\202\254\342\202\254\n' > euro
+printf 'a\303b\342\202c\377d\n' > bad
+printf 'a\0b\0c\n\377\200\001\n' > bin
+printf 'a\r\nb\r\n' > crlf
+printf 'a,b,c\nd,e,f\n' > csv
+printf '%s\n' 0123456789abcdefghijklmnopqrstuvwxyz > digits
+seq 1 20 | tr '\n' ',' | sed 's/,$//' > row
+echo >> row
+head -c 300000 /dev/zero | tr '\0' 'x' > longline
+(cat longline; echo; echo short) > long2
+seq 1 3000 | tr '\n' ':' > longf
+echo >> longf
+seq 1 5000 > big
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'

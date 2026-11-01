@@ -178,6 +178,10 @@ path = "paste/paste.rs"
 name = "fold"
 path = "fold/fold.rs"
 
+[[bin]]
+name = "cut"
+path = "cut/cut.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

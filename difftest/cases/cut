@@ -1,0 +1,1169 @@
+# cut: -b -c -f with every list form, -n, -d, -s, files, errors
+-b 1 f
+-b 2 f
+-b 3 f
+-b 1,3 f
+-b 3,1 f
+-b 1-3 f
+-b -3 f
+-b 3- f
+-b 1- f
+-b 2-4 f
+-b 2-4,1 f
+-b 1,2,3 f
+-b 1,1,1 f
+-b 1-3,2-5 f
+-b 1-3,4-6 f
+-b 1-3,3-5 f
+-b 5-2 f
+-b 9 f
+-b 99 f
+-b 1-99 f
+-b 10- f
+-b 1,5-7,9- f
+-b 1 3 f
+-b '1 3' f
+-b '1,3 5' f
+-b 1,,2 f
+-b 1, f
+-b 1-2-3 f
+-b 0 f
+-b 0-3 f
+-b -0 f
+-b a f
+-b - f
+-b '' f
+-b +1 f
+-b 1.5 f
+-b 99999999999999999999 f
+-b 1-99999999999999999999 f
+-b 18446744073709551616- f
+-b 1 f
+-b 1 c
+-b 1 t
+-b 1 u
+-b 1 digits
+-b 1 nonl
+-b 1 empty
+-b 1 nl
+-b 1 bin
+-b 1 crlf
+-b 1 bad
+-b 1 uc
+-b 1 euro
+-b 2 f
+-b 2 c
+-b 2 t
+-b 2 u
+-b 2 digits
+-b 2 nonl
+-b 2 empty
+-b 2 nl
+-b 2 bin
+-b 2 crlf
+-b 2 bad
+-b 2 uc
+-b 2 euro
+-b 3 f
+-b 3 c
+-b 3 t
+-b 3 u
+-b 3 digits
+-b 3 nonl
+-b 3 empty
+-b 3 nl
+-b 3 bin
+-b 3 crlf
+-b 3 bad
+-b 3 uc
+-b 3 euro
+-b 1,3 f
+-b 1,3 c
+-b 1,3 t
+-b 1,3 u
+-b 1,3 digits
+-b 1,3 nonl
+-b 1,3 empty
+-b 1,3 nl
+-b 1,3 bin
+-b 1,3 crlf
+-b 1,3 bad
+-b 1,3 uc
+-b 1,3 euro
+-b 1-3 f
+-b 1-3 c
+-b 1-3 t
+-b 1-3 u
+-b 1-3 digits
+-b 1-3 nonl
+-b 1-3 empty
+-b 1-3 nl
+-b 1-3 bin
+-b 1-3 crlf
+-b 1-3 bad
+-b 1-3 uc
+-b 1-3 euro
+-b -3 f
+-b -3 c
+-b -3 t
+-b -3 u
+-b -3 digits
+-b -3 nonl
+-b -3 empty
+-b -3 nl
+-b -3 bin
+-b -3 crlf
+-b -3 bad
+-b -3 uc
+-b -3 euro
+-b 3- f
+-b 3- c
+-b 3- t
+-b 3- u
+-b 3- digits
+-b 3- nonl
+-b 3- empty
+-b 3- nl
+-b 3- bin
+-b 3- crlf
+-b 3- bad
+-b 3- uc
+-b 3- euro
+-b 2-4,1 f
+-b 2-4,1 c
+-b 2-4,1 t
+-b 2-4,1 u
+-b 2-4,1 digits
+-b 2-4,1 nonl
+-b 2-4,1 empty
+-b 2-4,1 nl
+-b 2-4,1 bin
+-b 2-4,1 crlf
+-b 2-4,1 bad
+-b 2-4,1 uc
+-b 2-4,1 euro
+-b 5-2 f
+-b 5-2 c
+-b 5-2 t
+-b 5-2 u
+-b 5-2 digits
+-b 5-2 nonl
+-b 5-2 empty
+-b 5-2 nl
+-b 5-2 bin
+-b 5-2 crlf
+-b 5-2 bad
+-b 5-2 uc
+-b 5-2 euro
+-b 0 f
+-b 0 c
+-b 0 t
+-b 0 u
+-b 0 digits
+-b 0 nonl
+-b 0 empty
+-b 0 nl
+-b 0 bin
+-b 0 crlf
+-b 0 bad
+-b 0 uc
+-b 0 euro
+-b 9 f
+-b 9 c
+-b 9 t
+-b 9 u
+-b 9 digits
+-b 9 nonl
+-b 9 empty
+-b 9 nl
+-b 9 bin
+-b 9 crlf
+-b 9 bad
+-b 9 uc
+-b 9 euro
+-b 1 3 f
+-b 1 3 c
+-b 1 3 t
+-b 1 3 u
+-b 1 3 digits
+-b 1 3 nonl
+-b 1 3 empty
+-b 1 3 nl
+-b 1 3 bin
+-b 1 3 crlf
+-b 1 3 bad
+-b 1 3 uc
+-b 1 3 euro
+-b '1 3' f
+-b '1 3' c
+-b '1 3' t
+-b '1 3' u
+-b '1 3' digits
+-b '1 3' nonl
+-b '1 3' empty
+-b '1 3' nl
+-b '1 3' bin
+-b '1 3' crlf
+-b '1 3' bad
+-b '1 3' uc
+-b '1 3' euro
+-c 1 f
+-c 1 u
+-c 1 uc
+-c 1 euro
+-c 1 bad
+-c 1 bin
+-c 1 nonl
+-c 1 empty
+-c 1 nl
+-c 2 f
+-c 2 u
+-c 2 uc
+-c 2 euro
+-c 2 bad
+-c 2 bin
+-c 2 nonl
+-c 2 empty
+-c 2 nl
+-c 3 f
+-c 3 u
+-c 3 uc
+-c 3 euro
+-c 3 bad
+-c 3 bin
+-c 3 nonl
+-c 3 empty
+-c 3 nl
+-c 1,3 f
+-c 1,3 u
+-c 1,3 uc
+-c 1,3 euro
+-c 1,3 bad
+-c 1,3 bin
+-c 1,3 nonl
+-c 1,3 empty
+-c 1,3 nl
+-c 1-3 f
+-c 1-3 u
+-c 1-3 uc
+-c 1-3 euro
+-c 1-3 bad
+-c 1-3 bin
+-c 1-3 nonl
+-c 1-3 empty
+-c 1-3 nl
+-c -3 f
+-c -3 u
+-c -3 uc
+-c -3 euro
+-c -3 bad
+-c -3 bin
+-c -3 nonl
+-c -3 empty
+-c -3 nl
+-c 3- f
+-c 3- u
+-c 3- uc
+-c 3- euro
+-c 3- bad
+-c 3- bin
+-c 3- nonl
+-c 3- empty
+-c 3- nl
+-c 2-4,1 f
+-c 2-4,1 u
+-c 2-4,1 uc
+-c 2-4,1 euro
+-c 2-4,1 bad
+-c 2-4,1 bin
+-c 2-4,1 nonl
+-c 2-4,1 empty
+-c 2-4,1 nl
+-c 9 f
+-c 9 u
+-c 9 uc
+-c 9 euro
+-c 9 bad
+-c 9 bin
+-c 9 nonl
+-c 9 empty
+-c 9 nl
+-c 1 3 f
+-c 1 3 u
+-c 1 3 uc
+-c 1 3 euro
+-c 1 3 bad
+-c 1 3 bin
+-c 1 3 nonl
+-c 1 3 empty
+-c 1 3 nl
+-n -b 1 u
+-b 1 -n u
+-n -b 1 uc
+-b 1 -n uc
+-n -b 1 euro
+-b 1 -n euro
+-n -b 1 f
+-b 1 -n f
+-n -b 1 bad
+-b 1 -n bad
+-n -b 2 u
+-b 2 -n u
+-n -b 2 uc
+-b 2 -n uc
+-n -b 2 euro
+-b 2 -n euro
+-n -b 2 f
+-b 2 -n f
+-n -b 2 bad
+-b 2 -n bad
+-n -b 3 u
+-b 3 -n u
+-n -b 3 uc
+-b 3 -n uc
+-n -b 3 euro
+-b 3 -n euro
+-n -b 3 f
+-b 3 -n f
+-n -b 3 bad
+-b 3 -n bad
+-n -b 4 u
+-b 4 -n u
+-n -b 4 uc
+-b 4 -n uc
+-n -b 4 euro
+-b 4 -n euro
+-n -b 4 f
+-b 4 -n f
+-n -b 4 bad
+-b 4 -n bad
+-n -b 5 u
+-b 5 -n u
+-n -b 5 uc
+-b 5 -n uc
+-n -b 5 euro
+-b 5 -n euro
+-n -b 5 f
+-b 5 -n f
+-n -b 5 bad
+-b 5 -n bad
+-n -b 6 u
+-b 6 -n u
+-n -b 6 uc
+-b 6 -n uc
+-n -b 6 euro
+-b 6 -n euro
+-n -b 6 f
+-b 6 -n f
+-n -b 6 bad
+-b 6 -n bad
+-n -b 7 u
+-b 7 -n u
+-n -b 7 uc
+-b 7 -n uc
+-n -b 7 euro
+-b 7 -n euro
+-n -b 7 f
+-b 7 -n f
+-n -b 7 bad
+-b 7 -n bad
+-n -b 1,2 u
+-b 1,2 -n u
+-n -b 1,2 uc
+-b 1,2 -n uc
+-n -b 1,2 euro
+-b 1,2 -n euro
+-n -b 1,2 f
+-b 1,2 -n f
+-n -b 1,2 bad
+-b 1,2 -n bad
+-n -b 1-2 u
+-b 1-2 -n u
+-n -b 1-2 uc
+-b 1-2 -n uc
+-n -b 1-2 euro
+-b 1-2 -n euro
+-n -b 1-2 f
+-b 1-2 -n f
+-n -b 1-2 bad
+-b 1-2 -n bad
+-n -b 2-3 u
+-b 2-3 -n u
+-n -b 2-3 uc
+-b 2-3 -n uc
+-n -b 2-3 euro
+-b 2-3 -n euro
+-n -b 2-3 f
+-b 2-3 -n f
+-n -b 2-3 bad
+-b 2-3 -n bad
+-n -b 3-4 u
+-b 3-4 -n u
+-n -b 3-4 uc
+-b 3-4 -n uc
+-n -b 3-4 euro
+-b 3-4 -n euro
+-n -b 3-4 f
+-b 3-4 -n f
+-n -b 3-4 bad
+-b 3-4 -n bad
+-n -b 4-5 u
+-b 4-5 -n u
+-n -b 4-5 uc
+-b 4-5 -n uc
+-n -b 4-5 euro
+-b 4-5 -n euro
+-n -b 4-5 f
+-b 4-5 -n f
+-n -b 4-5 bad
+-b 4-5 -n bad
+-n -b 5-6 u
+-b 5-6 -n u
+-n -b 5-6 uc
+-b 5-6 -n uc
+-n -b 5-6 euro
+-b 5-6 -n euro
+-n -b 5-6 f
+-b 5-6 -n f
+-n -b 5-6 bad
+-b 5-6 -n bad
+-n -b 1-3 u
+-b 1-3 -n u
+-n -b 1-3 uc
+-b 1-3 -n uc
+-n -b 1-3 euro
+-b 1-3 -n euro
+-n -b 1-3 f
+-b 1-3 -n f
+-n -b 1-3 bad
+-b 1-3 -n bad
+-n -b 2-4 u
+-b 2-4 -n u
+-n -b 2-4 uc
+-b 2-4 -n uc
+-n -b 2-4 euro
+-b 2-4 -n euro
+-n -b 2-4 f
+-b 2-4 -n f
+-n -b 2-4 bad
+-b 2-4 -n bad
+-n -b 3-5 u
+-b 3-5 -n u
+-n -b 3-5 uc
+-b 3-5 -n uc
+-n -b 3-5 euro
+-b 3-5 -n euro
+-n -b 3-5 f
+-b 3-5 -n f
+-n -b 3-5 bad
+-b 3-5 -n bad
+-n -b 4-6 u
+-b 4-6 -n u
+-n -b 4-6 uc
+-b 4-6 -n uc
+-n -b 4-6 euro
+-b 4-6 -n euro
+-n -b 4-6 f
+-b 4-6 -n f
+-n -b 4-6 bad
+-b 4-6 -n bad
+-n -b -2 u
+-b -2 -n u
+-n -b -2 uc
+-b -2 -n uc
+-n -b -2 euro
+-b -2 -n euro
+-n -b -2 f
+-b -2 -n f
+-n -b -2 bad
+-b -2 -n bad
+-n -b -3 u
+-b -3 -n u
+-n -b -3 uc
+-b -3 -n uc
+-n -b -3 euro
+-b -3 -n euro
+-n -b -3 f
+-b -3 -n f
+-n -b -3 bad
+-b -3 -n bad
+-n -b -4 u
+-b -4 -n u
+-n -b -4 uc
+-b -4 -n uc
+-n -b -4 euro
+-b -4 -n euro
+-n -b -4 f
+-b -4 -n f
+-n -b -4 bad
+-b -4 -n bad
+-n -b 3- u
+-b 3- -n u
+-n -b 3- uc
+-b 3- -n uc
+-n -b 3- euro
+-b 3- -n euro
+-n -b 3- f
+-b 3- -n f
+-n -b 3- bad
+-b 3- -n bad
+-n -b 4- u
+-b 4- -n u
+-n -b 4- uc
+-b 4- -n uc
+-n -b 4- euro
+-b 4- -n euro
+-n -b 4- f
+-b 4- -n f
+-n -b 4- bad
+-b 4- -n bad
+-n -b 5- u
+-b 5- -n u
+-n -b 5- uc
+-b 5- -n uc
+-n -b 5- euro
+-b 5- -n euro
+-n -b 5- f
+-b 5- -n f
+-n -b 5- bad
+-b 5- -n bad
+-n -b 2,4 u
+-b 2,4 -n u
+-n -b 2,4 uc
+-b 2,4 -n uc
+-n -b 2,4 euro
+-b 2,4 -n euro
+-n -b 2,4 f
+-b 2,4 -n f
+-n -b 2,4 bad
+-b 2,4 -n bad
+-n -b 1,3,5 u
+-b 1,3,5 -n u
+-n -b 1,3,5 uc
+-b 1,3,5 -n uc
+-n -b 1,3,5 euro
+-b 1,3,5 -n euro
+-n -b 1,3,5 f
+-b 1,3,5 -n f
+-n -b 1,3,5 bad
+-b 1,3,5 -n bad
+-n -b 1-5 u
+-b 1-5 -n u
+-n -b 1-5 uc
+-b 1-5 -n uc
+-n -b 1-5 euro
+-b 1-5 -n euro
+-n -b 1-5 f
+-b 1-5 -n f
+-n -b 1-5 bad
+-b 1-5 -n bad
+-n -b 1-6 u
+-b 1-6 -n u
+-n -b 1-6 uc
+-b 1-6 -n uc
+-n -b 1-6 euro
+-b 1-6 -n euro
+-n -b 1-6 f
+-b 1-6 -n f
+-n -b 1-6 bad
+-b 1-6 -n bad
+-f 1  c
+-f 1  t
+-f 1  u
+-f 1  uc
+-f 1  bad
+-f 1 -d: c
+-f 1 -d: t
+-f 1 -d: u
+-f 1 -d: uc
+-f 1 -d: bad
+-f 1 -d: -s c
+-f 1 -d: -s t
+-f 1 -d: -s u
+-f 1 -d: -s uc
+-f 1 -d: -s bad
+-f 1 -s c
+-f 1 -s t
+-f 1 -s u
+-f 1 -s uc
+-f 1 -s bad
+-f 1 -s -d: c
+-f 1 -s -d: t
+-f 1 -s -d: u
+-f 1 -s -d: uc
+-f 1 -s -d: bad
+-f 1 -d, c
+-f 1 -d, t
+-f 1 -d, u
+-f 1 -d, uc
+-f 1 -d, bad
+-f 1 -d, -s c
+-f 1 -d, -s t
+-f 1 -d, -s u
+-f 1 -d, -s uc
+-f 1 -d, -s bad
+-f 2  c
+-f 2  t
+-f 2  u
+-f 2  uc
+-f 2  bad
+-f 2 -d: c
+-f 2 -d: t
+-f 2 -d: u
+-f 2 -d: uc
+-f 2 -d: bad
+-f 2 -d: -s c
+-f 2 -d: -s t
+-f 2 -d: -s u
+-f 2 -d: -s uc
+-f 2 -d: -s bad
+-f 2 -s c
+-f 2 -s t
+-f 2 -s u
+-f 2 -s uc
+-f 2 -s bad
+-f 2 -s -d: c
+-f 2 -s -d: t
+-f 2 -s -d: u
+-f 2 -s -d: uc
+-f 2 -s -d: bad
+-f 2 -d, c
+-f 2 -d, t
+-f 2 -d, u
+-f 2 -d, uc
+-f 2 -d, bad
+-f 2 -d, -s c
+-f 2 -d, -s t
+-f 2 -d, -s u
+-f 2 -d, -s uc
+-f 2 -d, -s bad
+-f 3  c
+-f 3  t
+-f 3  u
+-f 3  uc
+-f 3  bad
+-f 3 -d: c
+-f 3 -d: t
+-f 3 -d: u
+-f 3 -d: uc
+-f 3 -d: bad
+-f 3 -d: -s c
+-f 3 -d: -s t
+-f 3 -d: -s u
+-f 3 -d: -s uc
+-f 3 -d: -s bad
+-f 3 -s c
+-f 3 -s t
+-f 3 -s u
+-f 3 -s uc
+-f 3 -s bad
+-f 3 -s -d: c
+-f 3 -s -d: t
+-f 3 -s -d: u
+-f 3 -s -d: uc
+-f 3 -s -d: bad
+-f 3 -d, c
+-f 3 -d, t
+-f 3 -d, u
+-f 3 -d, uc
+-f 3 -d, bad
+-f 3 -d, -s c
+-f 3 -d, -s t
+-f 3 -d, -s u
+-f 3 -d, -s uc
+-f 3 -d, -s bad
+-f 1,3  c
+-f 1,3  t
+-f 1,3  u
+-f 1,3  uc
+-f 1,3  bad
+-f 1,3 -d: c
+-f 1,3 -d: t
+-f 1,3 -d: u
+-f 1,3 -d: uc
+-f 1,3 -d: bad
+-f 1,3 -d: -s c
+-f 1,3 -d: -s t
+-f 1,3 -d: -s u
+-f 1,3 -d: -s uc
+-f 1,3 -d: -s bad
+-f 1,3 -s c
+-f 1,3 -s t
+-f 1,3 -s u
+-f 1,3 -s uc
+-f 1,3 -s bad
+-f 1,3 -s -d: c
+-f 1,3 -s -d: t
+-f 1,3 -s -d: u
+-f 1,3 -s -d: uc
+-f 1,3 -s -d: bad
+-f 1,3 -d, c
+-f 1,3 -d, t
+-f 1,3 -d, u
+-f 1,3 -d, uc
+-f 1,3 -d, bad
+-f 1,3 -d, -s c
+-f 1,3 -d, -s t
+-f 1,3 -d, -s u
+-f 1,3 -d, -s uc
+-f 1,3 -d, -s bad
+-f 1-3  c
+-f 1-3  t
+-f 1-3  u
+-f 1-3  uc
+-f 1-3  bad
+-f 1-3 -d: c
+-f 1-3 -d: t
+-f 1-3 -d: u
+-f 1-3 -d: uc
+-f 1-3 -d: bad
+-f 1-3 -d: -s c
+-f 1-3 -d: -s t
+-f 1-3 -d: -s u
+-f 1-3 -d: -s uc
+-f 1-3 -d: -s bad
+-f 1-3 -s c
+-f 1-3 -s t
+-f 1-3 -s u
+-f 1-3 -s uc
+-f 1-3 -s bad
+-f 1-3 -s -d: c
+-f 1-3 -s -d: t
+-f 1-3 -s -d: u
+-f 1-3 -s -d: uc
+-f 1-3 -s -d: bad
+-f 1-3 -d, c
+-f 1-3 -d, t
+-f 1-3 -d, u
+-f 1-3 -d, uc
+-f 1-3 -d, bad
+-f 1-3 -d, -s c
+-f 1-3 -d, -s t
+-f 1-3 -d, -s u
+-f 1-3 -d, -s uc
+-f 1-3 -d, -s bad
+-f -3  c
+-f -3  t
+-f -3  u
+-f -3  uc
+-f -3  bad
+-f -3 -d: c
+-f -3 -d: t
+-f -3 -d: u
+-f -3 -d: uc
+-f -3 -d: bad
+-f -3 -d: -s c
+-f -3 -d: -s t
+-f -3 -d: -s u
+-f -3 -d: -s uc
+-f -3 -d: -s bad
+-f -3 -s c
+-f -3 -s t
+-f -3 -s u
+-f -3 -s uc
+-f -3 -s bad
+-f -3 -s -d: c
+-f -3 -s -d: t
+-f -3 -s -d: u
+-f -3 -s -d: uc
+-f -3 -s -d: bad
+-f -3 -d, c
+-f -3 -d, t
+-f -3 -d, u
+-f -3 -d, uc
+-f -3 -d, bad
+-f -3 -d, -s c
+-f -3 -d, -s t
+-f -3 -d, -s u
+-f -3 -d, -s uc
+-f -3 -d, -s bad
+-f 3-  c
+-f 3-  t
+-f 3-  u
+-f 3-  uc
+-f 3-  bad
+-f 3- -d: c
+-f 3- -d: t
+-f 3- -d: u
+-f 3- -d: uc
+-f 3- -d: bad
+-f 3- -d: -s c
+-f 3- -d: -s t
+-f 3- -d: -s u
+-f 3- -d: -s uc
+-f 3- -d: -s bad
+-f 3- -s c
+-f 3- -s t
+-f 3- -s u
+-f 3- -s uc
+-f 3- -s bad
+-f 3- -s -d: c
+-f 3- -s -d: t
+-f 3- -s -d: u
+-f 3- -s -d: uc
+-f 3- -s -d: bad
+-f 3- -d, c
+-f 3- -d, t
+-f 3- -d, u
+-f 3- -d, uc
+-f 3- -d, bad
+-f 3- -d, -s c
+-f 3- -d, -s t
+-f 3- -d, -s u
+-f 3- -d, -s uc
+-f 3- -d, -s bad
+-f 2-4,1  c
+-f 2-4,1  t
+-f 2-4,1  u
+-f 2-4,1  uc
+-f 2-4,1  bad
+-f 2-4,1 -d: c
+-f 2-4,1 -d: t
+-f 2-4,1 -d: u
+-f 2-4,1 -d: uc
+-f 2-4,1 -d: bad
+-f 2-4,1 -d: -s c
+-f 2-4,1 -d: -s t
+-f 2-4,1 -d: -s u
+-f 2-4,1 -d: -s uc
+-f 2-4,1 -d: -s bad
+-f 2-4,1 -s c
+-f 2-4,1 -s t
+-f 2-4,1 -s u
+-f 2-4,1 -s uc
+-f 2-4,1 -s bad
+-f 2-4,1 -s -d: c
+-f 2-4,1 -s -d: t
+-f 2-4,1 -s -d: u
+-f 2-4,1 -s -d: uc
+-f 2-4,1 -s -d: bad
+-f 2-4,1 -d, c
+-f 2-4,1 -d, t
+-f 2-4,1 -d, u
+-f 2-4,1 -d, uc
+-f 2-4,1 -d, bad
+-f 2-4,1 -d, -s c
+-f 2-4,1 -d, -s t
+-f 2-4,1 -d, -s u
+-f 2-4,1 -d, -s uc
+-f 2-4,1 -d, -s bad
+-f 9  c
+-f 9  t
+-f 9  u
+-f 9  uc
+-f 9  bad
+-f 9 -d: c
+-f 9 -d: t
+-f 9 -d: u
+-f 9 -d: uc
+-f 9 -d: bad
+-f 9 -d: -s c
+-f 9 -d: -s t
+-f 9 -d: -s u
+-f 9 -d: -s uc
+-f 9 -d: -s bad
+-f 9 -s c
+-f 9 -s t
+-f 9 -s u
+-f 9 -s uc
+-f 9 -s bad
+-f 9 -s -d: c
+-f 9 -s -d: t
+-f 9 -s -d: u
+-f 9 -s -d: uc
+-f 9 -s -d: bad
+-f 9 -d, c
+-f 9 -d, t
+-f 9 -d, u
+-f 9 -d, uc
+-f 9 -d, bad
+-f 9 -d, -s c
+-f 9 -d, -s t
+-f 9 -d, -s u
+-f 9 -d, -s uc
+-f 9 -d, -s bad
+-f 1 3  c
+-f 1 3  t
+-f 1 3  csv
+-f 1 3  sp
+-f 1 3  empty
+-f 1 3  nl
+-f 1 3  nonl
+-f 1 3  u
+-f 1 3  uc
+-f 1 3  bad
+-f 1 3  bin
+-f 1 3  crlf
+-f 1 3 -d: c
+-f 1 3 -d: t
+-f 1 3 -d: csv
+-f 1 3 -d: sp
+-f 1 3 -d: empty
+-f 1 3 -d: nl
+-f 1 3 -d: nonl
+-f 1 3 -d: u
+-f 1 3 -d: uc
+-f 1 3 -d: bad
+-f 1 3 -d: bin
+-f 1 3 -d: crlf
+-f 1 3 -d: -s c
+-f 1 3 -d: -s t
+-f 1 3 -d: -s csv
+-f 1 3 -d: -s sp
+-f 1 3 -d: -s empty
+-f 1 3 -d: -s nl
+-f 1 3 -d: -s nonl
+-f 1 3 -d: -s u
+-f 1 3 -d: -s uc
+-f 1 3 -d: -s bad
+-f 1 3 -d: -s bin
+-f 1 3 -d: -s crlf
+-f 1 3 -s c
+-f 1 3 -s t
+-f 1 3 -s csv
+-f 1 3 -s sp
+-f 1 3 -s empty
+-f 1 3 -s nl
+-f 1 3 -s nonl
+-f 1 3 -s u
+-f 1 3 -s uc
+-f 1 3 -s bad
+-f 1 3 -s bin
+-f 1 3 -s crlf
+-f 1 3 -s -d: c
+-f 1 3 -s -d: t
+-f 1 3 -s -d: csv
+-f 1 3 -s -d: sp
+-f 1 3 -s -d: empty
+-f 1 3 -s -d: nl
+-f 1 3 -s -d: nonl
+-f 1 3 -s -d: u
+-f 1 3 -s -d: uc
+-f 1 3 -s -d: bad
+-f 1 3 -s -d: bin
+-f 1 3 -s -d: crlf
+-f 1 3 -d, c
+-f 1 3 -d, t
+-f 1 3 -d, csv
+-f 1 3 -d, sp
+-f 1 3 -d, empty
+-f 1 3 -d, nl
+-f 1 3 -d, nonl
+-f 1 3 -d, u
+-f 1 3 -d, uc
+-f 1 3 -d, bad
+-f 1 3 -d, bin
+-f 1 3 -d, crlf
+-f 1 3 -d, -s c
+-f 1 3 -d, -s t
+-f 1 3 -d, -s csv
+-f 1 3 -d, -s sp
+-f 1 3 -d, -s empty
+-f 1 3 -d, -s nl
+-f 1 3 -d, -s nonl
+-f 1 3 -d, -s u
+-f 1 3 -d, -s uc
+-f 1 3 -d, -s bad
+-f 1 3 -d, -s bin
+-f 1 3 -d, -s crlf
+-f 1,2,3  c
+-f 1,2,3  t
+-f 1,2,3  u
+-f 1,2,3  uc
+-f 1,2,3  bad
+-f 1,2,3 -d: c
+-f 1,2,3 -d: t
+-f 1,2,3 -d: u
+-f 1,2,3 -d: uc
+-f 1,2,3 -d: bad
+-f 1,2,3 -d: -s c
+-f 1,2,3 -d: -s t
+-f 1,2,3 -d: -s u
+-f 1,2,3 -d: -s uc
+-f 1,2,3 -d: -s bad
+-f 1,2,3 -s c
+-f 1,2,3 -s t
+-f 1,2,3 -s u
+-f 1,2,3 -s uc
+-f 1,2,3 -s bad
+-f 1,2,3 -s -d: c
+-f 1,2,3 -s -d: t
+-f 1,2,3 -s -d: u
+-f 1,2,3 -s -d: uc
+-f 1,2,3 -s -d: bad
+-f 1,2,3 -d, c
+-f 1,2,3 -d, t
+-f 1,2,3 -d, u
+-f 1,2,3 -d, uc
+-f 1,2,3 -d, bad
+-f 1,2,3 -d, -s c
+-f 1,2,3 -d, -s t
+-f 1,2,3 -d, -s u
+-f 1,2,3 -d, -s uc
+-f 1,2,3 -d, -s bad
+-f 2-  c
+-f 2-  t
+-f 2-  u
+-f 2-  uc
+-f 2-  bad
+-f 2- -d: c
+-f 2- -d: t
+-f 2- -d: u
+-f 2- -d: uc
+-f 2- -d: bad
+-f 2- -d: -s c
+-f 2- -d: -s t
+-f 2- -d: -s u
+-f 2- -d: -s uc
+-f 2- -d: -s bad
+-f 2- -s c
+-f 2- -s t
+-f 2- -s u
+-f 2- -s uc
+-f 2- -s bad
+-f 2- -s -d: c
+-f 2- -s -d: t
+-f 2- -s -d: u
+-f 2- -s -d: uc
+-f 2- -s -d: bad
+-f 2- -d, c
+-f 2- -d, t
+-f 2- -d, u
+-f 2- -d, uc
+-f 2- -d, bad
+-f 2- -d, -s c
+-f 2- -d, -s t
+-f 2- -d, -s u
+-f 2- -d, -s uc
+-f 2- -d, -s bad
+-f 2 -d '\303\251' u
+-f 2 -d é u
+-f 2 -d € uc
+-f 1,3 -d € uc
+-f 2- -d : uc
+-f 2 -d é -s u
+-f 2 -d 中 uc
+-d € -f 1 euro
+-d € -f 2 euro
+-d ' ' -f 2 sp
+-d ' ' -f 1,3 sp
+-d '	' -f 2 t
+-d '	' -f 2,4 sp
+-d ',' -f 1,3,5,7 row
+-d , -f 1-5 row
+-d , -f 18- row
+-d '' -f 1 c
+-d :: -f 1 c
+-d ab -f 1 c
+-d é€ -f 1 uc
+-d : -b 1 c
+-d : -c 1 c
+-s -b 1 f
+-s -c 1 f
+-n -c 1 f
+-n -f 1 c
+-n -s -f 1 c
+-b 1 -c 1 f
+-b 1 -f 1 f
+-c 1 -f 1 f
+-b 1 -b 2 f
+-f 1 -f 2 c
+-c 1 -c 1 f
+-b1 f
+-b 1 f
+-bn1 f
+-nb1 f
+-b1n f
+-c1 f
+-f1 -d: c
+-f1d: c
+-d: -f1 c
+-sd: -f1 c
+-sf1 -d: c
+-s -f1 -d: c
+-f1 -s -d: c
+-b 1 f f
+-b 1 f nonl
+-b 1 nonl f
+-b 1 nonl nonl
+-f 1 -d: c c
+-f 1 -d: c nonl
+-b 1 empty f
+-b 1 f empty f
+-b 1 -
+-b 1 - f
+-b 1 f -
+-b 1 - -
+-c 2-3 -
+-f 1,3 -d: -
+-f 2 -d : - c
+-f 2 -s -
+-b 1 dir
+-b 1 dir f
+-b 1 f dir
+-b 1 noread
+-b 1 noread f
+-b 1 f noread
+-b 1 nosuch
+-b 1 nosuch f
+-b 1 f nosuch f
+-b 1 nosuch nosuch2
+-f 1 nosuch
+-c 1 nosuch
+-b 1 ./-f
+-b 1 'a b'
+-b 1 -- f
+-b 1 -- -f
+-b 1 -- ./-f
+-- -b 1 f
+-b -- f
+-b
+-c
+-f
+-d
+-d:
+-s
+-n
+-x
+-b 1 -x f
+-h
+--help
+-b 1
+-c 1
+-f 1
+-f 1 -d :
+@
+-b 1-3 longline
+-b 1-3,299990- longline
+-b 299999- longline
+-b 300000 longline
+-b 300001 longline
+-b 1 long2
+-b 1-5 long2
+-c 1-5 long2
+-c 299999-300001 long2
+-f 2 -d : longf
+-f 2998- -d : longf
+-f 1,3000 -d : longf
+-f 3001 -d : longf
+-f 1-3000 -d : longf
+-b 1 big
+-b 2-3 big
+-c 1 big
+-f 1 big
+-f 1 -s big
+-d 1 -f 2 big
+-d 1 -f 1,2 -s big
+-d 1 -f 2- big
+-f 1 empty
+-f 1 nl
+-f 2 -d: nonl
+-f 1 -s nonl
+-f 1,2 -d '\t' sp
+-f 2 -d ' ' sp
+-f 1-2 -d, csv
+-f 2- -d, -s csv
+-f 1 -d: bin
+-f 2 -d '\001' bin
+-f 1 crlf
+-f 1 -d '\r' crlf

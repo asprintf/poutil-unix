@@ -1,0 +1,230 @@
+# cut: what the references do differently and the standard leaves open or
+# decides the other way.
+#  - macOS refuses a byte that is no character ("Illegal byte sequence"), keeps a
+#    last line without newline as it is (the standard says "%s\n"), takes a range
+#    that runs backwards (5-2) and prints nothing for it, takes -b/-c/-f twice, and
+#    -n moves the start of a range back but the end forward, so it selects a
+#    character the standard drops. A directory among the files ends it quietly.
+#  - GNU does not read -n the way the standard does (its -b 1,3,5 -n on a
+#    three-byte character selects nothing, the standard selects the character for
+#    the element 3), accepts -n with -c and -f (a usage error here), accepts
+#    -d '', and stops at a number it cannot count (we take it as no end).
+#  - a number too big to count (99999999999999999999) is an error elsewhere and
+#    no end of the line here.
+--help
+-b -2 -n bad
+-b -3 -n bad
+-b -4 -n bad
+-b 1 -b 2 f
+-b 1 -c 1 f
+-b 1 -n bad
+-b 1 dir f
+-b 1,2 -n bad
+-b 1,3,5 -n bad
+-b 1,3,5 -n euro
+-b 1,3,5 -n u
+-b 1,3,5 -n uc
+-b 1-2 -n bad
+-b 1-3 -n bad
+-b 1-5 -n bad
+-b 1-6 -n bad
+-b 1-99999999999999999999 f
+-b 18446744073709551616- f
+-b 2 -n bad
+-b 2 -n euro
+-b 2 -n u
+-b 2,4 -n bad
+-b 2-3 -n bad
+-b 2-4 -n bad
+-b 3 -n bad
+-b 3- -n bad
+-b 3-4 -n bad
+-b 3-5 -n bad
+-b 300001 longline
+-b 4 -n bad
+-b 4- -n bad
+-b 4-5 -n bad
+-b 4-6 -n bad
+-b 5 -n bad
+-b 5 -n euro
+-b 5 -n u
+-b 5 -n uc
+-b 5- -n bad
+-b 5-2 bad
+-b 5-2 bin
+-b 5-2 c
+-b 5-2 crlf
+-b 5-2 digits
+-b 5-2 empty
+-b 5-2 euro
+-b 5-2 f
+-b 5-2 nl
+-b 5-2 nonl
+-b 5-2 t
+-b 5-2 u
+-b 5-2 uc
+-b 5-6 -n bad
+-b 6 -n bad
+-b 7 -n bad
+-b 99999999999999999999 f
+-c -3 bad
+-c -3 bin
+-c 1 -c 1 f
+-c 1 3 bin
+-c 1 bad
+-c 1 bin
+-c 1,3 bad
+-c 1,3 bin
+-c 1-3 bad
+-c 1-3 bin
+-c 2 bad
+-c 2 bin
+-c 2-4,1 bad
+-c 2-4,1 bin
+-c 3 bad
+-c 3 bin
+-c 3- bad
+-c 3- bin
+-c 9 bad
+-c 9 bin
+-d '' -f 1 c
+-f -3  bad
+-f -3 -d, -s bad
+-f -3 -d, bad
+-f -3 -d: -s bad
+-f -3 -d: bad
+-f -3 -s -d: bad
+-f -3 -s bad
+-f 1  bad
+-f 1 -d, -s bad
+-f 1 -d, bad
+-f 1 -d: -s bad
+-f 1 -d: bad
+-f 1 -d: bin
+-f 1 -d: c nonl
+-f 1 -f 2 c
+-f 1 -s -d: bad
+-f 1 -s bad
+-f 1 3  bad
+-f 1 3  bin
+-f 1 3  nonl
+-f 1 3 -d, -s bad
+-f 1 3 -d, -s bin
+-f 1 3 -d, -s nonl
+-f 1 3 -d, bad
+-f 1 3 -d, bin
+-f 1 3 -d, nonl
+-f 1 3 -d: -s bad
+-f 1 3 -d: -s bin
+-f 1 3 -d: -s nonl
+-f 1 3 -d: bad
+-f 1 3 -d: bin
+-f 1 3 -d: nonl
+-f 1 3 -s -d: bad
+-f 1 3 -s -d: bin
+-f 1 3 -s -d: nonl
+-f 1 3 -s bad
+-f 1 3 -s bin
+-f 1 3 -s nonl
+-f 1,2,3  bad
+-f 1,2,3 -d, -s bad
+-f 1,2,3 -d, bad
+-f 1,2,3 -d: -s bad
+-f 1,2,3 -d: bad
+-f 1,2,3 -s -d: bad
+-f 1,2,3 -s bad
+-f 1,3  bad
+-f 1,3 -d, -s bad
+-f 1,3 -d, bad
+-f 1,3 -d: -s bad
+-f 1,3 -d: bad
+-f 1,3 -s -d: bad
+-f 1,3 -s bad
+-f 1-3  bad
+-f 1-3 -d, -s bad
+-f 1-3 -d, bad
+-f 1-3 -d: -s bad
+-f 1-3 -d: bad
+-f 1-3 -s -d: bad
+-f 1-3 -s bad
+-f 2  bad
+-f 2 -d, -s bad
+-f 2 -d, bad
+-f 2 -d: -s bad
+-f 2 -d: bad
+-f 2 -d: nonl
+-f 2 -s -d: bad
+-f 2 -s bad
+-f 2-  bad
+-f 2- -d, -s bad
+-f 2- -d, bad
+-f 2- -d: -s bad
+-f 2- -d: bad
+-f 2- -s -d: bad
+-f 2- -s bad
+-f 2-4,1  bad
+-f 2-4,1 -d, -s bad
+-f 2-4,1 -d, bad
+-f 2-4,1 -d: -s bad
+-f 2-4,1 -d: bad
+-f 2-4,1 -s -d: bad
+-f 2-4,1 -s bad
+-f 3  bad
+-f 3 -d, -s bad
+-f 3 -d, bad
+-f 3 -d: -s bad
+-f 3 -d: bad
+-f 3 -s -d: bad
+-f 3 -s bad
+-f 3-  bad
+-f 3- -d, -s bad
+-f 3- -d, bad
+-f 3- -d: -s bad
+-f 3- -d: bad
+-f 3- -s -d: bad
+-f 3- -s bad
+-f 9  bad
+-f 9 -d, -s bad
+-f 9 -d, bad
+-f 9 -d: -s bad
+-f 9 -d: bad
+-f 9 -s -d: bad
+-f 9 -s bad
+-n -b -2 bad
+-n -b -3 bad
+-n -b -4 bad
+-n -b 1 bad
+-n -b 1,2 bad
+-n -b 1,3,5 bad
+-n -b 1,3,5 euro
+-n -b 1,3,5 u
+-n -b 1,3,5 uc
+-n -b 1-2 bad
+-n -b 1-3 bad
+-n -b 1-5 bad
+-n -b 1-6 bad
+-n -b 2 bad
+-n -b 2 euro
+-n -b 2 u
+-n -b 2,4 bad
+-n -b 2-3 bad
+-n -b 2-4 bad
+-n -b 3 bad
+-n -b 3- bad
+-n -b 3-4 bad
+-n -b 3-5 bad
+-n -b 4 bad
+-n -b 4- bad
+-n -b 4-5 bad
+-n -b 4-6 bad
+-n -b 5 bad
+-n -b 5 euro
+-n -b 5 u
+-n -b 5 uc
+-n -b 5- bad
+-n -b 5-6 bad
+-n -b 6 bad
+-n -b 7 bad
+-n -c 1 f
+-n -f 1 c
+-n -s -f 1 c
