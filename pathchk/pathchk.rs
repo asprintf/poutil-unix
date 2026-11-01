@@ -71,6 +71,21 @@ fn check_names(path: &[u8], p: bool, big_p: bool) -> Result<(), String> {
     Ok(())
 }
 
+/*
+ * The directory a walk of path starts in. A pathname that begins with exactly
+ * two slashes is implementation-defined, so that root is kept as "//" and not
+ * folded into "/"; three or more leading slashes are the plain root.
+ */
+fn start_dir(path: &[u8]) -> Vec<u8> {
+    if path.starts_with(b"//") && path.get(2) != Some(&b'/') {
+        b"//".to_vec()
+    } else if path.first() == Some(&b'/') {
+        b"/".to_vec()
+    } else {
+        b".".to_vec()
+    }
+}
+
 /* A pathconf limit of a directory; None when there is none. */
 fn limit(dir: &[u8], name: libc::c_int) -> Option<usize> {
     posix::clear_errno();
@@ -88,7 +103,7 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
     if path.is_empty() {
         return Ok(());
     }
-    let mut dir: Vec<u8> = if path[0] == b'/' { b"/".to_vec() } else { b".".to_vec() };
+    let mut dir = start_dir(path);
     if let Some(max) = limit(&dir, libc::_PC_PATH_MAX) {
         if path.len() >= max {
             return Err(format!("pathname is {} bytes, limit is {}", path.len(), max - 1));
@@ -120,7 +135,7 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
             continue;
         }
         let mut next = dir.clone();
-        if next != b"/" {
+        if !next.ends_with(b"/") {
             next.push(b'/');
         }
         next.extend_from_slice(c);
@@ -224,6 +239,15 @@ mod tests {
     fn empty_components_are_ignored() {
         assert_eq!(components(b"//a//b/").collect::<Vec<_>>(), [&b"a"[..], &b"b"[..]]);
         assert_eq!(components(b"///").count(), 0);
+    }
+
+    #[test]
+    fn start_dir_keeps_exactly_two_slashes() {
+        assert_eq!(start_dir(b"//"), b"//");
+        assert_eq!(start_dir(b"//a/b"), b"//");
+        assert_eq!(start_dir(b"///a"), b"/");
+        assert_eq!(start_dir(b"/a"), b"/");
+        assert_eq!(start_dir(b"a//b"), b".");
         assert_eq!(components(b"").count(), 0);
     }
 

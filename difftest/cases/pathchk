@@ -69,3 +69,7 @@ file/x
 d/e/../e
 ns/f
 ns/nosuch
+# exactly two leading slashes keep their own root
+//a/b
+//etc/passwd/x
+///etc
