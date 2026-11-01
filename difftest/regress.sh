@@ -751,5 +751,279 @@ else
 	echo "skip: this file system refuses non-UTF-8 names"
 fi
 
+#---------------------------------------------------------- expand unexpand
+fresh
+BIGTABS=$(printf 'a\tb')
+yes "$BIGTABS" | head -c 5000000 > bigtabs
+yes '        x' | head -n 100000 > bigspaces
+
+for u in expand unexpand; do
+	printf 'a\tb\n' | "$OURS/$u" >&- 2> err
+	eq "$u with stdout closed: status" 1 $?
+	eq "$u with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+	"$OURS/$u" <&- > /dev/null 2> err
+	eq "$u with stdin closed: status" 1 $?
+	{ "$OURS/$u" bigtabs; echo $? > st; } | head -c 10 > /dev/null
+	eq "$u into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+	(trap '' PIPE; { "$OURS/$u" bigtabs 2> err; echo $? > st; } | head -c 10 > /dev/null)
+	eq "$u into a closed pipe with SIGPIPE ignored: status" 1 "$(cat st)"
+	eq "$u into a closed pipe with SIGPIPE ignored: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+	"$OURS/$u" . > /dev/null 2> err
+	eq "$u of a directory: status" 1 $?
+	printf 'x\n' > f
+	"$OURS/$u" nosuch f > /dev/null 2>&1
+	eq "$u nosuch f: status" 1 $?
+	eq "$u - reads standard input" x "$(printf x | "$OURS/$u" - )"
+	eq "$u keeps NUL and high bytes" 0061ff0a "$(printf '\000a\377\n' | "$OURS/$u" | hex)"
+	"$OURS/$u" -t 4 -- f > /dev/null
+	eq "$u -t 4 -- f" 0 $?
+	"$OURS/$u" -t 0 f > /dev/null 2> err
+	eq "$u -t 0: status, no output, a diagnostic" "1 1" "$? $(wc -l < err | tr -d ' ')"
+	"$OURS/$u" -t 3,3 f > o 2> /dev/null
+	eq "$u -t 3,3: status and no output" "1 0" "$? $(wc -c < o | tr -d ' ')"
+	"$OURS/$u" -x f > o 2> /dev/null
+	eq "$u -x: usage error, status 2" "2 0" "$? $(wc -c < o | tr -d ' ')"
+done
+
+# expand stops at the first operand it cannot access, unexpand goes on (PCTS 824)
+printf 'x\n' > f
+eq "expand nosuch f: terminates, nothing written" "" "$("$OURS/expand" nosuch f 2> /dev/null)"
+eq "unexpand nosuch f: the later file is still read" x "$("$OURS/unexpand" nosuch f 2> /dev/null)"
+eq "expand f nosuch f: what came before stays, the rest is not read" x "$("$OURS/expand" f nosuch f 2> /dev/null)"
+eq "unexpand f nosuch f: every readable file is copied" "x x" "$("$OURS/unexpand" f nosuch f 2> /dev/null | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/expand" f nosuch f > /dev/null 2>&1
+eq "expand f nosuch f: status" 1 $?
+"$OURS/expand" . f > o 2> /dev/null
+eq "expand . f: a directory ends it too" "1 0" "$? $(wc -c < o | tr -d ' ')"
+
+# output comes as the input arrives, not at its end
+start=$(date +%s)
+{ printf 'a\tb\n'; sleep 3; } | "$OURS/expand" | { read -r line; date +%s > t1; }
+eq "expand answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
+start=$(date +%s)
+{ printf '        x\n'; sleep 3; } | "$OURS/unexpand" | { read -r line; date +%s > t1; }
+eq "unexpand answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
+
+# expand
+eq "expand: default stops" "6120202020202020620a" "$(printf 'a\tb\n' | "$OURS/expand" | hex)"
+eq "expand -t 3,4: a tab past the last stop is one space" "612020622063" "$(printf 'a\tb\tc' | "$OURS/expand" -t 3,4 | hex)"
+eq "expand: the column count runs on between files" "61626364202020207a" "$(printf 'abcd' > f1; printf '\tz' > f2; "$OURS/expand" f1 f2 | hex)"
+for n in 65535 65536 65537 131071 131072 131073; do
+	head -c $n /dev/zero | tr '\000' x > ln
+	printf '\tz' >> ln
+	want=$((n + 8 - n % 8 + 1))
+	eq "expand: a tab after $n characters with no newline" "$want" "$("$OURS/expand" ln | wc -c | tr -d ' ')"
+	eq "expand: the same from a pipe" "$want" "$(cat ln | "$OURS/expand" | wc -c | tr -d ' ')"
+done
+LC_ALL=en_US.UTF-8
+if [ "$(locale charmap 2> /dev/null)" = UTF-8 ]; then
+	# a character split across two reads: two columns wide, so six spaces
+	eq "expand: a UTF-8 character cut by the end of a read" "e697a5202020202020780a" \
+		"$({ printf '\346\227'; sleep 1; printf '\245\tx\n'; } | "$OURS/expand" | hex)"
+	eq "expand: a CJK character is two columns" "e697a5202020202020780a" "$(printf '\346\227\245\tx\n' | "$OURS/expand" | hex)"
+	eq "expand: a combining mark is no column" "65cc812020202020202078" "$(printf 'e\314\201\tx' | "$OURS/expand" | hex)"
+	eq "expand: an invalid byte takes one column" "ff2020202020202078" "$(printf '\377\tx' | "$OURS/expand" | hex)"
+	# unexpand: a column count with wide characters
+	eq "unexpand -a: a CJK character is two columns" "e697a509780a" "$(printf '\346\227\245      x\n' | "$OURS/unexpand" -a | hex)"
+	eq "unexpand -a: a combining mark is no column" "65cc8109780a" "$(printf 'e\314\201       x\n' | "$OURS/unexpand" -a | hex)"
+	eq "unexpand: a blank run cut by the end of a read" "09780a" "$({ printf '    '; sleep 1; printf '    x\n'; } | "$OURS/unexpand" | hex)"
+	eq "unexpand: a character cut by the end of a read" "e697a509780a" "$({ printf '\346\227'; sleep 1; printf '\245      x\n'; } | "$OURS/unexpand" -a | hex)"
+else
+	echo "skip: no en_US.UTF-8 locale"
+fi
+LC_ALL=C
+
+# unexpand
+eq "unexpand: a run held back across reads" "6109620a" "$({ printf 'a  '; sleep 1; printf '     b\n'; } | "$OURS/unexpand" -a | hex)"
+eq "unexpand: the last line has no newline" "09" "$(printf '        ' | "$OURS/unexpand" | hex)"
+eq "unexpand: a run of seven stays" "20202020202020" "$(printf '       ' | "$OURS/unexpand" | hex)"
+eq "unexpand: a run goes on between files" "09780a" "$(printf '       ' > f1; printf ' x\n' > f2; "$OURS/unexpand" f1 f2 | hex)"
+eq "unexpand: 100000 lines" 300000 "$("$OURS/unexpand" bigspaces | wc -c | tr -d ' ')"
+eq "unexpand -a -t 2: the -a changes nothing" "$(printf 'a   b\n' | "$OURS/unexpand" -t 2 | hex)" "$(printf 'a   b\n' | "$OURS/unexpand" -a -t 2 | hex)"
+eq "unexpand -t 2: every run is converted" "610909620a" "$(printf 'a   b\n' | "$OURS/unexpand" -t 2 | hex)"
+eq "unexpand: only the leading blanks by default" "$(printf 'a        b\n' | hex)" "$(printf 'a        b\n' | "$OURS/unexpand" | hex)"
+
+# round trip: unexpand then expand gives back the text, for a line of mixed blanks
+printf 'x  y\t \t z      w\n        \t    q   \n' > mixed
+for opt in "" "-a" "-t 4" "-t 3,9" "-t 2 -a"; do
+	"$OURS/unexpand" $opt mixed | "$OURS/expand" $(echo "$opt" | sed 's/-a//') > back
+	"$OURS/expand" $(echo "$opt" | sed 's/-a//') mixed > want
+	cmp -s back want
+	eq "unexpand [$opt] then expand: same columns" 0 $?
+done
+
+#------------------------------------------------------- uuencode uudecode
+fresh
+head -c 300 /dev/urandom > rnd
+for algo in "" "-m"; do
+	for n in 0 1 2 3 4 5 43 44 45 46 47 56 57 58 59 90 91 100 128 129 299 300; do
+		if [ $n -eq 0 ]; then : > in; else head -c $n rnd > in; fi
+		"$OURS/uuencode" $algo in name > enc 2> /dev/null
+		eq "uuencode $algo of $n bytes: status" 0 $?
+		"$OURS/uudecode" -o out enc 2> /dev/null
+		eq "uudecode $algo of $n bytes: status" 0 $?
+		cmp -s in out
+		eq "uuencode $algo | uudecode, $n bytes: identical" 0 $?
+		"$OURS/uuencode" $algo name < in > enc2
+		"$OURS/uudecode" -o out2 < enc2
+		cmp -s in out2
+		eq "uuencode $algo | uudecode from stdin, $n bytes: identical" 0 $?
+	done
+	for n in 65535 65536 65537 100000 1000000; do
+		head -c $n /dev/urandom > in
+		"$OURS/uuencode" $algo in name | "$OURS/uudecode" -o out
+		cmp -s in out
+		eq "uuencode $algo | uudecode, $n bytes through a pipe: identical" 0 $?
+	done
+done
+head -c 5000000 /dev/urandom > in
+"$OURS/uuencode" in x | "$OURS/uudecode" -o out
+cmp -s in out
+eq "uuencode | uudecode, 5MB: identical" 0 $?
+"$OURS/uuencode" -m in x | "$OURS/uudecode" -o out
+cmp -s in out
+eq "uuencode -m | uudecode, 5MB: identical" 0 $?
+
+# the layout of the output
+printf 'abc' > in
+eq "uuencode: layout" "$(printf 'begin 644 n\n#86)C\n \nend\n' | hex)" "$("$OURS/uuencode" in n | hex)"
+eq "uuencode: first line" "begin 644 n" "$("$OURS/uuencode" in n | head -1)"
+eq "uuencode: last line" "end" "$("$OURS/uuencode" in n | tail -1)"
+eq "uuencode -m: first line" "begin-base64 644 n" "$("$OURS/uuencode" -m in n | head -1)"
+eq "uuencode -m: last line" "====" "$("$OURS/uuencode" -m in n | tail -1)"
+head -c 1000 /dev/urandom > in
+eq "uuencode: no line is longer than 61 characters" 0 "$("$OURS/uuencode" in n | awk 'length > 61' | wc -l | tr -d ' ')"
+eq "uuencode -m: no line is longer than 76 characters" 0 "$("$OURS/uuencode" -m in n | awk 'length > 76' | wc -l | tr -d ' ')"
+eq "uuencode: only characters 0x20 to 0x5f in the body" 0 "$("$OURS/uuencode" in n | sed '1d;$d' | LC_ALL=C tr -d ' -_\n' | wc -c | tr -d ' ')"
+
+# modes
+printf data > in
+chmod 640 in
+eq "uuencode of a file: its mode" "begin 640 n" "$("$OURS/uuencode" in n | head -1)"
+eq "uuencode of standard input, a file: its mode" "begin 640 n" "$("$OURS/uuencode" n < in | head -1)"
+eq "uuencode of a pipe: 0666 less the umask" "begin 644 n" "$(cat in | "$OURS/uuencode" n | head -1)"
+eq "uuencode of a pipe under umask 077" "begin 600 n" "$(umask 077; cat in | "$OURS/uuencode" n | head -1)"
+chmod 4755 in
+eq "uuencode: permission bits only" "begin 755 n" "$("$OURS/uuencode" in n | head -1)"
+chmod 640 in
+"$OURS/uuencode" in dec > enc
+(umask 077; "$OURS/uudecode" enc)
+eq "uudecode: the mode of the data, not the umask" "-rw-r-----" "$(mode dec)"
+rm -f dec
+printf 'begin 777 dec\n#86)C\n \nend\n' > enc
+(umask 777; "$OURS/uudecode" enc)
+eq "uudecode: mode 777 under umask 777" "-rwxrwxrwx" "$(mode dec)"
+printf 'old\n' > dec
+chmod 600 dec
+"$OURS/uudecode" enc
+eq "uudecode over an existing file: contents" abc "$(cat dec)"
+eq "uudecode over an existing file: the mode of the data" "-rwxrwxrwx" "$(mode dec)"
+printf 'begin 4755 dec\n#86)C\n \nend\n' > enc
+rm -f dec
+"$OURS/uudecode" enc
+eq "uudecode: no set-user-ID bit" "-rwxr-xr-x" "$(mode dec)"
+printf 'begin u=rw,go=r dec\n#86)C\n \nend\n' > enc
+rm -f dec
+"$OURS/uudecode" enc
+eq "uudecode: a symbolic mode" "-rw-r--r--" "$(mode dec)"
+
+# files that cannot be written
+if [ "$(id -u)" != 0 ]; then
+	printf 'keep\n' > ro
+	chmod 444 ro
+	printf 'begin 644 ro\n#86)C\n \nend\n' > enc
+	"$OURS/uudecode" enc 2> err
+	eq "uudecode over a read-only file: status" 1 $?
+	eq "uudecode over a read-only file: untouched" keep "$(cat ro)"
+	eq "uudecode over a read-only file: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+fi
+printf 'begin 644 nodir/x\n#86)C\n \nend\n' > enc
+"$OURS/uudecode" enc 2> err
+eq "uudecode into a missing directory: status" 1 $?
+mkdir dd
+"$OURS/uudecode" -o dd enc 2> err
+eq "uudecode onto a directory: status" 1 $?
+
+# the standard output
+printf 'begin 644 /dev/stdout\n#86)C\n \nend\n' > enc
+eq "uudecode: /dev/stdout in the data" abc "$("$OURS/uudecode" enc)"
+printf 'begin 644 -\n#86)C\n \nend\n' > enc
+eq "uudecode: - in the data" abc "$("$OURS/uudecode" enc)"
+printf 'begin 644 other\n#86)C\n \nend\n' > enc
+eq "uudecode -o /dev/stdout" abc "$("$OURS/uudecode" -o /dev/stdout enc)"
+eq "uudecode -o /dev/stdout: no file made" 0 "$([ -e other ] && echo 1 || echo 0)"
+rm -f -- ./-
+"$OURS/uudecode" -o - enc
+eq "uudecode -o -: a file named -" abc "$(cat ./-)"
+rm -f -- ./-
+eq "uudecode from -" abc "$("$OURS/uudecode" -o /dev/stdout - < enc)"
+eq "uudecode from a pipe" abc "$(cat enc | "$OURS/uudecode" -o /dev/stdout)"
+"$OURS/uudecode" -o /dev/stdout enc >&- 2> err
+eq "uudecode with stdout closed: status" 1 $?
+eq "uudecode with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+head -c 3000000 /dev/urandom > in
+"$OURS/uuencode" in big > enc
+{ "$OURS/uudecode" -o /dev/stdout enc; echo $? > st; } | head -c 10 > /dev/null
+eq "uudecode into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+(trap '' PIPE; { "$OURS/uudecode" -o /dev/stdout enc 2> err; echo $? > st; } | head -c 10 > /dev/null)
+eq "uudecode into a closed pipe with SIGPIPE ignored: status" 1 "$(cat st)"
+{ "$OURS/uuencode" in big; echo $? > st; } | head -c 10 > /dev/null
+eq "uuencode into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+(trap '' PIPE; { "$OURS/uuencode" in big 2> err; echo $? > st; } | head -c 10 > /dev/null)
+eq "uuencode into a closed pipe with SIGPIPE ignored: status" 1 "$(cat st)"
+"$OURS/uuencode" in big >&- 2> err
+eq "uuencode with stdout closed: status" 1 $?
+"$OURS/uuencode" -m in big >&- 2> err
+eq "uuencode -m with stdout closed: status" 1 $?
+
+# errors
+"$OURS/uuencode" nosuch n > o 2> err
+eq "uuencode of a missing file: status, no output, a diagnostic" "1 0 1" "$? $(wc -c < o | tr -d ' ') $(wc -l < err | tr -d ' ')"
+chmod 000 in
+if [ "$(id -u)" != 0 ]; then
+	"$OURS/uuencode" in n > o 2> err
+	eq "uuencode of an unreadable file: status, no output" "1 0" "$? $(wc -c < o | tr -d ' ')"
+fi
+chmod 644 in
+"$OURS/uuencode" 2> /dev/null
+eq "uuencode without operands: usage, status 2" 2 $?
+"$OURS/uuencode" in a b 2> /dev/null
+eq "uuencode with three operands: status 2" 2 $?
+"$OURS/uuencode" in -m > o
+eq "uuencode in -m: -m is the name" "begin 644 -m" "$(head -1 o)"
+"$OURS/uuencode" in -- > o
+eq "uuencode in --: -- is the name" "begin 644 --" "$(head -1 o)"
+"$OURS/uudecode" nosuch 2> err
+eq "uudecode of a missing file: status" 1 $?
+"$OURS/uudecode" a b 2> /dev/null
+eq "uudecode with two operands: status 2" 2 $?
+"$OURS/uudecode" -o 2> /dev/null
+eq "uudecode -o without an argument: status 2" 2 $?
+printf 'nothing to see\n' > enc
+"$OURS/uudecode" enc 2> err
+eq "uudecode without a begin line: status" 1 $?
+eq "uudecode without a begin line: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+printf 'begin 644 part\n#86)C\n' > enc
+rm -f part
+"$OURS/uudecode" enc 2> err
+eq "uudecode without an end line: status" 1 $?
+eq "uudecode without an end line: the data so far is kept" abc "$(cat part)"
+printf 'begin-base64 644 part\nYWJj\nZGVm\n' > enc
+rm -f part
+"$OURS/uudecode" enc 2> err
+eq "uudecode -m data without ====: status" 1 $?
+eq "uudecode -m data without ====: the data so far is kept" abcdef "$(cat part)"
+
+# a header after a very long line of text
+{ head -c 3000000 /dev/zero | tr '\000' x; printf '\nbegin 644 late\n#86)C\n \nend\n'; } > enc
+rm -f late
+"$OURS/uudecode" enc
+eq "uudecode finds a header after a 3MB line" abc "$(cat late)"
+# only the first encoded file in the input is decoded
+printf 'begin 644 f1\n#86)C\n \nend\nbegin 644 f2\n#86)C\n \nend\n' > enc
+rm -f f1 f2
+"$OURS/uudecode" enc
+eq "uudecode: only the first file" "abc 0" "$(cat f1) $([ -e f2 ] && echo 1 || echo 0)"
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]
