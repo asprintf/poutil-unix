@@ -52,6 +52,66 @@ fn out<W: Write>(w: &mut W, parts: &[&[u8]]) -> Result<(), Fail> {
     Ok(())
 }
 
+/* Append v in decimal to line. */
+fn decimal(line: &mut Vec<u8>, mut v: u64) {
+    let mut tmp = [0u8; 20];
+    let mut i = tmp.len();
+    loop {
+        i -= 1;
+        tmp[i] = b'0' + (v % 10) as u8;
+        v /= 10;
+        if v == 0 {
+            break;
+        }
+    }
+    line.extend_from_slice(&tmp[i..]);
+}
+
+/* Append a byte in octal to line (no leading zeros, "0" for zero). */
+fn octal(line: &mut Vec<u8>, v: u8) {
+    if v >= 0o100 {
+        line.push(b'0' + (v >> 6));
+    }
+    if v >= 0o10 {
+        line.push(b'0' + ((v >> 3) & 7));
+    }
+    line.push(b'0' + (v & 7));
+}
+
+/*
+ * The -l lines for one block: "byte-number octal octal" for every position
+ * where a and b differ; off is the number of bytes before the block. Equal
+ * stretches are skipped 64 bytes at a time with memcmp, and the lines are
+ * built by hand in one buffer: this is the hot loop of a file that differs
+ * everywhere.
+ */
+fn list<W: Write>(w: &mut W, a: &[u8], b: &[u8], off: u64) -> Result<(), Fail> {
+    const STEP: usize = 64;
+    let mut line: Vec<u8> = Vec::with_capacity(48);
+    let mut i = 0;
+    while i < a.len() {
+        let end = (i + STEP).min(a.len());
+        if a[i..end] == b[i..end] {
+            i = end;
+            continue;
+        }
+        for j in i..end {
+            if a[j] != b[j] {
+                line.clear();
+                decimal(&mut line, off + j as u64 + 1);
+                line.push(b' ');
+                octal(&mut line, a[j]);
+                line.push(b' ');
+                octal(&mut line, b[j]);
+                line.push(b'\n');
+                w.write_all(&line).map_err(Fail::Write)?;
+            }
+        }
+        i = end;
+    }
+    Ok(())
+}
+
 /*
  * Compare a and b block by block. Without -l the first difference ends it,
  * and it is reported with the line number of file1 (1 + the newlines before
@@ -83,11 +143,7 @@ fn cmp<A: Read, B: Read, W: Write>(a: &mut A, b: &mut B, w: &mut W, names: [&[u8
                 }
                 return Ok(Report { differ, short: None, processed: off + i as u64 + 1 });
             }
-            for i in 0..n {
-                if ba[i] != bb[i] {
-                    out(w, &[format!("{} {:o} {:o}\n", off + i as u64 + 1, ba[i], bb[i]).as_bytes()])?;
-                }
-            }
+            list(w, &ba[..n], &bb[..n], off)?;
         }
         if !o.long && !o.silent {
             line += posix::count_byte(b'\n', &ba[..n]);
@@ -323,4 +379,38 @@ mod tests {
             _ => panic!("expected a read error on input 2"),
         }
     }
+    #[test]
+    fn the_chunked_list_agrees_with_a_byte_loop() {
+        /* every length around the 64-byte step, every position of one difference, and a few with several */
+        for len in (0..70usize).chain([127, 128, 129, 200]) {
+            let a: Vec<u8> = (0..len).map(|i| (i * 7 + 3) as u8).collect();
+            let mut cases: Vec<Vec<u8>> = vec![a.clone()];
+            for pos in 0..len {
+                let mut b = a.clone();
+                b[pos] ^= 0x81;
+                cases.push(b);
+            }
+            if len > 3 {
+                let mut b = a.clone();
+                b[0] ^= 1;
+                b[len / 2] ^= 2;
+                b[len - 1] ^= 0xff;
+                cases.push(b);
+            }
+            for b in cases {
+                for off in [0u64, 262_144, 10_000_000_000, u64::MAX / 4] {
+                    let mut got = Vec::new();
+                    assert!(list(&mut got, &a, &b, off).is_ok());
+                    let mut want = String::new();
+                    for i in 0..len {
+                        if a[i] != b[i] {
+                            want.push_str(&format!("{} {:o} {:o}\n", off + i as u64 + 1, a[i], b[i]));
+                        }
+                    }
+                    assert_eq!(String::from_utf8_lossy(&got), want, "len {len} off {off}");
+                }
+            }
+        }
+    }
+
 }
