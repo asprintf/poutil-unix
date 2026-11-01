@@ -256,6 +256,10 @@ impl Input {
 
 pub fn open_input(name: &[u8]) -> std::io::Result<Input> {
     if name == b"-" {
+        /* a closed descriptor 0 would be taken by the next open(): refuse it here */
+        if unsafe { libc::fcntl(0, libc::F_GETFD) } < 0 {
+            return Err(std::io::Error::last_os_error());
+        }
         return Ok(Input::Stdin(borrow_fd(0)));
     }
     File::open(<std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(name))
