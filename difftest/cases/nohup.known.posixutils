@@ -1,2 +1,7 @@
 # BUG in posixutils-rs: XCU 1.4 says a utility with OPTIONS "None." shall recognize "--" as a first argument to be discarded; it tries to run a command named --
 -- echo hi
+# BUG in posixutils-rs: same cause with a longer command
+-- sh -c 'echo $0' name
+# judgement call, the spec is silent on a utility that dies from a signal: it gives 127 only for "an error occurred in the nohup utility or the utility could not be found", and says the status of nohup "shall be that of the utility". We exec the utility so the caller sees the signal (143, 137), like macOS and GNU; posixutils-rs exits 127 with no message
+sh -c 'kill -s TERM $$'
+sh -c 'kill -9 $$'
