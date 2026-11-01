@@ -1,14 +1,14 @@
 # for a named user they read the group file; the system call getgrouplist also
 # finds the groups of the directory service (the 16 groups of the process itself)
--- mario
+-- $(id -un)
 -G daemon
--G mario
+-G $(id -un)
 -G nobody
 -G root
--Gn mario
+-Gn $(id -un)
 -Gn root
 daemon
-mario
+$(id -un)
 nobody
 root
 # their option parser (clap) refuses repeated options, takes options after

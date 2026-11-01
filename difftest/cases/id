@@ -28,17 +28,17 @@
 -rr -g
 -g -- 
 -- -u
--u mario
--g mario
--G mario
--un mario
--gn mario
--Gn mario
--ur mario
--gr mario
--gnr mario
--- mario
-mario
+-u $(id -un)
+-g $(id -un)
+-G $(id -un)
+-un $(id -un)
+-gn $(id -un)
+-Gn $(id -un)
+-ur $(id -un)
+-gr $(id -un)
+-gnr $(id -un)
+-- $(id -un)
+$(id -un)
 root
 nobody
 daemon
@@ -61,8 +61,8 @@ nosuch
 -gn nosuch
 ''
 -u ''
-mario root
--u mario root
+$(id -un) root
+-u $(id -un) root
 -G -g
 -G -u
 -g -u
@@ -83,10 +83,10 @@ mario root
 -h
 -G -n -r
 -- -G
--u -- mario
-mario -u
--u mario -n
+-u -- $(id -un)
+$(id -un) -u
+-u $(id -un) -n
 0
 -u 0
-501
--u 501
+$(id -u)
+-u $(id -u)

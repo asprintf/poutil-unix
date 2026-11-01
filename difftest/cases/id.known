@@ -7,11 +7,11 @@
 -a
 -p
 -u 0
--u 501
+-u $(id -u)
 0
-501
--u mario root
-mario root
+$(id -u)
+-u $(id -un) root
+$(id -un) root
 -u daemon -n
--u mario -n
-mario -u
+-u $(id -un) -n
+$(id -un) -u
