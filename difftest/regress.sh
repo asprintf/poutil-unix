@@ -1025,5 +1025,103 @@ rm -f f1 f2
 "$OURS/uudecode" enc
 eq "uudecode: only the first file" "abc 0" "$(cat f1) $([ -e f2 ] && echo 1 || echo 0)"
 
+#---------------------------------------------------------------------- comm
+fresh
+printf 'a\nb\nd\n' > f1
+printf 'b\nc\nd\n' > f2
+"$OURS/comm" f1 f2 > out
+eq "comm: status and the three columns" "0 a/>>b/>c/>>d/" "$? $(tr '\t\n' '>/' < out)"
+"$OURS/comm" -123 f1 f2 > out
+eq "comm -123: status, no output" "0 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/comm" f1 f2 f1 2> /dev/null
+eq "comm with three operands is a usage error" 2 $?
+"$OURS/comm" f1 2> /dev/null
+eq "comm with one operand is a usage error" 2 $?
+"$OURS/comm" -4 f1 f2 2> /dev/null
+eq "comm -4 is a usage error" 2 $?
+"$OURS/comm" f1 nosuch > out 2> err
+eq "comm of a missing file: status, no output, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/comm" nosuch f1 2> /dev/null
+eq "comm of a missing first file: status" 1 $?
+"$OURS/comm" . f1 > out 2> err
+eq "comm of a directory: status and a diagnostic" "1 1" "$? $(wc -l < err | tr -d ' ')"
+printf 'a\nb\nd\n' | "$OURS/comm" -12 - f2 > out
+eq "comm - reads standard input as file1" "b d" "$(tr '\n' ' ' < out | sed 's/ $//')"
+printf 'b\nc\nd\n' | "$OURS/comm" -12 f1 - > out
+eq "comm - reads standard input as file2" "b d" "$(tr '\n' ' ' < out | sed 's/ $//')"
+"$OURS/comm" f1 f2 >&- 2> /dev/null
+eq "comm with stdout closed: status" 1 $?
+"$OURS/comm" - f1 <&- 2> /dev/null
+eq "comm with stdin closed: status" 1 $?
+awk 'BEGIN { for (i = 0; i < 200000; i++) printf "%07d\n", i }' > big1
+awk 'BEGIN { for (i = 0; i < 200000; i++) printf "%07d\n", i + 100000 }' > big2
+"$OURS/comm" -12 big1 big2 > out
+eq "comm -12 of two big files: the common 100000 lines" 100000 "$(wc -l < out | tr -d ' ')"
+"$OURS/comm" big1 big2 | head -n 2 > out
+eq "comm into a closed pipe ends quietly" "0000000 0000001" "$(tr '\n' ' ' < out | sed 's/ $//')"
+
+#---------------------------------------------------------------------- cmp
+fresh
+printf 'abcd\nefgh\n' > a
+printf 'abcd\nefXh\n' > b
+cp a a2
+"$OURS/cmp" a a2 > out 2> err
+eq "cmp of equal files: status, silence" "0 0 0" "$? $(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/cmp" a b > out 2> err
+eq "cmp of different files: status, report, silence" "1 a b differ: char 8, line 2 0" "$? $(cat out) $(wc -c < err | tr -d ' ')"
+"$OURS/cmp" -s a b > out 2> err
+eq "cmp -s of different files: status, silence" "1 0 0" "$? $(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/cmp" -l a b > out 2> err
+eq "cmp -l: status and list" "1 8 147 130" "$? $(tr -s ' ' < out | sed 's/^ //')"
+printf 'abcd\nef' > pre
+"$OURS/cmp" pre a > out 2> err
+eq "cmp of a prefix: status, nothing on stdout" "1 0" "$? $(wc -c < out | tr -d ' ')"
+eq "cmp of a prefix: EOF on the shorter file, one line" "cmp: EOF on pre" "$(sed 's/ .*after.*//' err)"
+eq "cmp of a prefix: one line" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/cmp" -s pre a > out 2> err
+eq "cmp -s of a prefix: status, silence" "1 0 0" "$? $(wc -c < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/cmp" -l -s a b 2> /dev/null
+eq "cmp -l -s is a usage error" 2 $?
+"$OURS/cmp" a 2> /dev/null
+eq "cmp with one operand is a usage error" 2 $?
+"$OURS/cmp" a b a 2> /dev/null
+eq "cmp with three operands is a usage error" 2 $?
+"$OURS/cmp" a nosuch > out 2> err
+eq "cmp of a missing file: status 2, a diagnostic" "2 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/cmp" . a 2> err
+eq "cmp of a directory: status 2 and a diagnostic" "2 1" "$? $(wc -l < err | tr -d ' ')"
+"$OURS/cmp" a b >&- 2> /dev/null
+eq "cmp with stdout closed: status 2" 2 $?
+"$OURS/cmp" - a <&- 2> /dev/null
+eq "cmp with stdin closed: status 2" 2 $?
+printf 'abcd\nefgh\n' | "$OURS/cmp" - a
+eq "cmp - reads standard input as file1" 0 $?
+printf 'abcd\nefgh\n' | "$OURS/cmp" a -
+eq "cmp - reads standard input as file2" 0 $?
+# GA34: stdin that can seek is left just past the last byte looked at
+printf 'xyz' > s1
+printf 'abXdef' > s2
+printf 'abYdef' > s3
+( "$OURS/cmp" s2 - > /dev/null; cat ) < s3 > out
+eq "cmp leaves stdin just past the first differing byte" "def" "$(cat out)"
+( "$OURS/cmp" -s s2 - ; cat ) < s3 > out
+eq "cmp -s leaves stdin just past the first differing byte" "def" "$(cat out)"
+printf 'ab' > p1
+( "$OURS/cmp" p1 - 2> /dev/null; cat ) < s2 > out
+eq "cmp of a prefix leaves stdin just past the shorter length" "Xdef" "$(cat out)"
+( "$OURS/cmp" -l p1 - 2> /dev/null; cat ) < s2 > out
+eq "cmp -l of a prefix leaves stdin just past the shorter length" "Xdef" "$(cat out)"
+# a big file: the difference is past several blocks, and the line count is file1's
+head -c 3000000 /dev/zero | tr '\000' '\n' > n1
+{ head -c 2000000 /dev/zero | tr '\000' '\n'; printf x; head -c 999999 /dev/zero | tr '\000' '\n'; } > n2
+"$OURS/cmp" n1 n2 > out
+eq "cmp of big files: byte and line" "n1 n2 differ: char 2000001, line 2000001" "$(cat out)"
+head -c 3000000 /dev/zero > z1
+cp z1 z2
+"$OURS/cmp" z1 z2
+eq "cmp of big equal files" 0 $?
+"$OURS/cmp" -l n1 n2 | head -n 1 > out
+eq "cmp into a closed pipe ends quietly" "2000001 12 170" "$(tr -s ' ' < out | sed 's/^ //')"
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]
