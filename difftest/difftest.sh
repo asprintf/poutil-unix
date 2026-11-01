@@ -6,7 +6,7 @@
 # For each case line in difftest/cases/UTIL (shell words, # comments allowed) the
 # utility is run in a fresh directory, prepared by difftest/cases/UTIL.setup if
 # present, once for ours and once for each reference: the native one in
-# /usr/bin (or /bin) and the GNU one (g-prefixed, from MacPorts) with
+# /usr/bin (or /bin) and the GNU one (g-prefixed from MacPorts; gnucut where gcut would clash) with
 # POSIXLY_CORRECT=1. stdout, whether stderr is empty, the exit status
 # (zero/non-zero; exact for tty) and the resulting directory listing are
 # compared, in the C locale and in a UTF-8 locale.
@@ -27,7 +27,9 @@
 # listed in UTIL.known.posixutils; UTIL.known applies to every reference.
 #
 # Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
-# POSIXUTILS_RS (default unset: no third reference)
+# POSIXUTILS_RS (default unset: no third reference), SHARD=K/N (run only every
+# Nth case line, those with number mod N equal to K: start N copies with
+# K = 0 .. N-1 at the same time to use all the processors)
 
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
@@ -77,12 +79,15 @@ for util in "$@"; do
 	cases=$here/cases/$util
 	[ -f "$cases" ] || { echo "$util: no case file" >&2; missing=$((missing + 1)); continue; }
 	refs=
-	for r in /usr/bin/$util /bin/$util /opt/local/bin/g$util; do
+	for r in /usr/bin/$util /bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
 		[ -x "$r" ] && refs="$refs $r"
 	done
 	[ -n "$RS" ] && [ -x "$RS/$util" ] && refs="$refs $RS/$util"
+	lineno=0
 	while IFS= read -r line; do
 		case $line in '' | '#'*) continue ;; esac
+		lineno=$((lineno + 1))
+		[ -z "$SHARD" ] || [ $((lineno % ${SHARD#*/})) -eq "${SHARD%/*}" ] || continue
 		for loc in $LOCALES; do
 			if [ "$line" = "@" ]; then set --; else eval "set -- $line"; fi
 			run "$OURS/$util" "$loc" "$@"
