@@ -1,0 +1,23 @@
+printf '1\n2\n3\n' > f1
+printf 'a\nb\n' > f2
+printf 'x\ny\nz\nw\n' > f3
+: > empty
+printf 'u1\nu2' > unt
+printf 'only' > one
+printf '\n\n\n' > nl
+printf 'a\tb\nc\td\n' > tabs
+printf '\303\251\n\342\202\254\n' > utf8
+printf 'a\r\nb\r\n' > crlf
+printf 'a\0b\n\377\200\n' > bin
+printf 'bad\303\n\342\202\n' > bad
+seq 1 20 > n20
+seq 21 40 > m20
+seq 1 5000 > big1
+seq 5001 9000 > big2
+head -c 300000 /dev/zero | tr '\0' 'x' > longline
+(cat longline; echo; echo short) > long2
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
+printf 'dash\n' > ./-f
+printf 'sp\n' > 'a b'

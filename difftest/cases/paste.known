@@ -1,0 +1,38 @@
+# GNU reads standard input when there is no file operand, and has --help; the
+# standard asks for at least one file. -d '' is an error in macOS and here
+# (the standard says it may be one), "\0" is the empty delimiter
+--
+--help
+-d '' f1 f2
+-d,
+-ds
+-dx
+# a directory opens, then reading it fails; what was already written differs
+dir
+dir f1
+f1 dir
+-s dir
+-s dir f1
+-s f1 dir
+-s f1 dir f2
+# a list that ends in a backslash is an error here and in GNU
+-d'\' f1 f2
+-d'a\' f1 f2
+# macOS ends the output of an empty file without a newline (the standard wants
+# an empty line), leaves the newline off an unterminated last line with -s, cuts
+# lines at a NUL byte and refuses bytes that are not characters in the C locale
+-s empty
+-s empty empty
+-s empty f1
+-s f1 empty f2
+-s one
+-s one one
+-s unt
+-s unt f1
+-s bin
+-s longline
+-s - -
+-s -d, - -
+bad f1
+bin bin
+bin f1

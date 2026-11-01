@@ -1,0 +1,22 @@
+# repeated options (clap), -h, bytes instead of characters in the C locale for a
+# delimiter, and a directory that opens and then cannot be read
+--help
+-h
+-d, -d: f1 f2
+-d: -d, f1 f2 f3
+-s -s f1
+-s -s -d, -d: f1 f2
+-ss f1
+-sd, -d: f1 f2
+-d '' f1 f2
+-d'\é' f1 f2
+-d'é' f1 f2
+-d'é€' f1 f2 f3
+-d'é' utf8 utf8
+-d'€\n' f1 f2 f3
+-s -d'€' f1 f2
+-s -d'€é' f3
+-s dir
+-s dir f1
+-s f1 dir
+-s f1 dir f2

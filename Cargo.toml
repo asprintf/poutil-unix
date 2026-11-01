@@ -170,6 +170,10 @@ path = "cksum/cksum.rs"
 name = "id"
 path = "id/id.rs"
 
+[[bin]]
+name = "paste"
+path = "paste/paste.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

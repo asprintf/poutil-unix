@@ -1,0 +1,188 @@
+# paste: columns, -s, -d lists and escapes, "-" for standard input, missing files
+f1 f2
+f2 f1
+f1 f2 f3
+f3 f2 f1
+f1
+f1 f1
+f1 empty
+empty f1
+empty empty
+empty
+f1 unt
+unt f1
+unt unt
+one one
+one f1
+nl nl
+nl f1
+tabs f1
+tabs tabs
+utf8 f1
+utf8 utf8
+crlf f1
+bin f1
+bin bin
+bad f1
+n20 m20
+big1 big2
+big2 big1
+longline long2
+long2 long2
+-d, f1 f2
+-d , f1 f2
+-d, f1 f2 f3
+-d,: f1 f2 f3
+-d:, f1 f2 f3 f1
+-d,: f1 f2 f3 f1 f2
+-dab f1 f2 f3
+-d'\t' f1 f2
+-d'\n' f1 f2
+-d'\\' f1 f2
+-d'\0' f1 f2
+-d'\0' f1 f2 f3
+-d'\0,' f1 f2 f3
+-d',\0' f1 f2 f3
+-d'\0\0' f1 f2 f3
+-d'\t\n' f1 f2 f3
+-d'\n\t' f1 f2 f3
+-d'\\\\' f1 f2 f3
+-d'\\,' f1 f2 f3
+-d'\n' empty f1
+-d'\n' f1 empty f2
+-d' ' f1 f2
+-d'-' f1 f2
+-d'|' f1 f2
+-d'é' f1 f2
+-d'é€' f1 f2 f3
+-d'\é' f1 f2
+-d'€\n' f1 f2 f3
+-d'é' utf8 utf8
+-d'\x' f1 f2
+-d'\q,' f1 f2 f3
+-d'a\q' f1 f2 f3
+-d '' f1 f2
+-d'\' f1 f2
+-d'a\' f1 f2
+-d
+-d,
+-d, -d: f1 f2
+-d: -d, f1 f2 f3
+-s f1
+-s f1 f2
+-s f2 f1
+-s f1 f2 f3
+-s f1 f1
+-s empty
+-s empty f1
+-s f1 empty f2
+-s empty empty
+-s unt
+-s unt f1
+-s one
+-s one one
+-s nl
+-s nl f1
+-s tabs
+-s utf8
+-s bin
+-s big1
+-s longline
+-s long2
+-s -d, f1
+-s -d, f1 f2
+-s -d,: f1 f2 f3
+-s -d,: f3 f1
+-s -d: f1 f2 f3
+-s -d'\n' f1 f2
+-s -d'\t' f1
+-s -d'\0' f1 f2
+-s -d'\0,' f3 f1
+-s -d'\\' f1
+-s -d' ' f1
+-s -d'€' f1 f2
+-s -d'€é' f3
+-sd, f1 f2
+-sd, -- f1 f2
+-s -d , f1
+-ds, f1
+-s -s f1
+-s -s -d, -d: f1 f2
+-- f1 f2
+-s -- f1
+-d, -- f1 f2
+-
+- -
+- - -
+- - - -
+- f1
+f1 -
+- f1 -
+f1 - f2
+f1 - -
+- - f1
+-s -
+-s - -
+-s - f1
+-s f1 -
+-s - -
+-d, -
+-d, - -
+-d, - - -
+-d,: - - -
+-d, - f1
+-d, f1 -
+-d, f1 - -
+-d'\n' - -
+-d'\0' - -
+-s -d, -
+-s -d, - -
+-s -d, - f1
+f1 f2 f3 f1 f2 f3 f1 f2 f3 f1 f2 f3
+f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1
+-d, f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1
+-s f1 f2 f3 f1 f2 f3 f1 f2 f3 f1 f2 f3 f1 f2
+nosuch
+nosuch f1
+f1 nosuch
+f1 nosuch f2
+nosuch nosuch2
+-s nosuch
+-s nosuch f1
+-s f1 nosuch
+-s f1 nosuch f2
+-s nosuch nosuch2
+-d, nosuch f1
+dir
+dir f1
+f1 dir
+-s dir
+-s dir f1
+-s f1 dir
+-s f1 dir f2
+noread
+noread f1
+f1 noread
+-s noread f1
+-s f1 noread
+./-f
+./-f f1
+'a b'
+'a b' f1
+-s 'a b' f1
+-x
+-x f1
+-s -x f1
+f1 -x
+-dx
+-sx
+-sd
+-sdd f1
+-ss f1
+-sd, -d: f1 f2
+-ds
+-d s f1 f2
+-d -s f1 f2
+-h
+--help
+--
