@@ -39,15 +39,16 @@ Implemented, unit tested, difftested and PCTS clean on my machine:
 	true false echo basename dirname pwd sleep logname tty uname
 	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
 	time kill wc head tail tsort uniq expr sort test [
+	expand unexpand uuencode uudecode
 
 One exception to "clean": tail rejects the obsolete -NUMBER and +NUMBER
 forms, as the 2018 edition of the spec does, so the one old PCTS test
 that still runs "tail -7c" fails on purpose.
 
-More are planned (expand, unexpand, comm, cmp, and onwards through the
-stream filters, file tools and so on). Deliberately left out: sh and the
-shell builtins, job control, terminal and daemon tools. getconf is
-postponed because of its large per-platform name tables.
+More are planned (comm, cmp, and onwards through the stream filters, file
+tools and so on). Deliberately left out: sh and the shell builtins, job
+control, terminal and daemon tools. getconf is postponed because of its
+large per-platform name tables.
 
 RELATED PROJECTS
 
