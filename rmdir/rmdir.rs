@@ -2,6 +2,8 @@
 /* rmdir - remove directories. */
 
 use posix::getopt::{Getopt, Opt};
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
 
 const SYNOPSIS: &str = "rmdir [-p] dir...";
 
@@ -52,8 +54,7 @@ fn main() {
     for dir in g.operands() {
         let targets = if parents { chain(dir) } else { vec![dir.clone()] };
         for t in targets {
-            if unsafe { libc::rmdir(posix::cstr(&t).as_ptr()) } < 0 {
-                let e = std::io::Error::last_os_error();
+            if let Err(e) = std::fs::remove_dir(OsStr::from_bytes(&t)) {
                 posix::warn_path(&prog, &t, &posix::strerror(&e));
                 status = 1;
                 break;

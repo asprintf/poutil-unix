@@ -2,13 +2,9 @@
 /* nohup - invoke a utility immune to hangups. */
 
 use posix::getopt::Getopt;
-use std::io::Write;
+use std::io::{IsTerminal, Write};
 
 const SYNOPSIS: &str = "nohup utility [argument...]";
-
-fn isatty(fd: i32) -> bool {
-    unsafe { libc::isatty(fd) == 1 }
-}
 
 fn is_closed(fd: i32) -> bool {
     unsafe { libc::fcntl(fd, libc::F_GETFD) < 0 }
@@ -58,7 +54,7 @@ fn main() {
         std::process::exit(127);
     }
     unsafe { libc::signal(libc::SIGHUP, libc::SIG_IGN) };
-    let out_tty = isatty(1);
+    let out_tty = std::io::stdout().is_terminal();
     let out_closed = is_closed(1);
     if out_tty || out_closed {
         let Some((fd, name)) = open_nohup_out() else {
@@ -73,14 +69,14 @@ fn main() {
             if fd != 1 {
                 libc::dup2(fd, 1);
             }
-            if isatty(2) && fd != 2 {
+            if std::io::stderr().is_terminal() && fd != 2 {
                 libc::dup2(fd, 2);
             }
             if fd > 2 {
                 libc::close(fd);
             }
         }
-    } else if isatty(2) {
+    } else if std::io::stderr().is_terminal() {
         unsafe { libc::dup2(1, 2) };
     }
     posix::exec_utility(&prog, g.operands(), None);

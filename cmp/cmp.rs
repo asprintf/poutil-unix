@@ -2,8 +2,8 @@
 /* cmp - compare two files. */
 
 use posix::getopt::{Getopt, Opt};
-use std::io::{self, Read, Write};
-use std::os::fd::AsRawFd;
+use std::fs::File;
+use std::io::{self, Read, Seek, SeekFrom, Write};
 
 const SYNOPSIS: &str = "cmp [-l|-s] file1 file2";
 const BLOCK: usize = 1 << 18;
@@ -161,19 +161,14 @@ fn cmp<A: Read, B: Read, W: Write>(a: &mut A, b: &mut B, w: &mut W, names: [&[u8
 }
 
 /* Where a descriptor stands, if it can seek (a pipe or terminal cannot). */
-fn tell(f: &impl AsRawFd) -> Option<i64> {
-    let p = unsafe { libc::lseek(f.as_raw_fd(), 0, libc::SEEK_CUR) };
-    if p < 0 { None } else { Some(p as i64) }
+fn tell(mut f: &File) -> Option<u64> {
+    f.stream_position().ok()
 }
 
 /* Leave a seekable input just past the last byte looked at, as the standard asks. */
-fn seek_to(f: &impl AsRawFd, start: Option<i64>, processed: u64) {
-    if let Some(s) = start {
-        if let Ok(n) = i64::try_from(processed) {
-            if let Some(p) = s.checked_add(n) {
-                unsafe { libc::lseek(f.as_raw_fd(), p, libc::SEEK_SET) };
-            }
-        }
+fn seek_to(mut f: &File, start: Option<u64>, processed: u64) {
+    if let Some(p) = start.and_then(|s| s.checked_add(processed)) {
+        let _ = f.seek(SeekFrom::Start(p));
     }
 }
 
@@ -216,7 +211,7 @@ fn main() {
     }
     let mut a = open(&prog, &files[0]);
     let mut b = open(&prog, &files[1]);
-    let (sa, sb) = (tell(&*a), tell(&*b));
+    let (sa, sb) = (tell(&a), tell(&b));
     let mut w = io::BufWriter::with_capacity(1 << 16, posix::Stdout::new());
     let names = [files[0].as_slice(), files[1].as_slice()];
     let r = match cmp(&mut a, &mut b, &mut w, names, &o) {
@@ -227,8 +222,8 @@ fn main() {
         }
         Err(Fail::Write(e)) => die(&prog, &format!("write error: {}", posix::strerror(&e))),
     };
-    seek_to(&*a, sa, r.processed);
-    seek_to(&*b, sb, r.processed);
+    seek_to(&a, sa, r.processed);
+    seek_to(&b, sb, r.processed);
     if let (Some(n), false) = (r.short, o.silent) {
         let mut e = io::stderr().lock();
         let _ = e.write_all(b"cmp: EOF on ");

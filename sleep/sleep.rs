@@ -23,15 +23,11 @@ fn main() {
     if ops.len() != 1 {
         posix::usage(SYNOPSIS);
     }
-    let Some(mut rem) = parse(&ops[0]) else {
+    let Some(rem) = parse(&ops[0]) else {
         posix::fail(&prog, "time must be a non-negative decimal integer");
     };
-    /* sleep(3) returns early only if a handled signal arrives; keep going */
-    while rem > 0 {
-        let chunk = rem.min(u32::MAX as u64) as u32;
-        let left = unsafe { libc::sleep(chunk) } as u64;
-        rem = rem - chunk as u64 + left;
-    }
+    /* std retries after a handled signal and copes with very large values */
+    std::thread::sleep(std::time::Duration::from_secs(rem));
 }
 
 #[cfg(test)]

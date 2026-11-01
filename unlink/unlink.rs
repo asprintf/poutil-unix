@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* unlink - call the unlink function. */
 
-use std::ffi::CString;
+use std::ffi::OsStr;
+use std::os::unix::ffi::OsStrExt;
 
 const SYNOPSIS: &str = "unlink file";
 
@@ -13,10 +14,7 @@ fn main() {
     if ops.len() != 1 {
         posix::usage(SYNOPSIS);
     }
-    /* argv strings cannot contain a NUL byte */
-    let path = CString::new(ops[0].clone()).unwrap();
-    if unsafe { libc::unlink(path.as_ptr()) } < 0 {
-        let e = std::io::Error::last_os_error();
+    if let Err(e) = std::fs::remove_file(OsStr::from_bytes(&ops[0])) {
         posix::warn_path(&prog, &ops[0], &posix::strerror(&e));
         std::process::exit(1);
     }

@@ -3,7 +3,9 @@
 
 use posix::getopt::{Getopt, Opt};
 use std::ffi::OsStr;
+use std::fs::{DirBuilder, Permissions};
 use std::os::unix::ffi::OsStrExt;
+use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
 
 const SYNOPSIS: &str = "mkdir [-p] [-m mode] dir...";
 
@@ -37,17 +39,11 @@ fn is_dir(p: &[u8]) -> bool {
 }
 
 fn make(path: &[u8], mode: u32) -> std::io::Result<()> {
-    if unsafe { libc::mkdir(posix::cstr(path).as_ptr(), mode as libc::mode_t) } < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    Ok(())
+    DirBuilder::new().mode(mode).create(OsStr::from_bytes(path))
 }
 
 fn chmod(path: &[u8], mode: u32) -> std::io::Result<()> {
-    if unsafe { libc::chmod(posix::cstr(path).as_ptr(), mode as libc::mode_t) } < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    Ok(())
+    std::fs::set_permissions(OsStr::from_bytes(path), Permissions::from_mode(mode))
 }
 
 fn main() {
