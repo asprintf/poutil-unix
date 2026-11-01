@@ -1,0 +1,24 @@
+# for a named user they read the group file; the system call getgrouplist also
+# finds the groups of the directory service (the 16 groups of the process itself)
+-- mario
+-G daemon
+-G mario
+-G nobody
+-G root
+-Gn mario
+-Gn root
+daemon
+mario
+nobody
+root
+# their option parser (clap) refuses repeated options, takes options after
+# operands, answers -h with help, and lets -n and -r stand alone
+-gg
+-GG
+-nn -u
+-rr -g
+-uu
+-h
+-n
+-nr
+-r

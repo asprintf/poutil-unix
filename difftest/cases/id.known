@@ -1,0 +1,17 @@
+# -r means nothing with -G (the synopsis has no -G -r): usage error here, ignored there
+-G -n -r
+-Gnr
+-Gr
+# extensions of macOS and GNU: -a, -p, a numeric user ID as the operand, more than one
+# operand, options after the operand (the standard wants options first)
+-a
+-p
+-u 0
+-u 501
+0
+501
+-u mario root
+mario root
+-u daemon -n
+-u mario -n
+mario -u
