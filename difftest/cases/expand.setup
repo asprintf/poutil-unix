@@ -1,0 +1,20 @@
+printf 'a\tb\n\tc\nabcdefgh\td\nabcdefg\td\n\n\t\n' > plain
+printf 'ab\bc\tx\n\b\tx\n\b\b\b\tx\nabc\b\b\b\b\b\tx\n12345678\b\tx\n' > bs
+printf 'a\tb\tc\td\te\n' > many
+printf 'no newline\tat the end' > nonl
+printf 'x\tfirst' > nonl1
+printf 'second\ty\n' > nonl2
+printf 'a\r\tb\n\001\tc\n\177\td\n\033[1m\te\n' > ctl
+printf 'a\r\n\tb\r\n' > crlf
+printf '\303\251\tx\n\346\227\245\tx\n\346\227\245\346\227\245\tx\n' > mb
+printf 'e\314\201\tx\n' > comb
+printf '\377\tx\n\300\200\tx\n' > bad
+printf 'caf\351\tx\n' > latin1
+printf '\000\tx\na\000b\tc\n' > nul
+printf 'abcdefghij\tb\nabcdefghi\tb\nabcdefghijklmnopqrstuvwxyz\tz\n' > long
+printf '\t\t\t\tx\n \t \t y\n' > tabs
+printf '   \n\t\n' > blank
+: > empty
+printf 'secret\tx\n' > noread
+chmod 000 noread
+mkdir dir

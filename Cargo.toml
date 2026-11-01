@@ -138,6 +138,10 @@ path = "sort/sort.rs"
 name = "test"
 path = "test/test.rs"
 
+[[bin]]
+name = "expand"
+path = "expand/expand.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

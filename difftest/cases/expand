@@ -1,0 +1,83 @@
+# expand: tabs to spaces, the default stops, -t, backspaces, columns
+@
+plain
+-- plain
+empty
+-t 4 plain
+-t4 plain
+-t 1 plain
+-t 2 plain
+-t 3 plain
+-t 8 plain
+-t 08 plain
+-t 16 plain
+-t 2046 tabs
+-t 3,10 plain
+-t 3,10 many
+-t 4,8 many
+-t 1,2 tabs
+-t 1,2,3,4,5,6,7,8,9,10 many
+-t 5,10,15 long
+-t 9,12,21 plain
+# separators: comma or blank, one between two numbers
+-t "3 10" many
+-t "3	10" many
+# arguments the text does not allow
+-t 0 plain
+-t 00 plain
+-t 3,3 plain
+-t 5,2 plain
+-t 3, plain
+-t ,3 plain
+-t 3,,6 plain
+-t "3, 6" plain
+-t "" plain
+-t x plain
+-t -1 plain
+-t 3x plain
+-t +3 plain
+-t 3.5 plain
+-t 0x8 plain
+-t
+# option parsing
+-t 4 -- plain
+-t 4 -t 8 plain
+-t 8 -t 4 plain
+-x plain
+-4 plain
+plain -t 4
+plain -- empty
+-t 4 plain -
+# backspaces
+bs
+-t 4 bs
+-t 3,10 bs
+# the text of the output
+nonl
+nonl1 nonl2
+nonl2 nonl1
+crlf
+ctl
+-t 4 ctl
+nul
+# several files, missing files, unreadable files, directories
+plain many
+plain nosuch many
+nosuch
+nosuch plain
+noread
+noread plain
+dir
+dir plain
+empty plain empty
+plain plain
+# characters, columns and bytes
+mb
+-t 4 mb
+comb
+bad
+latin1
+-t 3,10 mb
+blank
+long
+-t 2 long

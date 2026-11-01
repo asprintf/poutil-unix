@@ -1,0 +1,5 @@
+# a tab as separator in the tablist
+-t "3	10" many
+# after the first operand "-t" and "--" are operands (PCTS 834)
+plain -- empty
+plain -t 4
