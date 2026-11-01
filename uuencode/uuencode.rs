@@ -16,24 +16,29 @@ const B64: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 const UU_LINE: usize = 45;
 const B64_LINE: usize = 57;
 
+/* lines read and encoded at a time: one read(2) and one write per block */
+const BLOCK_LINES: usize = 1024;
+
 enum Fail {
     Read(io::Error),
     Write(io::Error),
 }
 
 /*
- * Read into buf until it is full or the input ends; the number of bytes.
- * One read(2) can return less than a line, which must not end a line early.
+ * Read into buf until it is full or the input ends; the number of bytes, and
+ * the error that stopped it, if any. One read(2) can return less than asked,
+ * which must not end a line early.
  */
-fn fill<R: Read>(r: &mut R, buf: &mut [u8]) -> io::Result<usize> {
+fn fill<R: Read>(r: &mut R, buf: &mut [u8]) -> (usize, Option<io::Error>) {
     let mut n = 0;
     while n < buf.len() {
-        match posix::read_block(r, &mut buf[n..])? {
-            0 => break,
-            k => n += k,
+        match posix::read_block(r, &mut buf[n..]) {
+            Ok(0) => break,
+            Ok(k) => n += k,
+            Err(e) => return (n, Some(e)),
         }
     }
-    Ok(n)
+    (n, None)
 }
 
 /*
@@ -46,81 +51,90 @@ fn uu_char(v: u8) -> u8 {
 }
 
 /* Three octets (missing ones are zero) as four characters. */
-fn uu_group(a: u8, b: u8, c: u8, out: &mut Vec<u8>) {
-    out.push(uu_char(a >> 2));
-    out.push(uu_char((a << 4) | (b >> 4)));
-    out.push(uu_char((b << 2) | (c >> 6)));
-    out.push(uu_char(c));
+fn uu_group(a: u8, b: u8, c: u8) -> [u8; 4] {
+    [uu_char(a >> 2), uu_char((a << 4) | (b >> 4)), uu_char((b << 2) | (c >> 6)), uu_char(c)]
 }
 
 /* One line of the historical encoding for up to 45 octets, with its newline. */
 fn uu_line(chunk: &[u8], out: &mut Vec<u8>) {
     out.push(uu_char(chunk.len() as u8));
-    for g in chunk.chunks(3) {
-        uu_group(g[0], *g.get(1).unwrap_or(&0), *g.get(2).unwrap_or(&0), out);
+    let mut groups = chunk.chunks_exact(3);
+    for g in &mut groups {
+        out.extend_from_slice(&uu_group(g[0], g[1], g[2]));
+    }
+    let rest = groups.remainder();
+    if !rest.is_empty() {
+        out.extend_from_slice(&uu_group(rest[0], rest.get(1).copied().unwrap_or(0), 0));
     }
     out.push(b'\n');
-}
-
-/* The whole body: the lines, the line of length zero, and "end". */
-fn encode_uu<R: Read, W: Write>(r: &mut R, w: &mut W) -> Result<(), Fail> {
-    let mut buf = [0u8; UU_LINE];
-    let mut line = Vec::with_capacity(80);
-    loop {
-        let n = fill(r, &mut buf).map_err(Fail::Read)?;
-        if n == 0 {
-            break;
-        }
-        line.clear();
-        uu_line(&buf[..n], &mut line);
-        w.write_all(&line).map_err(Fail::Write)?;
-        if n < UU_LINE {
-            break;
-        }
-    }
-    w.write_all(b" \nend\n").map_err(Fail::Write)
 }
 
 /* One line of Base64 for up to 57 octets, with its newline. */
 fn b64_line(chunk: &[u8], out: &mut Vec<u8>) {
-    for g in chunk.chunks(3) {
-        let a = g[0];
-        let b = g.get(1).copied();
-        let c = g.get(2).copied();
-        out.push(B64[(a >> 2) as usize]);
-        out.push(B64[(((a << 4) & 0x30) | (b.unwrap_or(0) >> 4)) as usize]);
-        match (b, c) {
-            (None, _) => out.extend_from_slice(b"=="),
-            (Some(b), None) => {
-                out.push(B64[((b << 2) & 0x3c) as usize]);
-                out.push(b'=');
-            }
-            (Some(b), Some(c)) => {
-                out.push(B64[(((b << 2) & 0x3c) | (c >> 6)) as usize]);
-                out.push(B64[(c & 0x3f) as usize]);
-            }
-        }
+    let mut groups = chunk.chunks_exact(3);
+    for g in &mut groups {
+        let (a, b, c) = (g[0], g[1], g[2]);
+        out.extend_from_slice(&[
+            B64[(a >> 2) as usize],
+            B64[(((a << 4) & 0x30) | (b >> 4)) as usize],
+            B64[(((b << 2) & 0x3c) | (c >> 6)) as usize],
+            B64[(c & 0x3f) as usize],
+        ]);
+    }
+    match *groups.remainder() {
+        [a] => out.extend_from_slice(&[B64[(a >> 2) as usize], B64[((a << 4) & 0x30) as usize], b'=', b'=']),
+        [a, b] => out.extend_from_slice(&[
+            B64[(a >> 2) as usize],
+            B64[(((a << 4) & 0x30) | (b >> 4)) as usize],
+            B64[((b << 2) & 0x3c) as usize],
+            b'=',
+        ]),
+        _ => {}
     }
     out.push(b'\n');
 }
 
-/* The whole body: the lines, then the terminating line. */
-fn encode_b64<R: Read, W: Write>(r: &mut R, w: &mut W) -> Result<(), Fail> {
-    let mut buf = [0u8; B64_LINE];
-    let mut line = Vec::with_capacity(80);
+/*
+ * Read the input a block of lines at a time and write each line as line()
+ * encodes it, then the trailer. A short last line ends the input. If a read
+ * fails, the whole lines read before it are still written (a partial line is
+ * not), and the error is reported after them.
+ */
+fn encode<R: Read, W: Write>(
+    r: &mut R,
+    w: &mut W,
+    width: usize,
+    line: fn(&[u8], &mut Vec<u8>),
+    trailer: &[u8],
+) -> Result<(), Fail> {
+    let mut inb = vec![0u8; width * BLOCK_LINES];
+    let mut outb: Vec<u8> = Vec::with_capacity((width / 3 * 4 + 6) * BLOCK_LINES);
     loop {
-        let n = fill(r, &mut buf).map_err(Fail::Read)?;
-        if n == 0 {
-            break;
+        let (n, err) = fill(r, &mut inb);
+        let used = if err.is_some() { n - n % width } else { n };
+        outb.clear();
+        for chunk in inb[..used].chunks(width) {
+            line(chunk, &mut outb);
         }
-        line.clear();
-        b64_line(&buf[..n], &mut line);
-        w.write_all(&line).map_err(Fail::Write)?;
-        if n < B64_LINE {
+        w.write_all(&outb).map_err(Fail::Write)?;
+        if let Some(e) = err {
+            return Err(Fail::Read(e));
+        }
+        if n < inb.len() {
             break;
         }
     }
-    w.write_all(b"====\n").map_err(Fail::Write)
+    w.write_all(trailer).map_err(Fail::Write)
+}
+
+/* The whole body: the lines, the line of length zero, and "end". */
+fn encode_uu<R: Read, W: Write>(r: &mut R, w: &mut W) -> Result<(), Fail> {
+    encode(r, w, UU_LINE, uu_line, b" \nend\n")
+}
+
+/* The whole body: the lines, then the terminating line. */
+fn encode_b64<R: Read, W: Write>(r: &mut R, w: &mut W) -> Result<(), Fail> {
+    encode(r, w, B64_LINE, b64_line, b"====\n")
 }
 
 /* The first line: "begin" or "begin-base64", the mode in octal, the name. */
@@ -334,6 +348,56 @@ mod tests {
         let mut a = Vec::new();
         assert!(encode_b64(&mut Dribble(data.clone()), &mut a).is_ok());
         assert_eq!(a, b64(&data));
+    }
+
+    #[test]
+    fn block_boundaries_do_not_change_the_lines() {
+        /* the same bytes one line at a time, with the trailer */
+        fn by_line(data: &[u8], width: usize, line: fn(&[u8], &mut Vec<u8>), trailer: &[u8]) -> Vec<u8> {
+            let mut o = Vec::new();
+            for c in data.chunks(width) {
+                line(c, &mut o);
+            }
+            o.extend_from_slice(trailer);
+            o
+        }
+        for (width, trailer) in [(UU_LINE, &b" \nend\n"[..]), (B64_LINE, &b"====\n"[..])] {
+            let block = width * BLOCK_LINES;
+            for len in [0, 1, width - 1, width, width + 1, block - 1, block, block + 1, 2 * block, 2 * block + 7] {
+                let data: Vec<u8> = (0..=255u8).cycle().take(len).collect();
+                let mut got = Vec::new();
+                if width == UU_LINE {
+                    assert!(encode_uu(&mut &data[..], &mut got).is_ok());
+                    assert_eq!(got, by_line(&data, width, uu_line, trailer), "uu {len}");
+                } else {
+                    assert!(encode_b64(&mut &data[..], &mut got).is_ok());
+                    assert_eq!(got, by_line(&data, width, b64_line, trailer), "b64 {len}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_read_error_keeps_the_whole_lines_before_it() {
+        /* 100 octets, then EIO: two whole lines of 45, the other 10 are dropped */
+        struct Fails(usize);
+        impl Read for Fails {
+            fn read(&mut self, b: &mut [u8]) -> io::Result<usize> {
+                if self.0 == 0 {
+                    return Err(io::Error::from_raw_os_error(libc::EIO));
+                }
+                let n = self.0.min(b.len());
+                b[..n].fill(b'x');
+                self.0 -= n;
+                Ok(n)
+            }
+        }
+        let mut out = Vec::new();
+        assert!(matches!(encode_uu(&mut Fails(100), &mut out), Err(Fail::Read(_))));
+        let mut want = Vec::new();
+        uu_line(&[b'x'; 45], &mut want);
+        uu_line(&[b'x'; 45], &mut want);
+        assert_eq!(out, want);
     }
 
     #[test]
