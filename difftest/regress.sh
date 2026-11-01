@@ -686,11 +686,13 @@ fresh
 eq "sleep 0" 0 $?
 "$OURS/sleep" 1.5 2> /dev/null
 eq "sleep 1.5: refused" 1 $?
-"$OURS/sleep" 99999999999999999999999 < /dev/null > /dev/null 2>&1 &
+"$OURS/sleep" 99999999999999999999999 < /dev/null > /dev/null 2>&1
+eq "sleep: a time that overflows 64 bits is refused" 1 $?
+"$OURS/sleep" 18446744073709551615 < /dev/null > /dev/null 2>&1 &
 p=$!
 sleep 1
 "$OURS/kill" -s 0 $p
-eq "sleep with a huge time: still asleep after a second" 0 $?
+eq "sleep with the largest time: still asleep after a second" 0 $?
 "$OURS/kill" $p
 reap $p
 t0=$(date +%s)
