@@ -1,0 +1,2 @@
+# GNU says "byte" outside the POSIX locale (the standard allows it); -l pads the numbers
+sed 's/ differ: byte / differ: char /' | tr -s ' ' | sed 's/^ //'

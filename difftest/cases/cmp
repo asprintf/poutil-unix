@@ -1,0 +1,94 @@
+# cmp: first difference, -l, -s, prefixes, operands
+a a2
+a a
+a b
+b a
+-l a b
+-s a b
+-s a a2
+-l a a2
+a prefix
+prefix a
+-l a prefix
+-l prefix a
+-s a prefix
+-s prefix a
+a longer
+longer a
+-l a longer
+-l longer a
+a first
+a last
+-l a first
+-l a last
+-s a last
+empty empty
+-l empty empty
+-s empty empty
+empty a
+a empty
+-l empty a
+-l a empty
+-s empty a
+bin1 bin2
+-l bin1 bin2
+-s bin1 bin2
+a many
+-l a many
+-l many many2
+-l many2 many
+nl1 nl2
+-l nl1 nl2
+crlf lf
+-l crlf lf
+sp1 sp2
+-l sp1 sp2
+z1 z2
+-l z1 z2
+nlz1 nlz2
+blk1 blk2
+blk2 blk1
+-l blk1 blk2
+- a
+a -
+-s - a
+-s a -
+-l - a
+-l a -
+/dev/null a
+a /dev/null
+/dev/null /dev/null
+-l /dev/null a
+a nosuch
+nosuch a
+nosuch nosuch
+-s a nosuch
+-s nosuch a
+-s nosuch nosuch
+-l a nosuch
+a dir
+dir a
+-s a dir
+noread a
+a noread
+-s noread a
+-ls a b
+-sl a b
+-l -s a b
+-s -l a b
+-l -l a b
+-s -s a b
+-ll a b
+-ss a b
+-- a b
+-- a a2
+a ./-l
+./-l a
+a -l
+-l -- a b
+a
+a b a
+@
+-x a b
+-n 1 a b
+-

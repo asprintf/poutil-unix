@@ -158,6 +158,10 @@ path = "uudecode/uudecode.rs"
 name = "comm"
 path = "comm/comm.rs"
 
+[[bin]]
+name = "cmp"
+path = "cmp/cmp.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

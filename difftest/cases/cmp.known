@@ -1,0 +1,15 @@
+# -s with an error: unspecified; we still write the diagnostic (what a future issue asks for), the others stay silent
+-s a nosuch
+-s nosuch a
+-s nosuch nosuch
+-s noread a
+# macOS names standard input "stdin"; we and GNU print the operand as given
+- a
+a -
+# GNU cmp with one operand compares with standard input; macOS has -x, GNU and macOS have -n
+a
+-x a b
+-n 1 a b
+-
+# GNU exits 0 although it lists a difference
+-l z1 z2

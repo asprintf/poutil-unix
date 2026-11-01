@@ -1,0 +1,28 @@
+printf 'abcd\nefgh\nijkl\n' > a
+cp a a2
+printf 'abcd\nefXh\nijkl\n' > b
+printf 'abcd\nef' > prefix
+printf 'abcd\nefgh\nijkl\nmnop\n' > longer
+: > empty
+printf 'Xbcd\nefgh\nijkl\n' > first
+printf 'abcd\nefgh\nijkX\n' > last
+printf 'aXcXeXgX\nXjXlXnXp\n' > many
+printf 'abcdefgh\nijklmnop\n' > many2
+printf 'a\0b\0c\n\377\200\n' > bin1
+printf 'a\0b\001c\n\377\177\n' > bin2
+printf '\n\nx' > nl1
+printf '\n\ny' > nl2
+printf 'a\r\nb\r\n' > crlf
+printf 'a\nb\n' > lf
+printf 'a b\n' > sp1
+printf 'a  b\n' > sp2
+head -c 600000 /dev/zero > z1
+(head -c 300000 /dev/zero; printf x; head -c 299999 /dev/zero) > z2
+(head -c 300000 /dev/zero | tr '\0' '\n'; printf x) > nlz1
+(head -c 300000 /dev/zero | tr '\0' '\n'; printf y) > nlz2
+head -c 262144 /dev/zero > blk1
+(head -c 262144 /dev/zero; printf z) > blk2
+mkdir dir
+printf 'secret\n' > noread
+chmod 000 noread
+cp a ./-l
