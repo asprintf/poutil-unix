@@ -1,0 +1,80 @@
+# uudecode: historical and Base64 data, the name and mode in the header, -o
+i.plain
+-o other i.plain
+-o other -- i.plain
+-oother i.plain
+-- i.plain
+i.space
+i.stdoutname
+i.dashname
+-o /dev/stdout i.plain
+-o - i.plain
+-o /dev/stdout i.dashname
+-o other i.stdoutname
+# the mode: octal or symbolic, the permission bits only, whatever the umask
+i.mode600
+i.mode777
+i.mode4755
+i.mode000
+i.mode0
+i.sym1
+i.sym2
+i.symbad
+i.modebad
+# what is skipped and what is wrong
+i.junk
+i.noend
+i.nozero
+i.two
+-o x i.two
+i.empty
+i.nobegin
+i.badchar
+i.short
+i.long
+i.crlf
+i.noname
+-o x i.noname
+i.nomode
+# names
+i.namespace
+i.slash
+i.slashmissing
+-o sub/x i.plain
+-o nodir/x i.plain
+-o '' i.plain
+# files that exist
+i.ro
+-o ro i.plain
+i.dirtarget
+-o d i.plain
+-o out i.mode600
+i.mode600 i.mode777
+# Base64
+i.b64
+-o z i.b64
+i.b64noend
+i.b64junk
+i.b64two
+i.b64pad1
+i.b64badpad
+i.b64empty
+i.b64after
+i.b64short
+i.b64mode
+i.b64stdout
+# longer data
+i.hund
+i.hund64
+i.hund64narrow
+-o /dev/stdout i.hund
+-o /dev/stdout i.hund64
+# operands and options
+@
+nosuch
+i.plain i.plain
+-z i.plain
+-o
+-o x
+-o x i.plain nosuch
+i.fifoname

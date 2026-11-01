@@ -1,0 +1,9 @@
+# -o - is a file named - (only /dev/stdout is magic for -o)
+-o - i.plain
+# symbolic modes (the text allows them)
+i.sym1
+i.sym2
+# an input that ends before its end line is an error here; the data is kept
+i.noend
+i.b64noend
+i.b64short

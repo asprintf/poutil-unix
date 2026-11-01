@@ -1,0 +1,7 @@
+# every file that is not an input: its mode and bytes
+for f in *; do
+	case $f in i.*) continue ;; esac
+	if [ -d "$f" ]; then echo "== $f (directory)"; continue; fi
+	echo "== $f $(ls -ld "$f" | cut -c1-10)"
+	od -c "$f" 2>&1
+done

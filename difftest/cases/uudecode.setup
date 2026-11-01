@@ -1,0 +1,263 @@
+# input files are named i.*; whatever else appears was made by uudecode
+w() { cat > "i.$1"; }
+w plain <<'X'
+begin 644 out
+"86(`
+`
+end
+X
+w space <<'X'
+begin 644 out
+"86( 
+ 
+end
+X
+w stdoutname <<'X'
+begin 644 /dev/stdout
+"86(`
+`
+end
+X
+w dashname <<'X'
+begin 644 -
+"86(`
+`
+end
+X
+w mode600 <<'X'
+begin 600 out
+"86(`
+`
+end
+X
+w mode777 <<'X'
+begin 777 out
+"86(`
+`
+end
+X
+w mode4755 <<'X'
+begin 4755 out
+"86(`
+`
+end
+X
+w mode000 <<'X'
+begin 000 out
+"86(`
+`
+end
+X
+w mode0 <<'X'
+begin 0 out
+"86(`
+`
+end
+X
+w sym1 <<'X'
+begin u=rw,go=r out
+"86(`
+`
+end
+X
+w sym2 <<'X'
+begin a=rwx out
+"86(`
+`
+end
+X
+w symbad <<'X'
+begin u=zz out
+"86(`
+`
+end
+X
+w modebad <<'X'
+begin 9 out
+"86(`
+`
+end
+X
+w junk <<'X'
+hello
+begin the meeting
+begin 644 out
+"86(`
+`
+end
+trailer
+X
+w noend <<'X'
+begin 644 out
+"86(`
+`
+X
+w nozero <<'X'
+begin 644 out
+"86(`
+end
+X
+w two <<'X'
+begin 644 o1
+"86(`
+`
+end
+begin 644 o2
+!80``
+`
+end
+X
+: > i.empty
+w nobegin <<'X'
+"86(`
+`
+end
+X
+w badchar <<'X'
+begin 644 out
+"86(~
+`
+end
+X
+w short <<'X'
+begin 644 out
+#86(`
+`
+end
+X
+w long <<'X'
+begin 644 out
+!86(`
+`
+end
+X
+printf 'begin 644 out\r\n"86(`\r\n`\r\nend\r\n' > i.crlf
+w namespace <<'X'
+begin 644 my file
+"86(`
+`
+end
+X
+w slash <<'X'
+begin 644 sub/out
+"86(`
+`
+end
+X
+w slashmissing <<'X'
+begin 644 nodir/out
+"86(`
+`
+end
+X
+w noname <<'X'
+begin 644
+"86(`
+`
+end
+X
+w nomode <<'X'
+begin out
+"86(`
+`
+end
+X
+w b64 <<'X'
+begin-base64 644 out
+YWI=
+====
+X
+w b64noend <<'X'
+begin-base64 644 out
+YWI=
+X
+w b64junk <<'X'
+begin-base64 644 out
+YW I=
+
+====
+X
+w b64two <<'X'
+begin-base64 644 out
+YWJj
+ZGVm
+====
+X
+w b64pad1 <<'X'
+begin-base64 644 out
+YQ==
+====
+X
+w b64badpad <<'X'
+begin-base64 644 out
+YQ=
+====
+X
+w b64empty <<'X'
+begin-base64 644 out
+====
+X
+w b64after <<'X'
+begin-base64 644 out
+YQ==YWJj
+====
+X
+w b64short <<'X'
+begin-base64 644 out
+YW
+====
+X
+w b64mode <<'X'
+begin-base64 600 out
+YWI=
+====
+X
+w b64stdout <<'X'
+begin-base64 644 /dev/stdout
+YWI=
+====
+X
+w hund <<'X'
+begin 644 h
+M>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX
+M>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX>'AX
+*>'AX>'AX>'AX>```
+`
+end
+X
+w hund64 <<'X'
+begin-base64 644 h
+eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4
+eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eA==
+====
+X
+w hund64narrow <<'X'
+begin-base64 644 h
+eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4
+eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4
+eHh4eHh4eHh4eA==
+====
+X
+w ro <<'X'
+begin 644 ro
+"86(`
+`
+end
+X
+w dirtarget <<'X'
+begin 644 d
+"86(`
+`
+end
+X
+w fifoname <<'X'
+begin 644 /dev/null
+"86(`
+`
+end
+X
+printf 'previous contents that are longer than the new ones\n' > ro
+chmod 444 ro
+mkdir d sub
+printf 'old and longer than the data of the file\n' > out
+chmod 640 out

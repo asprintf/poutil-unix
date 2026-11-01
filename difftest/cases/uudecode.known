@@ -1,0 +1,21 @@
+# several file operands: macOS decodes them all, here it is a usage error
+-o x i.plain nosuch
+i.mode600 i.mode777
+i.plain i.plain
+# "-" as the name in the data is standard output (the text); macOS makes a file
+i.dashname
+# the pathname in the data is used as it is (the text); macOS keeps only the
+# last component, so /dev/null becomes a file named null
+i.fifoname
+i.slash
+i.slashmissing
+# a line "begin the meeting" is not a header here and the real one after it is
+# found; macOS and posixutils-rs stop at it
+i.junk
+# the end line straight after the data, without the line of length zero, is
+# accepted (the text does not have that line); macOS refuses, posixutils-rs
+# appends garbage
+i.nozero
+# bad Base64 padding: all three fail, what was written before differs
+i.b64after
+i.b64badpad
