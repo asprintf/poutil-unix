@@ -1,0 +1,36 @@
+# tablists the text does not allow (an empty item, a sign): GNU is lenient
+-t ,3 lead
+-t "" lead
+-t +3 lead
+-t 3, lead
+-t 3,,6 lead
+# repeated -t: here the last one wins (as on macOS); GNU joins the lists
+-t 4 -t 8 mid
+-t 8 -t 4 mid
+# width of control characters is not specified: here ASCII controls take no
+# column (as on macOS); GNU counts one
+-a ctl
+# "-" is standard input (PCTS 833); macOS opens a file named "-"
+-a lead -
+# macOS drops a last line of blanks that has no newline
+trail
+-a trail
+# macOS converts runs that do not reach a stop of a list, or move the text
+# when a list ends (-t 5,10 turns "abcdefg  b" into a tab that shifts b)
+-t 1 mid
+-t 1,2046 mid
+-t 4,8 lead
+-t 4,8 mixed
+-t 4,8 runs
+-t 4,8 tabs
+-t 4,8,12 runs
+-t 5,10 mid
+-t "4 8" runs
+# a single blank at the start of the line that fills a stop is a tab (-t 1);
+# macOS and posixutils-rs keep it a space
+-t 1 lead
+# macOS stops on an invalid sequence in UTF-8 and counts non-ASCII bytes
+# differently in the C locale
+-a hi
+-a mb
+-t 4 mb

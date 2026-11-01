@@ -1,0 +1,16 @@
+# repeated flags
+-a -a mid
+# after the first operand "-t", "-a" and "--" are operands (PCTS 834)
+lead -- empty
+lead -a
+lead -t 4
+# a leading run that has a tab in it, or a tab in the run at all, is
+# converted as a whole (the other implementations and the text agree)
+tabs
+-a tabs
+-a mixed
+# a file that cannot be read does not stop the others (PCTS 824)
+dir lead
+lead nosuch mid
+noread lead
+nosuch lead

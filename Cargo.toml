@@ -142,6 +142,10 @@ path = "test/test.rs"
 name = "expand"
 path = "expand/expand.rs"
 
+[[bin]]
+name = "unexpand"
+path = "unexpand/unexpand.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

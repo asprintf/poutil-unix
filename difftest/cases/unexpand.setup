@@ -1,0 +1,21 @@
+printf '        x\n          x\n                x\n   x\n       x\n x\n\n' > lead
+printf 'a       b\nabcdefg  b\nabcdefg b\nabcdefgh  \nabcdef  g\na b\na  b\n' > mid
+printf '\t  x\n  \t  x\n  \tx\n\t\t\tx\n \t \t x\n\t        x\n' > tabs
+printf 'a\t\t  b\na \t b\n    a\tb\n' > mixed
+printf '        \n       \n        ' > trail
+printf '        no newline' > nonl
+printf '          \bhello      \n' > bs10
+printf '\b\b\b\b\b\b\b\b\b\b\b\bhello\b\b\b\b\b\b\b\b\b\n' > bsmany
+printf '        \b \nab\b\b\b\b      x\nabc\b\b\b     x\na\bb       c\n' > bs
+printf '         ABC         DEF\n' > pcts
+printf 'a     b     c\na             b\na                       b\n' > runs
+printf 'x\r        y\n\001       z\na\001       b\n' > ctl
+printf '  \r  x\n' > cr
+printf '\346\227\245      x\n\346\227\245    \346\227\245      x\ne\314\201       x\n' > mb
+printf '\303\251       x\n\377       x\n' > hi
+printf '        x\r\n        y\r\n' > crlf
+printf '\000       x\n' > nul
+: > empty
+printf 'secret\n' > noread
+chmod 000 noread
+mkdir dir

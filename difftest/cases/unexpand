@@ -1,0 +1,101 @@
+# unexpand: spaces to tabs; leading blanks only, -a, -t, backspaces
+@
+lead
+-- lead
+empty
+mid
+tabs
+mixed
+trail
+nonl
+# -a: runs of two or more blanks before a tab stop
+-a lead
+-a mid
+-a tabs
+-a mixed
+-a trail
+-a runs
+# -t: a spacing or a list; -a is ignored and every run is converted
+-t 8 mid
+-t 4 mid
+-t 4 lead
+-t 3 mid
+-t 2 mid
+-t 1 mid
+-t 1 lead
+-t4 mid
+-t 08 mid
+-a -t 4 mid
+-t 4 -a mid
+-t 3 pcts
+-t 3,6,9,12,15,18,21,24 pcts
+-t 9,12,21 pcts
+-t 3,6,9 pcts
+-t 4,8 runs
+-t 4,8,12 runs
+-t 4,8 mixed
+-t 4,8 tabs
+-t 4,8 lead
+-t 5,10 mid
+-t "4 8" runs
+-t 2046 lead
+-t 1,2046 mid
+-t 10 bs10
+# arguments the text does not allow
+-t 0 lead
+-t 3,3 lead
+-t 5,2 lead
+-t 3, lead
+-t ,3 lead
+-t 3,,6 lead
+-t "" lead
+-t x lead
+-t -1 lead
+-t +3 lead
+-t 3x lead
+-t
+# options and operands
+-t 4 -- mid
+-t 4 -t 8 mid
+-t 8 -t 4 mid
+-a -a mid
+-x lead
+-a -x lead
+lead -a
+lead -t 4
+lead -- empty
+-a lead -
+# backspaces
+bs
+-a bs
+bsmany
+-a bsmany
+-t 4 bs
+bs10
+# the text of the output
+-a nonl
+crlf
+-a crlf
+nul
+-a nul
+-a ctl
+ctl
+cr
+-a cr
+# several files, missing files, unreadable files, directories
+lead mid
+-a lead mid
+lead nosuch mid
+nosuch
+nosuch lead
+noread
+noread lead
+dir
+dir lead
+empty lead empty
+lead lead
+# characters, columns and bytes
+-a mb
+mb
+-a hi
+-t 4 mb
