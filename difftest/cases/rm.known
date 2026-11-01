@@ -1,0 +1,12 @@
+# -x is a macOS extension (stay on one file system); the spec has no such option, so it is a usage error here
+-x f
+-r -x f
+# rm -r link/ : the spec makes rm remove the link itself and forbids traversing symbolic links into other
+# parts of the hierarchy. macOS follows the link and deletes the target directory. Ours refuses, like GNU.
+-r ld/
+-r lld/
+-rf ld/
+# with -f, a path below something that is not a directory (f/x, f/) does not exist as far as the spec's
+# step 1 goes; macOS reports ENOTDIR, GNU and ours stay quiet. The spec is silent on ENOTDIR.
+-f f/x
+-f f/

@@ -1,0 +1,4 @@
+# Options after the first operand: "rm f -r" removes the files f and ./-r (PCTS rm 56: the operand -r after
+# a file is a file name; XBD utility syntax: options precede operands). posixutils-rs takes -r as an option.
+f -r
+f -r .

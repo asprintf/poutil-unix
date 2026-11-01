@@ -1680,6 +1680,149 @@ gaw paste 'echo x | "$OURS/paste" -'
 gaw fold 'echo x | "$OURS/fold"'
 gaw cut 'echo x | "$OURS/cut" -f 1'
 
+#---------------------------------------------------------------------- rm
+# Everything that could reach the root is run with -i and an answer of "n", or
+# without -r, so that a bug could not delete anything.
+fresh
+echo x > f
+echo y | "$OURS/rm" -i f > o 2> e
+eq "rm -i: the prompt goes to stderr and names the file" "0 0 1" "$? $(wc -c < o | tr -d ' ') $(grep -c 'f' e)"
+eq "rm -i: an affirmative answer removes the file" gone "$([ -e f ] || echo gone)"
+echo x > f
+echo n | "$OURS/rm" -i f 2> /dev/null
+eq "rm -i: a negative answer keeps the file, status 0" "0 kept" "$? $([ -e f ] && echo kept)"
+"$OURS/rm" -i f < /dev/null 2> /dev/null
+eq "rm -i: end of file is not an affirmative answer" "0 kept" "$? $([ -e f ] && echo kept)"
+"$OURS/rm" -i f <&- 2> /dev/null
+eq "rm -i: a closed standard input is not an affirmative answer" "0 kept" "$? $([ -e f ] && echo kept)"
+printf 'Yes\n' | "$OURS/rm" -i f 2> /dev/null
+eq "rm -i: Yes is affirmative (the C locale yesexpr is ^[yY])" gone "$([ -e f ] || echo gone)"
+echo x > f
+printf 'maybe\n' | "$OURS/rm" -i f 2> /dev/null
+eq "rm -i: anything else is not" kept "$([ -e f ] && echo kept)"
+echo x > f; echo x > g
+printf ' y\n' | "$OURS/rm" -i f 2> /dev/null
+eq "rm -i: a leading blank spoils the answer" kept "$([ -e f ] && echo kept)"
+rm -f f g
+echo x > f
+echo x > g
+eq "rm -i reads only its line: the rest of a shared standard input is left" "REST more" "$(printf 'y\nREST\nmore\n' | { "$OURS/rm" -i g 2> /dev/null; cat; } | tr '\n' ' ' | sed 's/ $//')"
+echo x > f; echo x > g
+printf 'n\ny\n' | "$OURS/rm" -i f g 2> /dev/null
+eq "rm -i f g: an answer for each operand" "0 kept gone" "$? $([ -e f ] && echo kept) $([ -e g ] || echo gone)"
+rm -f f g
+
+mkdir d; echo x > d/a; echo x > d/b
+printf 'y\nn\ny\nn\n' | "$OURS/rm" -ri d 2> e
+eq "rm -ri: four prompts (directory, two files, directory again), one file survives" "0 4 1" "$? $(grep -o '?' e | wc -l | tr -d ' ') $(ls d | wc -l | tr -d ' ')"
+rm -rf d
+mkdir d; echo x > d/a
+printf 'y\ny\ny\n' | "$OURS/rm" -ri d 2> e
+eq "rm -ri: yes to everything removes the tree" "0 gone" "$? $([ -e d ] || echo gone)"
+mkdir e1
+printf 'n\n' | "$OURS/rm" -ri e1 2> e
+eq "rm -ri: an empty directory is asked about once" "1 kept" "$(grep -o '?' e | wc -l | tr -d ' ') $([ -d e1 ] && echo kept)"
+rmdir e1
+
+# the root, in every spelling: refused with a diagnostic, nothing removed, the next operand still handled
+touch flag
+"$OURS/rm" / // /// /. /.. . .. flag 2> e
+eq "rm of the root and of dot, without -r: status 1, the flag file is gone" "1 gone" "$? $([ -e flag ] || echo gone)"
+touch flag
+ln -s / lnk
+printf 'n\nn\nn\nn\nn\nn\n' | "$OURS/rm" -ri / // /// lnk/ flag 2> e
+eq "rm -ri of the root: no prompt for it (only the flag file is asked about)" "1 1" "$? $(grep -o '?' e | wc -l | tr -d ' ')"
+eq "rm -ri of the root: diagnostics" 4 "$(grep -c 'root' e)"
+eq "rm -ri of the root: nothing was asked about but the flag file" 1 "$(grep -c 'flag' e)"
+rm -f lnk flag
+
+# a link with a trailing slash is not walked through
+mkdir real; echo x > real/f; ln -s real lnk
+"$OURS/rm" -r lnk/ 2> e
+eq "rm -r link/: refused, the target is untouched" "1 kept kept" "$? $([ -e real/f ] && echo kept) $([ -h lnk ] && echo kept)"
+"$OURS/rm" -r lnk 2> /dev/null
+eq "rm -r link: removes the link only" "0 kept gone" "$? $([ -e real/f ] && echo kept) $([ -h lnk ] || echo gone)"
+rm -rf real
+
+# depth: a tree deeper than any pathname can be, and with very few descriptors
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 700 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		: > file
+		i=$((i + 1))
+	done
+)
+"$OURS/rm" -r deep 2> e
+eq "rm -r of a tree 700 levels deep (over 11000 bytes of path)" "0 gone" "$? $([ -e deep ] || echo gone)"
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 300 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		: > file
+		i=$((i + 1))
+	done
+)
+(ulimit -n 12 2> /dev/null && "$OURS/rm" -r deep 2> e; echo $? > st)
+eq "rm -r with 12 descriptors allowed, 300 levels deep" "0 gone" "$(cat st) $([ -e deep ] || echo gone)"
+rm -rf deep
+
+# a wide directory
+mkdir wide
+( cd wide && i=0 && while [ $i -lt 3000 ]; do : > "file$i"; i=$((i + 1)); done )
+"$OURS/rm" -r wide 2> e
+eq "rm -r of a directory with 3000 entries" "0 gone" "$? $([ -e wide ] || echo gone)"
+
+# closed descriptors
+echo x > f
+"$OURS/rm" f >&-
+eq "rm with stdout closed" "0 gone" "$? $([ -e f ] || echo gone)"
+"$OURS/rm" nosuch 2>&-
+eq "rm of a missing file with stderr closed: still status 1" 1 $?
+"$OURS/rm" -f nosuch 2>&-
+eq "rm -f of a missing file with stderr closed: status 0" 0 $?
+
+# a failure is reported once and the other operands go on; the exit status is non-zero
+mkdir -p keep/sub; echo x > keep/sub/x; echo x > other
+chmod 555 keep/sub
+"$OURS/rm" -r keep other 2> e
+eq "rm: a file that cannot be removed: status 1, the other operand is gone" "1 gone" "$? $([ -e other ] || echo gone)"
+eq "rm: one diagnostic for the file, none for the directories that could not be emptied" 1 "$(wc -l < e | tr -d ' ')"
+chmod 755 keep/sub
+rm -rf keep
+
+# the standard input is not read without -i or a terminal
+echo x > f
+echo y | "$OURS/rm" f
+eq "rm f does not touch standard input" "0 gone" "$? $([ -e f ] || echo gone)"
+printf 'y\n' > ans
+echo x > f; chmod 444 f
+"$OURS/rm" f < ans 2> e
+eq "rm of a read-only file with a non-terminal standard input: no prompt" "0 gone 0" "$? $([ -e f ] || echo gone) $(wc -c < e | tr -d ' ')"
+rm -f f ans
+
+# prompts on a terminal for what is not writable (script gives a pseudo-terminal)
+if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /dev/null 2>&1 && [ "$(id -u)" != 0 ]; then
+	export OURS
+	echo x > ro1; echo x > ro2; echo x > rw; chmod 444 ro1 ro2
+	{ sleep 1; printf 'n\ny\n'; sleep 1; } | /usr/bin/script -q /dev/null sh -c '"$OURS/rm" rw ro1 ro2; echo "st=$?" > st' > ty 2>&1
+	eq "rm on a terminal: asks for the read-only files only, not for a writable one" "1 1 0" "$(grep -c ro1 ty) $(grep -c ro2 ty) $(grep -c "remove 'rw'" ty)"
+	eq "rm on a terminal: n keeps, y removes, the writable one is gone unasked" "kept gone gone" "$([ -e ro1 ] && echo kept) $([ -e ro2 ] || echo gone) $([ -e rw ] || echo gone)"
+	eq "rm on a terminal: status 0" "st=0" "$(cat st)"
+	echo x > ro3; chmod 444 ro3
+	{ sleep 1; printf 'y\n'; sleep 1; } | /usr/bin/script -q /dev/null sh -c '"$OURS/rm" -f ro3; echo "st=$?" > st' > ty 2>&1
+	eq "rm -f on a terminal: never asks" "gone 0" "$([ -e ro3 ] || echo gone) $(grep -c ro3 ty)"
+	rm -f ro1 ro2 rw ro3 st ty
+else
+	echo "skip: rm on a terminal (no script(1), or running as root)"
+fi
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then

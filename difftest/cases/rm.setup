@@ -1,0 +1,16 @@
+touch f g h ro
+chmod 444 ro
+mkdir -p d/s e deep/x/y/z tree/a/b tree/c rod
+touch d/a d/b d/s/c deep/x/y/z/f tree/a/b/f tree/a/g tree/c/h
+ln -s f lf
+ln -s d ld
+ln -s nowhere dang
+ln -s ld lld
+mkdir lockd && touch lockd/x && chmod 555 lockd
+mkdir nox && touch nox/y && chmod 000 nox
+chmod 555 rod
+touch -- ./-r './ sp ace'
+mkdir 'new
+line'
+touch 'new
+line/in'

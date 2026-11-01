@@ -75,6 +75,10 @@ name = "rmdir"
 path = "rmdir/rmdir.rs"
 
 [[bin]]
+name = "rm"
+path = "rm/rm.rs"
+
+[[bin]]
 name = "mkdir"
 path = "mkdir/mkdir.rs"
 

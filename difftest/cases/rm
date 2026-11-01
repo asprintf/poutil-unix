@@ -1,0 +1,119 @@
+# a file, several, a missing one in the middle, -f
+f
+f g h
+nosuch
+-f nosuch
+f nosuch g
+nosuch f
+-f f nosuch g
+-f
+@
+-fr
+-- f
+-- -r
+-r
+f -r
+-x f
+-r -x f
+'' f
+''
+-f ''
+-f '' f
+# paths through something that is not a directory, and plain trailing slashes
+f/x
+-f f/x
+f/
+-f f/
+-r f/
+# directories: refused without -r, removed with it, -f makes no difference
+d
+-f d
+e
+-r e
+-R e
+-r d
+-R d
+-rf d
+-fr d
+-Rf d
+-r d nosuch
+-r d/
+-r d//
+-r e/ f
+-r tree
+-r tree/a tree/c
+-r tree tree
+-r deep
+-r d e deep tree
+# dot and dot-dot are refused, the other operands still go (PCTS 6 and 7)
+-r .
+-R ..
+-r d/.
+-r d/./
+-r d/..
+-r d/../
+-r d/s/..
+-r d/s/../ f
+-r ./
+-r .//
+-r d/. f
+f -r .
+# symbolic links are removed, not followed
+lf
+ld
+lld
+dang
+-r ld
+-r lld
+-rf ld
+-r dang
+lf f
+-r d ld
+# a link with a trailing slash is the directory it points to: refused (macOS follows it and deletes the target)
+-r ld/
+-r lld/
+ld/
+-rf ld/
+# unreadable, unwritable and locked
+ro
+-f ro
+-r ro
+lockd
+-r lockd
+-rf lockd
+-r nox
+-rf nox
+-r rod
+-r rod/
+-r rod d
+-r lockd d
+-r nox d e
+# names that are awkward
+'./ sp ace'
+' sp ace'
+-r "$(printf 'new\nline')"
+./-r
+-r ./-r
+# -i answers y to everything (rm.stdin), -f and -i: the last one decides
+-i f
+-i f g
+-i nosuch
+-if f
+-fi f
+-i -f f
+-f -i f
+-i ro
+-ir d
+-ir e
+-ir tree
+-ri tree
+-r -i -f tree
+-rfi tree
+-r -f -i tree
+-i -r -f tree
+-ifr tree
+-irf tree
+-i -r d e
+-ir ld
+-i lf
+-i -- -r
