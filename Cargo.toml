@@ -146,6 +146,10 @@ path = "expand/expand.rs"
 name = "unexpand"
 path = "unexpand/unexpand.rs"
 
+[[bin]]
+name = "uuencode"
+path = "uuencode/uuencode.rs"
+
 [profile.release]
 opt-level = "s"
 lto = true

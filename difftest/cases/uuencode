@@ -1,0 +1,81 @@
+# uuencode: the historical algorithm and -m, the begin line, the operands
+text name
+-m text name
+-- text name
+-m -- text name
+-m text -m
+text -m
+text --
+text -
+text /dev/stdout
+-m text /dev/stdout
+name
+-m name
+-m -m name
+empty n
+-m empty n
+one n
+-m one n
+two n
+-m two n
+three n
+-m three n
+four n
+-m four n
+zeros3 n
+-m zeros3 n
+ones3 n
+-m ones3 n
+bytes n
+-m bytes n
+x44 n
+x45 n
+x46 n
+x47 n
+-m x44 n
+-m x56 n
+-m x57 n
+-m x58 n
+-m x59 n
+-m x60 n
+-m x90 n
+-m x91 n
+-m x114 n
+-m x115 n
+-m x300 n
+x300 n
+x90 n
+newlines n
+-m newlines n
+crlf n
+-m crlf n
+# the mode written is the file's own
+mode600 n
+mode755 n
+mode640 n
+mode444 n
+mode777 n
+mode4755 n
+-m mode600 n
+mode000 n
+# the name is written as given
+text 'a b'
+text /a/b/c
+text ../x
+text ''
+text -m-
+# files of other kinds
+dir n
+link n
+dangling n
+nosuch n
+./- n
+-t n
+# the usage
+@
+-m
+-m text
+text name extra
+-z text name
+-m -z text name
+text name -m

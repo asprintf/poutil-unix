@@ -1,0 +1,29 @@
+printf 'the quick brown fox jumped over the lazy dog'"'"'s back\n' > text
+: > empty
+printf 'a' > one
+printf 'ab' > two
+printf 'abc' > three
+printf 'abcd' > four
+printf '\000\000\000' > zeros3
+printf '\377\377\377' > ones3
+cp "$(dirname "$0")/uuencode.bytes" bytes
+head -c 300 /dev/zero | tr '\000' 'x' > x300
+for n in 44 45 46 47 56 57 58 59 60 90 91 114 115; do
+	head -c $n x300 > x$n
+done
+printf '\n\n\n' > newlines
+printf 'a\r\nb\r\n' > crlf
+cp text mode600; chmod 600 mode600
+cp text mode755; chmod 755 mode755
+cp text mode640; chmod 640 mode640
+cp text mode444; chmod 444 mode444
+cp text mode000; chmod 000 mode000
+cp text mode4755; chmod 4755 mode4755
+cp text mode777; chmod 777 mode777
+cp text ./-t
+cp text ./--
+cp text ./-
+printf 'x' > 'a b'
+mkdir dir
+ln -s text link
+ln -s nosuch dangling

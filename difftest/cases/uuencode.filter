@@ -1,0 +1,2 @@
+# the grave accent stands for a zero in other uuencoders, a space here
+sed 's/`/ /g'
