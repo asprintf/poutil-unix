@@ -1,0 +1,16 @@
+mkdir d d/sub d/sub/deep d/empty e t nodir 'sp ace'
+echo 1 > f1; echo 22 > f2; echo 333 > f3
+printf '%1000d' 0 > big
+: > .hidden; : > .hid2
+echo h > d/.dot; echo x > d/x; echo yy > d/y; echo s > d/sub/s; echo q > d/sub/deep/q
+: > Z; : > a; : > B; : > _u; : > ./-dash; : > 'ta	b'; : > fut
+mkfifo ff
+ln -s f1 lf; ln -s d ld; ln -s nowhere dang; ln -s ../f1 d/uplink; ln -s sub d/sublink; ln -s .. d/sub/up
+chmod 755 f3; chmod 4755 d/x; chmod 1777 t; chmod 000 nodir; chmod 600 f2
+touch -t 200001021200 f1; touch -t 200101021200 f2; touch -t 199912311159 f3
+touch -t 201005050505 big; touch -t 200502020202 d; touch -t 200301010101 d/x
+touch -t 200101010101 d/y d/sub d/sub/s d/sub/deep d/sub/deep/q d/empty e Z a B _u ./-dash 'ta	b' 'sp ace' ff
+touch -t 203001010000 fut
+touch -a -t 199901010101 f1; touch -a -t 199801010101 f2; touch -a -t 199701010101 f3
+touch -h -t 200101010101 lf ld dang d/uplink d/sublink d/sub/up 2>/dev/null
+touch -t 200001010000 .hidden .hid2 d/.dot

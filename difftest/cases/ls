@@ -1,0 +1,251 @@
+@
+-1
+-a
+-A
+-aA
+-Aa
+-C
+-x
+-m
+-1 -m
+-m -1
+-F
+-p
+-Fp
+-pF
+-q
+-r
+-R
+-RA
+-Ra
+-RF
+-R -p
+-d
+-d d
+-d .
+-d d e
+-d ld
+-d lf
+-S
+-Sr
+-t
+-tr
+-u
+-ut
+-c
+-ct
+-St
+-tS
+-lcutS
+-luctS
+-l
+-la
+-lA
+-ln
+-lg
+-lo
+-lgo
+-lng
+-lno
+-g
+-o
+-n
+-l -1
+-1 -l
+-lC
+-Cl
+-lm
+-lx
+-xl
+-ml
+-s
+-sk
+-ks
+-ls
+-lsk
+-lk
+-l -R
+-lR
+-lRa
+-lRF
+-lF
+-lp
+-lt
+-ltr
+-lS
+-lSr
+-lu
+-lc
+-lat
+-lat -u
+-f
+-fl
+-ftSr
+-fltsr
+-lf
+-1f
+d
+d/
+e
+f1
+f1 f2
+f2 f1
+f1 d
+d f1
+d e
+e d
+d e f1
+./d
+./d/
+d/sub
+d/sub/deep
+d/..
+d/.
+. d
+.. 
+. ..
+..
+./
+nosuch
+nosuch f1
+f1 nosuch
+nosuch d
+d nosuch e
+nosuch1 nosuch2
+-l nosuch
+ld
+ld/
+lf
+dang
+-d ld
+-F ld
+-l ld
+-l ld/
+-p ld
+-C ld
+-1 ld
+-H ld
+-L ld
+-HF ld
+-LF ld
+-Hl ld
+-Ll ld
+-Fd ld
+-ld ld
+-lH ld
+-lL ld
+-LH ld
+-HL ld
+-lL lf
+-lH lf
+-l lf
+-F lf
+-d lf
+-lL dang
+-lH dang
+-L dang
+-H dang
+-l dang
+-F dang
+dang
+-R d
+-R d e
+-R ld
+-RL ld
+-RH ld
+-RL
+-RL d
+-RLl d
+-RF d
+-Rl d
+-Rd d
+-dR d
+-R d/sub
+-R -a d
+-R -A d
+-R .
+-R nodir
+nodir
+-l nodir
+-a nodir
+-R e
+t
+-ld t
+-ldF t
+-ld d f1 ff
+-ldF f1 f3 ff d t lf ld dang
+-lF d
+-lF
+-F d
+-lF d/sub
+-F d/sub
+-l d/sub
+-lL d/sub
+-lRL d/sub
+-1 d
+-1a d
+-1A d
+-Cd d
+-xd d
+-md d
+-s d
+-ls d
+-lsk d
+-S d
+-t d
+-r d
+-Sr d
+-lS d
+-lSr d
+-u d
+-lu d
+-lUu d
+-q 'ta	b'
+'ta	b'
+-q
+-1 'sp ace'
+-1 -- -dash
+-- -dash
+-l -- -dash
+-d . -l
+-d . --
+-ld .
+-ld
+ff
+-F ff
+-lF ff
+-p ff
+big
+-l big
+-s big
+-sk big
+-ls big
+-lsk big
+-lk big
+-S big f1
+fut
+-l fut
+-l f1 f2 f3 big fut
+-lt f1 f2 f3 big fut
+-ltr f1 f2 f3 big fut
+-lS f1 f2 f3 big fut
+-lu f1 f2 f3
+-ltu f1 f2 f3
+-lc f1 f2 f3
+-lct f1 f2 f3
+-lU
+-lh
+-lZ
+-l@
+-lT
+-L
+-H
+-b
+-e
+-w
+-W
+-X
+-v
+-Q
+-2
+-0

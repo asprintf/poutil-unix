@@ -18,7 +18,7 @@ VSC_USER ?= vsc
 VSC_GROUP ?= vscgrp1
 OURS ?= /Users/$(VSC_USER)/ours/bin
 BINS = true false echo basename dirname pwd sleep logname tty uname unlink link cat \
-	tee rm touch date cp rmdir mkdir mkfifo pathchk env nohup nice time kill \
+	tee rm touch date cp ls rmdir mkdir mkfifo pathchk env nohup nice time kill \
 	wc head tail tsort uniq expr sort test '[' expand unexpand uuencode uudecode comm cmp cksum id paste fold cut
 
 deploy: all

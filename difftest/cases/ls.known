@@ -1,0 +1,82 @@
+# Options the spec does not have, which macOS and GNU ls take as extensions (-b -e -h -l@ -Q -T -U -v -w -W -X -Z ...).
+-X
+-W
+-w
+-v
+-Q
+-lZ
+-lUu d
+-lU
+-lT
+-lh
+-l@
+-e
+-b
+# -R with a directory operand: ours (and GNU) write the "d:" header for the first directory too, as the
+# text of the spec has it ("each list of files within a directory shall be preceded by" the header, when
+# -R makes more than one directory be written). macOS leaves the header off the directory named on the
+# command line, which is how the spec's own EXAMPLE shows it. Everything below the first line is identical.
+-R
+-R .
+-R d
+-R d/sub
+-R e
+-R nodir
+-R -a d
+-R -A d
+-R -p
+-Ra
+-RA
+-RF
+-RF d
+-RL
+-RL d
+-RLl d
+-Rl d
+-lR
+-lRa
+-lRF
+-lRL d/sub
+-l -R
+# -1 does not turn the long format off (spec, OPTIONS); macOS's does.
+-l -1
+# the last of -A and -a decides (spec; PCTS 97); macOS lists . and .. whichever comes last.
+-aA
+# -u and -c alone sort by access / status change time in GNU ls; POSIX defines them as the time -t sorts
+# by and -l shows, nothing more. macOS and ours keep the name order.
+-u
+-u d
+-c
+# -f turns off -r -S and -t, even those that follow it (spec; PCTS 92). GNU lets them sort again.
+-ftSr
+-fltsr
+# -C and -x: the column layout is unspecified except that the width of the columns is constant. Ours makes
+# every column as wide as the longest name plus two, GNU fits each column to its own names.
+-x
+-lx
+# -m: ours fills a line up to the width (80 characters, the same as GNU); macOS breaks one name earlier and
+# leaves a blank at the end of the line.
+-m
+-1 -m
+-lm
+# -lF on a link: the sign goes after the pathname of the link ("sublink@ -> sub"; spec: -F writes an
+# at-sign after each pathname that is a symbolic link). GNU appends the sign of the target to the
+# target instead ("sublink -> sub/").
+-lF
+-lF d
+-lF d/sub
+-ldF f1 f3 ff d t lf ld dang
+# -R with a link operand: the "ld:" header of the first directory (see the other -R entries).
+-R ld
+-RL ld
+-RH ld
+# macOS writes an empty "total 0" before it says it cannot read the directory.
+-l nodir
+# -H and -L evaluate the file a link on the command line refers to (spec). macOS ignores -H when -l is
+# given and shows the link; for a link that leads nowhere both macOS and the spec's PCTS 44 differ: ls -L
+# must write a diagnostic, ours does, and neither -H nor -L may list the name of a file it cannot evaluate.
+-lH lf
+-lH dang
+-lL dang
+-L dang
+-H dang

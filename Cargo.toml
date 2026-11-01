@@ -91,6 +91,10 @@ name = "cp"
 path = "cp/cp.rs"
 
 [[bin]]
+name = "ls"
+path = "ls/ls.rs"
+
+[[bin]]
 name = "mkdir"
 path = "mkdir/mkdir.rs"
 

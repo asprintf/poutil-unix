@@ -1,0 +1,69 @@
+# The total line and the -s block counts are in units of 1024 bytes in posixutils-rs. The spec has
+# 512-byte units unless -k is given ("total %u" in STDOUT) and 1024-byte units only with -k. These cases
+# differ only in that.
+-lcutS
+-luctS
+-l
+-la
+-lA
+-ln
+-lg
+-lo
+-lgo
+-lng
+-lno
+-g
+-o
+-n
+-s
+-ls
+-lp
+-lt
+-ltr
+-lS
+-lSr
+-lu
+-lc
+-lat -u
+-fl
+-lf
+-l ld/
+-Hl ld
+-Ll ld
+-lH ld
+-lL ld
+-l d/sub
+-lL d/sub
+-s d
+-ls d
+-lS d
+-lSr d
+-lu d
+-s big
+-ls big
+# column layout: posixutils-rs ends the lines with a blank
+-C
+# -c with -t sorts by status change time (PCTS ls 17); posixutils-rs sorts by name
+-ct
+# -1 does not turn the long format off (spec, OPTIONS)
+-1 -l
+# -l then -C: not long (the last one decides); same column layout difference
+-lC
+# -C then -l: long (the last one decides, spec OPTIONS); posixutils-rs does not write the long format
+-Cl
+# -x then -l: long; posixutils-rs does not write the long format
+-xl
+# -m then -l: long; posixutils-rs does not write the long format
+-ml
+# times compared to the nanosecond like macOS and GNU; posixutils-rs compares whole seconds (the order of . and .. differs)
+-lat
+# the header of the first directory written is not preceded by a blank line (spec STDOUT); posixutils-rs writes one after an error
+nosuch d
+# the same
+d nosuch e
+# -l after an operand is an operand (PCTS ls 106); posixutils-rs takes it as an option
+-d . -l
+# -- after an operand is an operand (PCTS ls 106); posixutils-rs ends the options
+-d . --
+# -c with -t sorts by status change time (PCTS ls 17); posixutils-rs sorts by name
+-lct f1 f2 f3

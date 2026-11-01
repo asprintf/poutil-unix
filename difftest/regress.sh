@@ -2316,6 +2316,233 @@ eq "cp with stderr closed and an error: status 1" 1 $?
 eq "cp with stdin closed" "0 x" "$? $(cat cs4)"
 rm -rf cs cs2 cs4 t
 
+#----------------------------------------------------------------------- ls
+fresh
+mkdir d1 d2; : > f1; : > f2; : > d1/a; : > d1/b; : > d2/c; : > .hid
+eq "ls: files first, then directories, each sorted" "f1 f2 d1: a b d2: c" "$("$OURS/ls" d2 f2 d1 f1 | tr '\n' ' ' | sed 's/ $//;s/  */ /g')"
+eq "ls with several operands: a blank line before each header but the first" "f1
+f2
+
+d1:
+a
+b
+
+d2:
+c" "$("$OURS/ls" f1 f2 d1 d2)"
+eq "ls dir1 dir2: the header is the first line, no blank line before it" "d1:" "$("$OURS/ls" d1 d2 | head -1)"
+eq "ls of one directory has no header" "a
+b" "$("$OURS/ls" d1)"
+eq "ls with no operand lists dot without the hidden file" "d1 d2 f1 f2" "$("$OURS/ls" | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -a includes . .. and the hidden file" ". .. .hid d1 d2 f1 f2" "$("$OURS/ls" -a | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -A leaves out . and .." ".hid d1 d2 f1 f2" "$("$OURS/ls" -A | tr '\n' ' ' | sed 's/ $//')"
+eq "ls .hid: a hidden file named as an operand is listed" ".hid" "$("$OURS/ls" .hid)"
+eq "ls -d . and ls -d d1" ". d1" "$("$OURS/ls" -d . d1 | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -R: exact output" "d1:
+a
+b
+
+d2:
+c" "$("$OURS/ls" -R d1 d2 | sed -n '1,100p')"
+mkdir -p t/a/b t/c; : > t/a/b/f; : > t/top
+eq "ls -R t: every directory has a header, the first without a blank line before it" "t:
+a
+c
+top
+
+t/a:
+b
+
+t/a/b:
+f
+
+t/c:" "$("$OURS/ls" -R t)"
+eq "ls -R with one empty directory still has its header" "t/c:" "$("$OURS/ls" -R t/c)"
+eq "ls dir with only hidden files: no output at all" "" "$(mkdir oh; : > oh/.x; "$OURS/ls" oh)"
+rmdir oh 2> /dev/null; rm -rf oh
+"$OURS/ls" nosuch f1 2> e > /dev/null
+eq "ls nosuch f1: status 1, f1 is listed, one diagnostic naming it" "1 f1 1" "$? $("$OURS/ls" nosuch f1 2> /dev/null) $(grep -c nosuch e)"
+"$OURS/ls" -d 2> /dev/null > /dev/null
+eq "ls -d with no operand lists dot" "." "$("$OURS/ls" -d)"
+
+# -i
+ino=$(stat -f %i f1 2> /dev/null || stat -c %i f1)
+eq "ls -i: the inode number first" "$ino f1" "$("$OURS/ls" -i f1)"
+eq "ls -li: the inode number before the mode" 1 "$("$OURS/ls" -li f1 | grep -c "^$ino -rw")"
+eq "ls -1i d1 pads the inode numbers to one width" 1 "$("$OURS/ls" -1i d1 | awk '{print length($1)}' | sort -u | wc -l | tr -d ' ')"
+
+# -q and the names
+: > "$(printf 'tab\there')"
+: > "$(printf 'nl\nhere')"
+: > "$(printf 'ctl\001x')"
+eq "ls -q: tab, newline and a control character are question marks" "ctl?x
+nl?here
+tab?here" "$("$OURS/ls" -q | grep -E 'ctl|nl|tab')"
+eq "ls without -q (not a terminal): the bytes as they are" 1 "$("$OURS/ls" | grep -c "$(printf 'tab\there')")"
+eq "ls -q: a name with a blank is not changed" "a b" "$(: > 'a b'; "$OURS/ls" -q 'a b')"
+rm -f 'a b'
+: > "$(printf '\303\251')"
+eq "ls -q in a UTF-8 locale keeps a printable multibyte character" "$(printf '\303\251')" "$(LC_ALL=en_US.UTF-8 "$OURS/ls" -q "$(printf '\303\251')")"
+eq "ls -q in the C locale: its two bytes are not printable" "??" "$(LC_ALL=C "$OURS/ls" -q "$(printf '\303\251')")"
+rm -f "$(printf '\303\251')" "$(printf 'tab\there')" "$(printf 'nl\nhere')" "$(printf 'ctl\001x')"
+
+# columns
+mkdir cols; ( cd cols; for n in aaa bbb ccc ddd eee fff ggg hhh iii jjj kkk lll; do : > $n; done )
+eq "ls -C with COLUMNS=40: eight 5-wide columns fit, 12 names make 2 rows, down the columns" "aaa  ccc  eee  ggg  iii  kkk
+bbb  ddd  fff  hhh  jjj  lll" "$(COLUMNS=40 "$OURS/ls" -C cols)"
+eq "ls -C with COLUMNS=20 on 12 names: 4 columns, 3 rows" "aaa  ddd  ggg  jjj
+bbb  eee  hhh  kkk
+ccc  fff  iii  lll" "$(COLUMNS=20 "$OURS/ls" -C cols)"
+eq "ls -x with COLUMNS=20: across the rows" "aaa  bbb  ccc  ddd
+eee  fff  ggg  hhh
+iii  jjj  kkk  lll" "$(COLUMNS=20 "$OURS/ls" -x cols)"
+eq "ls -C with COLUMNS=5: too narrow, one column" 12 "$(COLUMNS=5 "$OURS/ls" -C cols | wc -l | tr -d ' ')"
+eq "ls -C with COLUMNS=abc: falls back (80), all on one line" 1 "$(COLUMNS=abc "$OURS/ls" -C cols | wc -l | tr -d ' ')"
+eq "ls -C with COLUMNS=0: falls back" 1 "$(COLUMNS=0 "$OURS/ls" -C cols | wc -l | tr -d ' ')"
+eq "ls -C with COLUMNS=40 and 80 give different output" 1 "$([ "$(COLUMNS=40 "$OURS/ls" -C cols)" != "$(COLUMNS=80 "$OURS/ls" -C cols)" ] && echo 1)"
+( cd cols; : > averyveryverylongfilename_that_is_long )
+eq "ls -C: a long name is not cut" 1 "$(COLUMNS=30 "$OURS/ls" -C cols | grep -c averyveryverylongfilename_that_is_long)"
+eq "ls -C: one constant column width, the second column starts at the same place in every row" 1 "$(COLUMNS=100 "$OURS/ls" -C cols | awk 'NF>1{print index($0,$2)}' | sort -u | wc -l | tr -d ' ')"
+rm -f cols/averyveryverylongfilename_that_is_long
+eq "ls -m: names separated by comma and space" "aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii, jjj, kkk, lll" "$("$OURS/ls" -m cols)"
+eq "ls -m with COLUMNS=30: wraps, no line longer than 30" "0" "$(COLUMNS=30 "$OURS/ls" -m cols | awk 'length($0)>30' | wc -l | tr -d ' ')"
+eq "ls -m with COLUMNS=30: wraps after a comma" "aaa, bbb, ccc, ddd, eee, fff,
+ggg, hhh, iii, jjj, kkk, lll" "$(COLUMNS=30 "$OURS/ls" -m cols)"
+eq "ls -m of an empty directory" "" "$(mkdir em; "$OURS/ls" -m em)"
+rmdir em
+eq "ls -1 forces one per line" 12 "$("$OURS/ls" -1 cols | wc -l | tr -d ' ')"
+eq "ls not on a terminal: one per line" 12 "$("$OURS/ls" cols | wc -l | tr -d ' ')"
+eq "ls -l -1 is the same as -l" "$("$OURS/ls" -l cols)" "$("$OURS/ls" -l -1 cols)"
+eq "ls -1 -l is the same as -l" "$("$OURS/ls" -l cols)" "$("$OURS/ls" -1 -l cols)"
+eq "ls -C then -l is long, -l then -C is not" "1 0" "$("$OURS/ls" -Cl cols | grep -c '^total') $("$OURS/ls" -lC cols | grep -c '^total')"
+rm -rf cols
+
+# the terminal
+if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /dev/null 2>&1; then
+	mkdir tty; ( cd tty; for n in aaa bbb ccc; do : > $n; done; : > "$(printf 'x\ty')" )
+	export OURS
+	script -q /dev/null sh -c 'cd tty && "$OURS/ls"' < /dev/null > ty.out 2>&1
+	eq "ls on a terminal: several names on a line" 1 "$([ "$(sed -n 1p ty.out | tr -d '\r' | wc -w | tr -d ' ')" -ge 4 ] && echo 1)"
+	eq "ls on a terminal: a tab in a name is a question mark" 1 "$(grep -c 'x?y' ty.out)"
+	script -q /dev/null sh -c 'cd tty && "$OURS/ls" -1' < /dev/null > ty.out 2>&1
+	eq "ls -1 on a terminal: one per line" 4 "$(tr -d '\r' < ty.out | grep -c .)"
+	rm -rf tty ty.out
+else
+	echo "skip: ls on a terminal"
+fi
+
+# times
+rm -rf tm; mkdir tm; cd tm
+: > old; : > fut; : > new
+"$OURS/touch" -d 2001-01-01T00:00:00Z old
+"$OURS/touch" -t 209901020304 fut
+eq "ls -l: a file older than six months shows the year, two spaces after the day" 1 "$(TZ=UTC0 "$OURS/ls" -l old | grep -c ' Jan  1  2001 old$')"
+eq "ls -l: a file in the future shows the year" 1 "$(TZ=UTC0 "$OURS/ls" -l fut | grep -c ' Jan  2  2099 fut$')"
+want=$(TZ=UTC0 date '+%b %e %H:%M')
+eq "ls -l: a new file shows the month, day and time, as date +%b %e %H:%M" 1 "$(TZ=UTC0 "$OURS/ls" -l new | grep -c " $want new\$")"
+eq "ls -l: TZ moves the date (2001-01-01T00:00Z is Dec 31 2000 in New York)" "Dec 31 2000 Jan 1 2001" "$(TZ=EST5EDT "$OURS/ls" -l old | awk '{print $6,$7,$8}') $(TZ=UTC0 "$OURS/ls" -l old | awk '{print $6,$7,$8}')"
+"$OURS/touch" -d 2001-06-15T12:00:00Z -a old 2> /dev/null
+eq "ls -lu shows the access time, ls -l the modification time" "Jun 15 2001 Jan 1 2001" "$(TZ=UTC0 "$OURS/ls" -lu old | awk '{print $6,$7,$8}') $(TZ=UTC0 "$OURS/ls" -l old | awk '{print $6,$7,$8}')"
+eq "ls -lc shows the change time (now, so no year)" 1 "$(TZ=UTC0 "$OURS/ls" -lc old | awk '$8 ~ /:/ {print 1}')"
+"$OURS/touch" -d 2005-05-05T00:00:00Z -m old
+: > o2; "$OURS/touch" -d 2003-03-03T00:00:00Z o2
+eq "ls -t: newest first (the file dated 2099 is newer than now)" "fut new old o2" "$("$OURS/ls" -t | tr '\n' ' ' | sed 's/ $//')" 2> /dev/null
+eq "ls -tr: oldest first" "o2 old new fut" "$("$OURS/ls" -tr | head -4 | tr '\n' ' ' | sed 's/ $//')" 2> /dev/null
+"$OURS/touch" -a -d 2010-01-01T00:00:00Z o2
+"$OURS/touch" -a -d 2009-01-01T00:00:00Z old
+eq "ls -tu: by access time, newest first" "o2 old" "$("$OURS/ls" -tu o2 old | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -t: by modification time, newest first" "old o2" "$("$OURS/ls" -t o2 old | tr '\n' ' ' | sed 's/ $//')"
+cd ..; rm -rf tm
+
+# sizes, blocks and the total line
+mkdir sz; ( cd sz; head -c 51200 /dev/zero > big; : > small )
+sleep 1
+eq "ls -l shows the size in bytes" "51200 0" "$("$OURS/ls" -l sz | awk '$NF=="big"{print $5} $NF=="small"{print $5}' | tr '\n' ' ' | sed 's/ $//')"
+t512=$("$OURS/ls" -l sz | sed -n 's/^total //p')
+t1k=$("$OURS/ls" -lk sz | sed -n 's/^total //p')
+eq "ls -l: total is at least 100 blocks of 512 bytes for a 51200 byte file" 1 "$([ "$t512" -ge 100 ] && echo 1)"
+eq "ls -lk: the total is in 1024 byte blocks, half of the 512 byte one rounded up" "$(( (t512 + 1) / 2 ))" "$t1k"
+eq "ls -s: blocks before the name, -k halves them" "$("$OURS/ls" -s sz | awk '$2=="big"{print $1}')" "$(( $("$OURS/ls" -sk sz | awk '$2=="big"{print $1}') * 2 ))"
+eq "ls -s has a total line" 1 "$("$OURS/ls" -s sz | grep -c '^total')"
+eq "ls -l big: no total line for a file operand" 0 "$("$OURS/ls" -l sz/big | grep -c '^total')"
+eq "ls -S: biggest first" "big small" "$("$OURS/ls" -S sz | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -Sr: smallest first" "small big" "$("$OURS/ls" -Sr sz | tr '\n' ' ' | sed 's/ $//')"
+rm -rf sz
+
+# the long format
+mkdir lf; cd lf
+echo content > file; ln -s file lnk; ln -s nowhere dang; mkfifo ff; mkdir sub
+chmod 640 file
+u=$(id -un); gname=$(id -gn)
+eq "ls -l file: the seven fields" "-rw-r----- 1 $u $gname 8" "$("$OURS/ls" -l file | awk '{print $1,$2,$3,$4,$5}')"
+eq "ls -l shows a symbolic link with its contents" 1 "$("$OURS/ls" -l lnk | grep -c ' lnk -> file$')"
+eq "ls -l shows a dangling link too" 1 "$("$OURS/ls" -l dang | grep -c ' dang -> nowhere$')"
+eq "ls -lL: the information of the target, the name of the link, no arrow" "-rw-r-----" "$("$OURS/ls" -lL lnk | awk '{print $1}')"
+eq "ls -lL does not print an arrow" 0 "$("$OURS/ls" -lL lnk | grep -c -- '->')"
+eq "ls -lL on a dangling link is an error" 1 "$("$OURS/ls" -lL dang > /dev/null 2>&1; echo $?)"
+eq "ls -ld: the entry type characters for a pipe, a file, a link and a directory" "p-ld" "$("$OURS/ls" -ld ff file lnk sub | awk '{printf "%s", substr($1,1,1)}')"
+eq "ls -n shows numbers" "$(id -u) $(id -g)" "$("$OURS/ls" -n file | awk '{print $3,$4}')"
+eq "ls -g leaves out the owner, ls -o the group" "$gname $u" "$("$OURS/ls" -g file | awk '{print $3}') $("$OURS/ls" -o file | awk '{print $3}')"
+eq "ls -F: the signs" "ff| file lnk@ sub/" "$("$OURS/ls" -F | tr '\n' ' ' | sed 's/ $//' | sed 's/dang@ //')"
+chmod 755 file
+eq "ls -F: * for an executable" "file*" "$("$OURS/ls" -F file)"
+eq "ls -p: a slash for directories only" "ff file lnk sub/" "$("$OURS/ls" -p | grep -v dang | tr '\n' ' ' | sed 's/ $//')"
+eq "ls -lF: the sign goes after the name, before the arrow" 1 "$("$OURS/ls" -lF lnk | grep -c ' lnk@ -> file$')"
+cd ..; rm -rf lf
+
+# symbolic link operands
+mkdir ld; : > ld/in; ln -s ld lnk; ln -s ld/in flnk
+eq "ls lnk (to a directory): its contents" "in" "$("$OURS/ls" lnk)"
+eq "ls -d lnk: the link itself" "lnk" "$("$OURS/ls" -d lnk)"
+eq "ls -F lnk: the link itself, with @" "lnk@" "$("$OURS/ls" -F lnk)"
+eq "ls -l lnk: the link itself" 1 "$("$OURS/ls" -l lnk | grep -c ' lnk -> ld$')"
+eq "ls -p lnk: followed (-p does not stop it)" "in" "$("$OURS/ls" -p lnk)"
+eq "ls -H -l lnk: followed" "in" "$("$OURS/ls" -H -l lnk | awk 'NR>1{print $NF}')"
+eq "ls -L -F lnk: followed" "in" "$("$OURS/ls" -L -F lnk)"
+eq "ls -Hd lnk: the information of the target, the name of the link" "lnk" "$("$OURS/ls" -Hd lnk)"
+eq "ls -ld -H lnk shows a directory" "d" "$("$OURS/ls" -ld -H lnk | cut -c1)"
+eq "ls -ld lnk shows a link" "l" "$("$OURS/ls" -ld lnk | cut -c1)"
+eq "ls -LH and -HL do not fail" "0 0" "$("$OURS/ls" -LH lnk > /dev/null; echo $?) $("$OURS/ls" -HL lnk > /dev/null; echo $?)"
+eq "ls -R does not follow a link to a directory inside" 0 "$(mkdir -p rr; ln -s ../ld rr/l; "$OURS/ls" -R rr | grep -c 'rr/l:')"
+eq "ls -RL follows it" 1 "$("$OURS/ls" -RL rr | grep -c 'rr/l:')"
+rm -rf rr
+# a cycle
+mkdir -p cy/a; ln -s .. cy/a/up
+"$OURS/ls" -RL cy > o 2> e
+eq "ls -RL in a directory tree with a link to a parent: a diagnostic, status 1, and it ends" "1 1" "$? $([ -s e ] && echo 1)"
+"$OURS/ls" -R cy > o 2> e
+eq "ls -R without -L does not follow it, and is fine" "0" "$?"
+ln -s lb la; ln -s la lb
+"$OURS/ls" -L la 2> e > /dev/null
+eq "ls -L on a link loop: error" "1 1" "$? $([ -s e ] && echo 1)"
+"$OURS/ls" -l la lb | wc -l | tr -d ' ' > o
+eq "ls -l of the loop links themselves is fine" 2 "$(cat o)"
+rm -rf cy la lb ld lnk flnk
+
+# permissions that stop it
+mkdir nd; : > nd/x; chmod 000 nd
+"$OURS/ls" nd f1 2> e > /dev/null
+eq "ls of an unreadable directory: a diagnostic, status 1, the other operand is listed" "1 1" "$("$OURS/ls" nd f1 > /dev/null 2>&1; echo $?) $(grep -c nd e)"
+chmod 755 nd
+mkdir -p rd/ok rd/bad; : > rd/ok/f; chmod 000 rd/bad
+"$OURS/ls" -R rd 2> e > o
+eq "ls -R with an unreadable subdirectory: the rest is listed, status 1" "1 1 1" "$("$OURS/ls" -R rd > /dev/null 2>&1; echo $?) $(grep -c 'rd/ok:' o) $(grep -c bad e)"
+chmod 755 rd/bad; rm -rf nd rd
+
+# a wide directory
+mkdir wide
+( cd wide && i=0 && while [ $i -lt 5000 ]; do : > "f$i"; i=$((i + 1)); done )
+eq "ls of a directory with 5000 entries: all of them" 5000 "$("$OURS/ls" wide | wc -l | tr -d ' ')"
+eq "ls wide is in the order of sort in the C locale" "$(LC_ALL=C "$OURS/ls" wide | LC_ALL=C sort | md5)" "$(LC_ALL=C "$OURS/ls" wide | md5)" 2> /dev/null
+eq "ls -lS wide has the total and 5000 entries" 5001 "$("$OURS/ls" -lS wide | wc -l | tr -d ' ')"
+rm -rf wide
+
+# descriptors and signals
+"$OURS/ls" f1 >&- 2> e
+eq "ls with stdout closed: status 1 and a diagnostic" "1 1" "$? $([ -s e ] && echo 1)"
+eq "ls into a pipe that ends early does not hang or complain" "0" "$("$OURS/ls" -R /usr 2> /dev/null | head -1 > /dev/null; echo 0)"
+"$OURS/ls" f1 f2 < /dev/null <&- > /dev/null 2>&1
+eq "ls with stdin closed" 0 $?
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then
