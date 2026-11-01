@@ -7,7 +7,15 @@ use std::os::unix::ffi::OsStrExt;
 
 const SYNOPSIS: &str = "rmdir [-p] dir...";
 
+/*
+ * Drop trailing slashes. A pathname that begins with exactly two slashes may
+ * have implementation-defined semantics, so "//" is kept as it is and not
+ * folded into "/". Three or more slashes are the root.
+ */
 fn trim_slashes(p: &[u8]) -> &[u8] {
+    if p == b"//" {
+        return p;
+    }
     let mut n = p.len();
     while n > 1 && p[n - 1] == b'/' {
         n -= 1;
@@ -27,7 +35,7 @@ fn chain(path: &[u8]) -> Vec<Vec<u8>> {
         out.push(p.to_vec());
         let Some(i) = p.iter().rposition(|&c| c == b'/') else { break };
         let parent = trim_slashes(&p[..i]);
-        if parent.is_empty() || parent == b"/" {
+        if parent.iter().all(|&c| c == b'/') {
             break;
         }
         p = parent;
@@ -88,6 +96,8 @@ mod tests {
         assert_eq!(c("a//b//c"), ["a//b//c", "a//b", "a"]);
         assert_eq!(c("/"), ["/"]);
         assert_eq!(c("///"), ["/"]);
+        assert_eq!(c("//"), ["//"]);
+        assert_eq!(c("////"), ["/"]);
         assert_eq!(c("."), ["."]);
         assert_eq!(c("a/."), ["a/.", "a"]);
         assert_eq!(c("a/b/.."), ["a/b/..", "a/b", "a"]);
@@ -97,6 +107,7 @@ mod tests {
     #[test]
     fn chain_never_reaches_the_root() {
         assert_eq!(c("//a"), ["//a"]);
+        assert_eq!(c("///a"), ["///a"]);
         assert_eq!(c("//a/b"), ["//a/b", "//a"]);
         assert_eq!(c("///a///b///"), ["///a///b", "///a"]);
     }
