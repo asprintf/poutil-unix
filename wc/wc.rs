@@ -70,7 +70,7 @@ struct Counter {
     single: bool,
     /* bytes below 0x80 are characters of their own (UTF-8) */
     ascii: bool,
-    /* isspace() of every single byte */
+    /* iswspace() of the character each single byte is, as the slow path would */
     space: [bool; 256],
     state: MbState,
     /* bytes of a multibyte character not completed yet */
@@ -79,14 +79,31 @@ struct Counter {
     c: Counts,
 }
 
-/* Does every byte decode to exactly one character in the current locale? */
-fn single_byte_locale() -> bool {
-    (0..=255u8).all(|b| unsafe {
+/*
+ * What every byte is on its own in the current locale: whether the locale is
+ * single-byte, and which bytes are white space.
+ *
+ * A byte alone is a whole character (1), a NUL (0), invalid (-1) or the start
+ * of a longer character (-2). A multibyte locale has some byte of the last
+ * kind, since its first byte alone is incomplete; a locale with none is
+ * single-byte, even when it refuses the bytes above 0x7f (US-ASCII), which
+ * then count as characters of their own that are not white space, just as
+ * the multibyte path counts an invalid byte.
+ */
+fn classify_bytes() -> (bool, [bool; 256]) {
+    let mut single = true;
+    let mut space = [false; 256];
+    for b in 0..=255u8 {
         let mut st = FRESH;
         let mut wc: libc::wchar_t = 0;
-        let r = mbrtowc(&mut wc, &b as *const u8 as *const libc::c_char, 1, &mut st);
-        r == 1 || (b == 0 && r == 0)
-    })
+        let r = unsafe { mbrtowc(&mut wc, &b as *const u8 as *const libc::c_char, 1, &mut st) };
+        if r == 1 {
+            space[b as usize] = unsafe { iswspace(wc as libc::c_uint) } != 0;
+        } else if r != 0 && r != usize::MAX {
+            single = false;
+        }
+    }
+    (single, space)
 }
 
 fn utf8_locale() -> bool {
@@ -99,15 +116,10 @@ fn utf8_locale() -> bool {
 impl Counter {
     /* decode: are words or characters wanted at all? */
     fn new(decode: bool) -> Counter {
-        let mut space = [false; 256];
-        if decode {
-            for (b, s) in space.iter_mut().enumerate() {
-                *s = unsafe { libc::isspace(b as libc::c_int) } != 0;
-            }
-        }
+        let (single, space) = if decode { classify_bytes() } else { (false, [false; 256]) };
         Counter {
             decode,
-            single: decode && single_byte_locale(),
+            single,
             ascii: decode && utf8_locale(),
             space,
             state: FRESH,
@@ -371,6 +383,40 @@ mod tests {
     fn last_line_without_newline_has_words_but_no_line() {
         let k = c("C", b"a b");
         assert_eq!((k.lines, k.words, k.bytes), (0, 2, 3));
+    }
+
+    /* classify_bytes() in locale loc; None if this machine lacks it */
+    fn classify_in(loc: &str) -> Option<(bool, [bool; 256])> {
+        let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
+        let l = std::ffi::CString::new(loc).unwrap();
+        if unsafe { libc::setlocale(libc::LC_ALL, l.as_ptr()) }.is_null() {
+            eprintln!("skipped: no locale {loc}");
+            return None;
+        }
+        Some(classify_bytes())
+    }
+
+    #[test]
+    fn single_byte_locales_are_told_from_multibyte_ones() {
+        /* US-ASCII refuses the bytes above 0x7f but is still one byte per character */
+        for loc in ["C", "POSIX", "en_US.ISO8859-1", "ru_RU.KOI8-R", "en_US.US-ASCII"] {
+            if let Some((single, _)) = classify_in(loc) {
+                assert!(single, "{loc}");
+            }
+        }
+        for loc in [U, "ja_JP.eucJP", "zh_TW.Big5", "ja_JP.SJIS", "ko_KR.CP949"] {
+            if let Some((single, _)) = classify_in(loc) {
+                assert!(!single, "{loc}");
+            }
+        }
+    }
+
+    #[test]
+    fn white_space_bytes_in_the_c_locale() {
+        let (_, space) = classify_in("C").unwrap();
+        for b in 0..=255usize {
+            assert_eq!(space[b], b == 0x20 || (0x09..=0x0d).contains(&b), "{b:#x}");
+        }
     }
 
     #[test]
