@@ -14,9 +14,12 @@ fn main() {
         posix::write_stdout(&prog, b"not a tty\n");
         std::process::exit(1);
     }
+    posix::clear_errno();
     let p = unsafe { libc::ttyname(0) };
     if p.is_null() {
-        posix::warn(&prog, "cannot determine the terminal name");
+        /* errno says why: no entry for the device under /dev, no memory, ... */
+        let e = std::io::Error::last_os_error();
+        posix::warn(&prog, &format!("cannot determine the terminal name: {}", posix::strerror(&e)));
         std::process::exit(2);
     }
     let mut out = unsafe { std::ffi::CStr::from_ptr(p) }.to_bytes().to_vec();
