@@ -61,6 +61,30 @@ pub fn char_at(s: &[u8]) -> (usize, Option<u32>) {
     }
 }
 
+/*
+ * Like char_at for data that goes on after s (a stream read in pieces):
+ * None if s ends in the middle of a character, so that the caller reads
+ * more before deciding. A byte that starts no valid character is still a
+ * character of one byte with no value.
+ */
+pub fn char_at_stream(s: &[u8]) -> Option<(usize, Option<u32>)> {
+    if s[0] < 0x80 && ascii_is_identity() {
+        return Some((1, Some(s[0] as u32)));
+    }
+    let mut st = MbState([0; 128]);
+    let mut wc: libc::wchar_t = 0;
+    let r = unsafe { mbrtowc(&mut wc, s.as_ptr() as *const libc::c_char, s.len(), &mut st) };
+    if r == usize::MAX - 1 {
+        None
+    } else if r == usize::MAX {
+        Some((1, None))
+    } else if r == 0 {
+        Some((1, Some(0)))
+    } else {
+        Some((r, Some(wc as u32)))
+    }
+}
+
 /* Is the wide character a <blank> (iswblank(3))? */
 pub fn is_blank(wc: u32) -> bool {
     unsafe { iswblank(wc) != 0 }

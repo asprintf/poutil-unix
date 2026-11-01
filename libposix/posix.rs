@@ -8,6 +8,7 @@ pub mod getopt;
 pub mod mb;
 pub mod mode;
 pub mod num;
+pub mod tabs;
 
 use std::ffi::CString;
 use std::fs::File;
