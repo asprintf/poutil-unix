@@ -1600,6 +1600,17 @@ eq "paste answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] &
 eq "fold: lines of 80 columns by default" "80 80 40" "$(head -c 200 /dev/zero | tr '\000' x | "$OURS/fold" | awk '{ printf "%s%d", s, length($0); s = " " }')"
 eq "fold -w 5 -s: after the last blank within the width" "ab |cd ef" "$(printf 'ab cd ef\n' | "$OURS/fold" -s -w 5 | tr '\n' '|' | sed 's/|$//')"
 eq "fold: a last line without a newline stays without" "61620a6364" "$(printf 'abcd' | "$OURS/fold" -w 2 | hex)"
+# DESCRIPTION: no newline immediately before a <carriage-return> or <backspace>, -s included
+eq "fold -s -w 4: no newline before a return; the blank in front of it is not used" "616263200d646566670a68690a" "$(printf 'abc \rdefghi\n' | "$OURS/fold" -s -w 4 | hex)"
+eq "fold -s -w 4: the same before a backspace" "6162632008640a656667680a690a" "$(printf 'abc \bdefghi\n' | "$OURS/fold" -s -w 4 | hex)"
+eq "fold -s -w 4: an earlier blank is used when the last one stands before a return" "61200a62200d636465660a670a" "$(printf 'a b \rcdefg\n' | "$OURS/fold" -s -w 4 | hex)"
+eq "fold -bs -w 4: with -b a return is a byte like the rest" "616263200a0d6465660a670a" "$(printf 'abc \rdefg\n' | "$OURS/fold" -bs -w 4 | hex)"
+# -b counts bytes but never cuts a character in two (a UTF-8 locale is needed to know what one is)
+if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	eq "fold -b -w 2: two two-byte characters, one per line" "c3a90ac3a90a" "$(printf '\303\251\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -b -w 2 | hex)"
+	eq "fold -b -w 3: a character that does not fit goes to the next line whole" "61c3a90ac3a90a" "$(printf 'a\303\251\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -b -w 3 | hex)"
+	eq "fold -w 2: a wide character counts two columns" "e697a50ae69cac0a" "$(printf '\346\227\245\346\234\254\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 2 | hex)"
+fi
 eq "fold of a big file with a width that fits is the file" 0 "$("$OURS/fold" -w 100 pbig | cmp - pbig > /dev/null; echo $?)"
 eq "fold of a big pipe is the same as of the file" 0 "$(cat pbig | "$OURS/fold" -w 2 | cmp - "$("$OURS/fold" -w 2 pbig > fo; echo fo)" > /dev/null; echo $?)"
 head -c 300000 /dev/zero | tr '\000' x > fl

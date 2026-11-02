@@ -28,8 +28,8 @@ struct Folder {
     /* column position after the segment; 0 is the start of a line */
     col: usize,
     seg: Vec<u8>,
-    /* length of seg up to and including its last blank */
-    blank_end: Option<usize>,
+    /* the length of seg up to and including each of its blanks, in order */
+    blanks: Vec<usize>,
 }
 
 /* What one character does to the column position. */
@@ -53,7 +53,7 @@ fn is_plain(o: &Opts, wc: Option<u32>) -> bool {
 
 impl Folder {
     fn new(o: Opts) -> Self {
-        Folder { o, col: 0, seg: Vec::new(), blank_end: None }
+        Folder { o, col: 0, seg: Vec::new(), blanks: Vec::new() }
     }
 
     /* The column position after a run of characters that starts a line. */
@@ -75,23 +75,43 @@ impl Folder {
             out.write_all(b"\n")?;
         }
         self.seg.clear();
-        self.blank_end = None;
+        self.blanks.clear();
         self.col = 0;
         Ok(())
     }
 
-    /* Put a newline in before the character that does not fit. */
+    /*
+     * May a newline go right after the blank that ends seg[..end]? Not when
+     * a <carriage-return> or a <backspace> follows it: no newline immediately
+     * before either of them (not with -b, where they are bytes like the rest).
+     */
+    fn may_break_at(&self, end: usize) -> bool {
+        if self.o.bytes || end >= self.seg.len() {
+            return true;
+        }
+        let (_, wc) = posix::mb::char_at(&self.seg[end..]);
+        !matches!(wc, Some(0x0d) | Some(0x08))
+    }
+
+    /*
+     * Put a newline in before the character that does not fit: after the last
+     * blank that may take one with -s, else here. A blank that may not (it
+     * stands before a return or a backspace) is passed over for an earlier one.
+     */
     fn break_line<W: Write>(&mut self, out: &mut W) -> io::Result<()> {
-        match self.blank_end {
-            Some(end) if self.o.spaces => {
+        let pick = if self.o.spaces { self.blanks.iter().rposition(|&e| self.may_break_at(e)) } else { None };
+        match pick {
+            Some(i) => {
+                let end = self.blanks[i];
                 out.write_all(&self.seg[..end])?;
                 out.write_all(b"\n")?;
                 self.seg.drain(..end);
-                self.blank_end = None;
+                /* the blanks after the break stay, counted from the new start */
+                self.blanks = self.blanks[i + 1..].iter().map(|b| b - end).collect();
                 self.col = self.measure(&self.seg);
                 Ok(())
             }
-            _ => self.end_segment(true, out),
+            None => self.end_segment(true, out),
         }
     }
 
@@ -110,7 +130,7 @@ impl Folder {
         if self.o.spaces {
             self.seg.extend_from_slice(bytes);
             if wc.is_some_and(posix::mb::is_blank) {
-                self.blank_end = Some(self.seg.len());
+                self.blanks.push(self.seg.len());
             }
         } else {
             out.write_all(bytes)?;
@@ -263,9 +283,29 @@ mod tests {
         assert_eq!(run("s", 9, "aaaaaaaa bb\tc\n"), "aaaaaaaa \nbb\tc\n");
     }
 
+    /* -b counts bytes; this test runs in the C locale, so every byte is a character (see regress.sh for UTF-8) */
     #[test]
-    fn bytes_do_not_split_characters() {
-        /* U+00E9 is two bytes in UTF-8, but this test runs in the C locale: each byte a character */
+    fn bytes_mode_counts_each_byte() {
         assert_eq!(run("b", 2, "abcd\n"), "ab\ncd\n");
+    }
+
+    /* DESCRIPTION: no newline immediately before a carriage-return or a backspace, -s included */
+    #[test]
+    fn s_does_not_break_before_return_or_backspace() {
+        /* the blank stands before the return: no blank may be used, so the line breaks at the width */
+        assert_eq!(run("s", 4, "abc \rdefghi\n"), "abc \rdefg\nhi\n");
+        /* the same before a backspace */
+        assert_eq!(run("s", 4, "abc \x08defghi\n"), "abc \x08d\nefgh\ni\n");
+        /* an earlier blank that may take the newline is used instead */
+        assert_eq!(run("s", 4, "a b \rcdefg\n"), "a \nb \rcdef\ng\n");
+        assert_eq!(run("s", 4, "a b \x08cdefg\n"), "a \nb \x08cde\nfg\n");
+        /* a blank after the return, or one followed by something else, is as good as ever */
+        assert_eq!(run("s", 4, "ab\r cdefg\n"), "ab\r \ncdef\ng\n");
+        assert_eq!(run("s", 4, "ab cdefgh\n"), "ab \ncdef\ngh\n");
+    }
+
+    #[test]
+    fn s_with_b_treats_return_and_backspace_as_bytes() {
+        assert_eq!(run("bs", 4, "abc \rdefg\n"), "abc \n\rdef\ng\n");
     }
 }
