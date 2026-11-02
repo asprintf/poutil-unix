@@ -118,7 +118,7 @@ fn main() {
     let mut all = false;
     let mut tflag = false;
     let mut g = Getopt::new(&args, b"at:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'a') => all = true,
             /* a repeated -t replaces the one before */
@@ -366,7 +366,7 @@ mod tests {
             match b {
                 b'\t' => {
                     let k = n - col % n;
-                    out.extend(std::iter::repeat(b' ').take(k));
+                    out.extend(std::iter::repeat_n(b' ', k));
                     col += k;
                 }
                 b'\n' => {

@@ -53,7 +53,7 @@ fn main() {
     let mut parents = false;
     let mut mode_arg: Option<Vec<u8>> = None;
     let mut g = Getopt::new(&args, b"pm:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'p') => parents = true,
             Opt::Arg(b'm', v) => mode_arg = Some(v),

@@ -416,7 +416,7 @@ mod tests {
         assert_eq!(strerror(&e), "No such file or directory");
         let e = std::io::Error::from_raw_os_error(libc::EACCES);
         assert_eq!(strerror(&e), "Permission denied");
-        let e = std::io::Error::new(std::io::ErrorKind::Other, "boom");
+        let e = std::io::Error::other("boom");
         assert_eq!(strerror(&e), "boom");
     }
 

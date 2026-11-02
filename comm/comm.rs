@@ -129,7 +129,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts::default();
     let mut g = Getopt::new(&args, b"123");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(b'1') => o.hide1 = true,
             Opt::Flag(b'2') => o.hide2 = true,

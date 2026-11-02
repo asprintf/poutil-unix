@@ -419,7 +419,7 @@ mod tests {
         /* no delimiter: the whole line, or nothing with -s */
         assert_eq!(f("2", ":", false, "abc").unwrap(), "abc");
         assert_eq!(f("2", ":", true, "abc"), None);
-        assert_eq!(f("1", ":", true, "").is_none(), true);
+        assert!(f("1", ":", true, "").is_none());
         assert_eq!(f("1", ":", true, "a:").unwrap(), "a");
     }
 

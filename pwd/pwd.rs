@@ -33,7 +33,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut logical = true;
     let mut g = Getopt::new(&args, b"LP");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'L') => logical = true,
             Opt::Flag(b'P') => logical = false,

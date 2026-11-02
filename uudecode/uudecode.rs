@@ -258,7 +258,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut outfile: Option<Vec<u8>> = None;
     let mut g = Getopt::new(&args, b"o:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Arg(b'o', v) => outfile = Some(v),
             _ => posix::usage(SYNOPSIS),

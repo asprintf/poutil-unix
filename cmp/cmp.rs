@@ -194,7 +194,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts::default();
     let mut g = Getopt::new(&args, b"ls");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(b'l') => o.long = true,
             Opt::Flag(b's') => o.silent = true,

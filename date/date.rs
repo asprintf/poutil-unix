@@ -165,7 +165,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut utc = false;
     let mut g = Getopt::new(&args, b"u");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'u') => utc = true,
             _ => posix::usage(SYNOPSIS),

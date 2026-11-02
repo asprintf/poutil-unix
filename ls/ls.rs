@@ -774,7 +774,7 @@ impl Ls {
         Ok((l, is_link))
     }
 
-    fn list_files(&mut self, items: &mut Vec<Item>) {
+    fn list_files(&mut self, items: &mut [Item]) {
         if items.is_empty() {
             return;
         }
@@ -990,7 +990,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts::new();
     let mut g = Getopt::new(&args, b"ACFHLRSacdfgiklmnopqrstux1");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(c) => {
                 if !o.apply(c) {
@@ -1013,7 +1013,7 @@ fn main() {
     if operands.is_empty() {
         operands.push(b".".to_vec());
     }
-    let columns = std::env::var_os("COLUMNS").map(|v| std::os::unix::ffi::OsStringExt::into_vec(v));
+    let columns = std::env::var_os("COLUMNS").map(std::os::unix::ffi::OsStringExt::into_vec);
     let width = line_width(columns.as_deref());
     let now = unsafe { libc::time(std::ptr::null_mut()) } as i64;
     let mut ls = Ls {
@@ -1068,7 +1068,7 @@ mod tests {
         let m = |x: libc::mode_t| String::from_utf8(mode_string(x).to_vec()).unwrap();
         assert_eq!(m(libc::S_IFREG | 0o644), "-rw-r--r--");
         assert_eq!(m(libc::S_IFDIR | 0o755), "drwxr-xr-x");
-        assert_eq!(m(libc::S_IFREG | 0o000), "----------");
+        assert_eq!(m(libc::S_IFREG), "----------");
         assert_eq!(m(libc::S_IFREG | 0o777), "-rwxrwxrwx");
         assert_eq!(m(libc::S_IFLNK | 0o777), "lrwxrwxrwx");
         assert_eq!(m(libc::S_IFIFO | 0o600), "prw-------");

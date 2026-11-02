@@ -286,7 +286,7 @@ fn main() {
     let mut sel = Sel { lines: false, words: false, bytes: false, chars: false };
     let mut g = Getopt::new(&args, b"cmlw");
     let mut any = false;
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         any = true;
         match o {
             /* -c and -m exclude each other; the last one wins */
@@ -414,8 +414,8 @@ mod tests {
     #[test]
     fn white_space_bytes_in_the_c_locale() {
         let (_, space) = classify_in("C").unwrap();
-        for b in 0..=255usize {
-            assert_eq!(space[b], b == 0x20 || (0x09..=0x0d).contains(&b), "{b:#x}");
+        for (b, &is_space) in space.iter().enumerate() {
+            assert_eq!(is_space, b == 0x20 || (0x09..=0x0d).contains(&b), "{b:#x}");
         }
     }
 

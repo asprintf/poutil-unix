@@ -202,6 +202,15 @@ path = "fold/fold.rs"
 name = "cut"
 path = "cut/cut.rs"
 
+[lints.clippy]
+# The default clippy groups only; pedantic is left off on purpose. The st_* and
+# timespec fields of libc have other widths on other systems, so a cast that is
+# a no-op on macOS is kept for portability.
+unnecessary_cast = "allow"
+# The 8- and 3-byte block loops of cksum, count_byte and uuencode are hand
+# tuned and tested; as_chunks is new, and a style lint is no reason to touch them.
+chunks_exact_to_as_chunks = "allow"
+
 [profile.release]
 opt-level = "s"
 lto = true

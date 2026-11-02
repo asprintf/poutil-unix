@@ -125,7 +125,7 @@ struct Opts {
 fn parse_args(args: &[Vec<u8>]) -> Option<Opts> {
     let mut o = Opts::default();
     let mut g = Getopt::new(args, b"cCmo:bdfinrut:k:");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(b'c') => o.check = true,
             Opt::Flag(b'C') => {

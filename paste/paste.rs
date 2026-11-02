@@ -215,7 +215,7 @@ fn main() {
         let idx: Vec<usize> = map.iter().map(|m| m.unwrap_or(0)).collect();
         if let Err(e) = parallel(&mut readers, &idx, &delims, &mut out) {
             let _ = out.flush();
-            posix::warn(&prog, &format!("{}", posix::strerror(&e)));
+            posix::warn(&prog, &posix::strerror(&e).to_string());
             std::process::exit(1);
         }
     }

@@ -11,7 +11,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut mode_arg: Option<Vec<u8>> = None;
     let mut g = Getopt::new(&args, b"m:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Arg(b'm', v) => mode_arg = Some(v),
             _ => posix::usage(SYNOPSIS),

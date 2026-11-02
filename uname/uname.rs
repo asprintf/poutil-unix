@@ -18,7 +18,7 @@ fn main() {
     let mut want = [false; 5];
     let mut any = false;
     let mut g = Getopt::new(&args, b"amnrsv");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         any = true;
         match o {
             Opt::Flag(b'a') => want = [true; 5],

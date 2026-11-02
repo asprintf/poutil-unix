@@ -56,7 +56,7 @@ fn main() {
     let prog = posix::progname(&args);
     /* -u is accepted; output is always unbuffered here */
     let mut g = Getopt::new(&args, b"u");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'u') => {}
             _ => posix::usage(SYNOPSIS),

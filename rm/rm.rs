@@ -156,19 +156,22 @@ struct Frame {
     was_empty: bool,
 }
 
+/* the question asked of the user: true means yes */
+type Ask<'a> = Box<dyn FnMut(&[u8]) -> bool + 'a>;
+
 struct Rm<'a> {
     prog: Vec<u8>,
     opts: Opts,
     tty: bool,
     status: i32,
-    ask: Box<dyn FnMut(&[u8]) -> bool + 'a>,
+    ask: Ask<'a>,
     root: Option<Id>,
     /* the unit tests collect diagnostics here instead of writing them */
     log: Option<Vec<String>>,
 }
 
 impl<'a> Rm<'a> {
-    fn new(prog: &[u8], opts: Opts, tty: bool, ask: Box<dyn FnMut(&[u8]) -> bool + 'a>) -> Self {
+    fn new(prog: &[u8], opts: Opts, tty: bool, ask: Ask<'a>) -> Self {
         let root = lstat_at(libc::AT_FDCWD, c"/").ok().map(|s| id_of(&s));
         Rm { prog: prog.to_vec(), opts, tty, status: 0, ask, root, log: None }
     }
@@ -459,7 +462,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts { force: false, interactive: false, recursive: false };
     let mut g = Getopt::new(&args, b"fiRr");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             /* of -f and -i the last one given decides */
             Opt::Flag(b'f') => {
@@ -545,7 +548,7 @@ mod tests {
     /* a remover that answers the prompts from a list (then "no") and records them */
     fn run(o: Opts, tty: bool, answers: &[bool], ops: &[Vec<u8>]) -> (i32, Vec<String>, Vec<String>) {
         let prompts = std::cell::RefCell::new(Vec::new());
-        let mut it = answers.to_vec().into_iter();
+        let mut it = answers.iter().copied();
         let (status, log) = {
             let ask = Box::new(|p: &[u8]| {
                 prompts.borrow_mut().push(String::from_utf8_lossy(p).into_owned());
@@ -819,7 +822,7 @@ mod tests {
         std::fs::write(t.path("d/B/fb"), b"").unwrap();
         std::fs::create_dir_all(t.path("d/C")).unwrap();
         std::fs::write(t.path("d/f1"), b"").unwrap();
-        std::fs::set_permissions(t.path("d/B"), std::fs::Permissions::from_mode(0)).unwrap();
+        std::fs::set_permissions(t.path("d/B"), std::fs::Permissions::from_mode(0o0)).unwrap();
         let (st, log, _) = run(opts(false, false, true), false, &[], &[t.p("d")]);
         assert_eq!((st, log.len()), (1, 1));
         assert!(!t.path("d/C").exists() && !t.path("d/f1").exists());

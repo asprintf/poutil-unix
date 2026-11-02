@@ -9,6 +9,10 @@ test: all
 	cargo test
 	sh difftest/regress.sh
 
+# the linter, default groups only (see [lints.clippy] in Cargo.toml)
+clippy:
+	cargo clippy --all-targets
+
 clean:
 	cargo clean
 
@@ -25,4 +29,4 @@ deploy: all
 	sudo install -d -o $(VSC_USER) -g $(VSC_GROUP) $(OURS)
 	cd target/release && sudo install -o root -g wheel -m 755 $(BINS) $(OURS)/
 
-.PHONY: all test clean deploy
+.PHONY: all test clippy clean deploy

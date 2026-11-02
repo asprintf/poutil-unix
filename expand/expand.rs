@@ -59,7 +59,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut stops = tabs::DEFAULT_STOPS;
     let mut g = Getopt::new(&args, b"t:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             /* a repeated -t replaces the one before */
             Opt::Arg(b't', v) => match Stops::parse(&v) {

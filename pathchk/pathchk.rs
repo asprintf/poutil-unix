@@ -160,7 +160,7 @@ fn main() {
     let prog = posix::progname(&args);
     let (mut p, mut big_p) = (false, false);
     let mut g = Getopt::new(&args, b"pP");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'p') => p = true,
             Opt::Flag(b'P') => big_p = true,
@@ -230,7 +230,7 @@ mod tests {
     fn file_system_checks() {
         assert!(check_fs(b"/").is_ok());
         assert!(check_fs(b"/no/such/dir/file").is_ok());
-        assert!(check_fs(&[b'/', b'a'].repeat(1000)).is_err());
+        assert!(check_fs(&b"/a".repeat(1000)).is_err());
         assert!(check_fs(format!("/{}", "a".repeat(300)).as_bytes()).is_err());
         assert!(check_fs(b"/etc/passwd/x").is_err());
     }

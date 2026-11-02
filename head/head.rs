@@ -80,7 +80,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut lines: u64 = 10;
     let mut g = Getopt::new(&args, b"n:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Arg(b'n', v) => match posix::parse_decimal(&v) {
                 Some(n) => lines = n,

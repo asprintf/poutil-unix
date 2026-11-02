@@ -216,7 +216,7 @@ fn main() {
     let mut start = Start::End(10);
     let mut want_follow = false;
     let mut g = Getopt::new(&args, b"fc:n:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'f') => want_follow = true,
             /* the last of -c and -n wins */

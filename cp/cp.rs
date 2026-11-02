@@ -209,12 +209,15 @@ fn inside(src: &[u8], dest: &[u8]) -> bool {
     d == s || d.starts_with(&prefix) || s == b"/"
 }
 
+/* the question asked of the user: true means yes */
+type Ask<'a> = Box<dyn FnMut(&[u8]) -> bool + 'a>;
+
 struct Cp<'a> {
     prog: Vec<u8>,
     o: Opts,
     umask: u32,
     status: i32,
-    ask: Box<dyn FnMut(&[u8]) -> bool + 'a>,
+    ask: Ask<'a>,
     /* destination directories being filled: a source directory that is one of them is being copied into itself */
     active: Vec<Id>,
     /* source directories on the way down: one met again is a symbolic link cycle (-L) */
@@ -225,7 +228,7 @@ struct Cp<'a> {
 }
 
 impl<'a> Cp<'a> {
-    fn new(prog: &[u8], o: Opts, umask: u32, ask: Box<dyn FnMut(&[u8]) -> bool + 'a>) -> Self {
+    fn new(prog: &[u8], o: Opts, umask: u32, ask: Ask<'a>) -> Self {
         Cp { prog: prog.to_vec(), o, umask, status: 0, ask, active: Vec::new(), walking: Vec::new(), buf: vec![0u8; BLOCK], log: None }
     }
 
@@ -611,11 +614,14 @@ impl<'a> Cp<'a> {
     }
 }
 
+/* a source and its destination */
+type Pair = (Vec<u8>, Vec<u8>);
+
 /*
  * What the operands ask for: the (source, destination) pairs, or why it
  * cannot be done. Nothing is copied when it cannot.
  */
-fn plan(sources: &[Vec<u8>], target: &[u8], target_is_dir: bool) -> Result<Vec<(Vec<u8>, Vec<u8>)>, &'static str> {
+fn plan(sources: &[Vec<u8>], target: &[u8], target_is_dir: bool) -> Result<Vec<Pair>, &'static str> {
     if target_is_dir {
         return Ok(sources.iter().map(|s| (s.clone(), dest_in(target, s))).collect());
     }
@@ -631,7 +637,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts { force: false, interactive: false, preserve: false, recursive: false, link: Link::Default };
     let mut g = Getopt::new(&args, b"PfipRHLr");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(b'f') => o.force = true,
             Opt::Flag(b'i') => o.interactive = true,
@@ -735,7 +741,7 @@ mod tests {
     /* run one copy of src to dest as the operands of cp would be; answers feed the -i prompts */
     fn run(o: Opts, answers: &[bool], pairs: &[(Vec<u8>, Vec<u8>)]) -> (i32, Vec<String>, Vec<String>) {
         let prompts = std::cell::RefCell::new(Vec::new());
-        let mut it = answers.to_vec().into_iter();
+        let mut it = answers.iter().copied();
         let (status, log) = {
             let ask = Box::new(|p: &[u8]| {
                 prompts.borrow_mut().push(String::from_utf8_lossy(p).into_owned());
@@ -887,7 +893,7 @@ mod tests {
         let t = Tmp::new();
         t.write("src", "secret");
         t.write("dst", "precious");
-        std::fs::set_permissions(t.path("src"), std::fs::Permissions::from_mode(0)).unwrap();
+        std::fs::set_permissions(t.path("src"), std::fs::Permissions::from_mode(0o0)).unwrap();
         let (st, log) = one(opts(), t.p("src"), t.p("dst"));
         assert_eq!((st, log.len()), (1, 1));
         assert_eq!(std::fs::read(t.path("dst")).unwrap(), b"precious");
@@ -1289,7 +1295,7 @@ mod tests {
         }
         let t = Tmp::new();
         tree(&t);
-        std::fs::set_permissions(t.path("src/sub"), std::fs::Permissions::from_mode(0)).unwrap();
+        std::fs::set_permissions(t.path("src/sub"), std::fs::Permissions::from_mode(0o0)).unwrap();
         let (st, log) = one(Opts { recursive: true, ..opts() }, t.p("src"), t.p("copy"));
         assert_eq!((st, log.len()), (1, 1));
         assert_eq!(std::fs::read(t.path("copy/a")).unwrap(), b"A");

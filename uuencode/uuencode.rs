@@ -174,7 +174,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut base64 = false;
     let mut g = Getopt::new(&args, b"m");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'm') => base64 = true,
             _ => posix::usage(SYNOPSIS),
@@ -312,9 +312,9 @@ mod tests {
         assert_eq!(o.lines().next().unwrap().len(), 76);
         assert!(o.ends_with("\n====\n"));
         /* 57 octets are exactly one full line, with no empty line after it */
-        let o = s(b64(&vec![1u8; 57]));
+        let o = s(b64(&[1u8; 57]));
         assert_eq!(o.lines().count(), 2);
-        let o = s(b64(&vec![1u8; 58]));
+        let o = s(b64(&[1u8; 58]));
         assert_eq!(o.lines().count(), 3);
     }
 

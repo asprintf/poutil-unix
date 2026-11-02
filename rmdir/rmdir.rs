@@ -49,7 +49,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut parents = false;
     let mut g = Getopt::new(&args, b"p");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         match o {
             Opt::Flag(b'p') => parents = true,
             _ => posix::usage(SYNOPSIS),

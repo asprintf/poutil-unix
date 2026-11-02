@@ -30,7 +30,7 @@ fn open_nohup_out() -> Option<(i32, Vec<u8>)> {
     if let Some(fd) = open_append(b"nohup.out") {
         return Some((fd, b"nohup.out".to_vec()));
     }
-    let mut p = std::env::var_os("HOME").map(|h| std::os::unix::ffi::OsStringExt::into_vec(h))?;
+    let mut p = std::env::var_os("HOME").map(std::os::unix::ffi::OsStringExt::into_vec)?;
     if p.is_empty() {
         return None;
     }

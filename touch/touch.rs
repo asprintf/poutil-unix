@@ -91,7 +91,7 @@ fn parse_t(s: &[u8], cur_year: i64) -> Option<Civil> {
  */
 fn parse_d(s: &[u8]) -> Option<(Civil, bool)> {
     let ylen = s.iter().position(|&c| c == b'-')?;
-    if ylen < 4 || ylen > 9 || !digits(&s[..ylen]) {
+    if !(4..=9).contains(&ylen) || !digits(&s[..ylen]) {
         return None;
     }
     let year = s[..ylen].iter().fold(0i64, |a, &c| a * 10 + (c - b'0') as i64);
@@ -294,7 +294,7 @@ fn main() {
     let (mut a, mut m, mut c) = (false, false, false);
     let mut src_opt: Option<(Kind, Vec<u8>)> = None;
     let mut g = Getopt::new(&args, b"acmr:t:d:");
-    while let Some(o) = g.next() {
+    for o in g.by_ref() {
         let (kind, arg) = match o {
             Opt::Flag(b'a') => {
                 a = true;

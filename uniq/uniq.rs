@@ -116,7 +116,7 @@ fn main() {
     let prog = posix::progname(&args);
     let mut o = Opts::default();
     let mut g = Getopt::new(&args, b"cduf:s:");
-    while let Some(opt) = g.next() {
+    for opt in g.by_ref() {
         match opt {
             Opt::Flag(b'c') => o.count = true,
             Opt::Flag(b'd') => o.dups = true,
@@ -154,7 +154,7 @@ fn main() {
              * truncate: a failed open or a bad input leaves the file alone.
              */
             let path = <std::ffi::OsStr as std::os::unix::ffi::OsStrExt>::from_bytes(out_name);
-            let f = match OpenOptions::new().write(true).create(true).mode(0o666).open(path) {
+            let f = match OpenOptions::new().write(true).create(true).truncate(false).mode(0o666).open(path) {
                 Ok(f) => f,
                 Err(e) => {
                     posix::warn_path(&prog, out_name, &posix::strerror(&e));
