@@ -149,7 +149,8 @@ fn now() -> i64 {
 }
 
 fn local_tm(secs: i64) -> Option<libc::tm> {
-    let t = secs as libc::time_t;
+    /* a time_t that cannot hold the value is no time at all, not a wrapped one */
+    let t = libc::time_t::try_from(secs).ok()?;
     let mut tm: libc::tm = unsafe { std::mem::zeroed() };
     if unsafe { libc::localtime_r(&t, &mut tm) }.is_null() {
         None
@@ -205,7 +206,11 @@ fn main() {
                 posix::warn_path(&prog, op, "date out of range");
                 std::process::exit(1);
             };
-            let ts = libc::timespec { tv_sec: new as libc::time_t, tv_nsec: 0 };
+            let Some(tv_sec) = libc::time_t::try_from(new).ok() else {
+                posix::warn_path(&prog, op, "date out of range");
+                std::process::exit(1);
+            };
+            let ts = libc::timespec { tv_sec, tv_nsec: 0 };
             if unsafe { libc::clock_settime(libc::CLOCK_REALTIME, &ts) } < 0 {
                 let e = std::io::Error::last_os_error();
                 posix::warn(&prog, &format!("cannot set date: {}", posix::strerror(&e)));
@@ -313,7 +318,6 @@ mod tests {
             ("%W", "05"),
             ("%y", "09"),
             ("%Y", "2009"),
-            ("%Z", "UTC"),
             ("%%", "%"),
             ("%c", "Tue Feb  3 04:05:06 2009"),
             ("%x", "02/03/09"),
@@ -321,6 +325,16 @@ mod tests {
         ] {
             assert_eq!(fmt(f, t), want, "{f}");
         }
+    }
+
+    /* %Z is the zone name of the broken-down time, whatever the C library calls UTC ("GMT" in glibc) */
+    #[test]
+    fn zone_name_is_the_one_in_the_broken_down_time() {
+        let p = parse_format(b"%Z").unwrap();
+        let tm = tm_at(utc(2009, 2, 3, 4, 5, 6), Some(c"UTC"));
+        assert_eq!(expand(&p, &tm), b"UTC");
+        let tm = tm_at(utc(2009, 2, 3, 4, 5, 6), Some(c"GMT"));
+        assert_eq!(expand(&p, &tm), b"GMT");
     }
 
     /* %E and %O fall back to the plain value when the locale has no alternatives */
