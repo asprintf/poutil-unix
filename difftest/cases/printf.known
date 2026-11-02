@@ -1,0 +1,24 @@
+# no provision for * and for n$ in the standard (the shell can fill them in); the references take them
+'%*d\n' 3 5
+'%.*s\n' 2 abc
+'%1$d\n' 5
+'%.*f\n' 2 1.5
+'%*f\n' 6 1.5
+'%1$f\n' 1.5
+# hexadecimal escapes are not recognized in the format (APPLICATION USAGE); the references take \x41
+'\x41'
+# unspecified: a % with no conversion character after it, and \c in the format (only %b has it)
+'a\cb'
+'\%'
+# the length modifiers h l ll L are not in the conversion specifications of the standard
+'%Lf\n' 1.5
+# the quote rule is for the integer conversions only (RATIONALE: "the special treatment of leading single-quote and double-quote applying only to integer conversions"); the references give the character's value to the floating-point ones too
+"%f\n" "'A"
+# a denormal in %a: ours is the C library's, normalized, as macOS writes it (macOS also reports the underflow); GNU has its own digits (long double), posixutils-rs writes 0x0.
+'%a\n' 1e-310
+# a NaN is written "[-]nan" (XBD File Format Notation, f and F; PCTS printf 37, 53, 76, 77 expect -nan for -NAN), so a negative NaN has its sign; macOS, GNU and posixutils-rs all leave it out
+'%f\n' nan -nan +nan NAN -NAN nAn -nAn
+'%F|%E|%G|%A\n' -nan -nan -nan -nan
+'%e|%g|%a\n' -nan -nan -nan
+'%6f|%-6f|%06f|%+f|% f|\n' -nan nan nan nan nan
+'%10.3g|%-10.2e|%.0f|\n' -nAn -NAN nan

@@ -1,0 +1,15 @@
+# a format with no conversion and arguments: the results are unspecified (item 9); macOS writes a diagnostic, we ignore them
+'hello\n' a b
+'100%%\n' a b
+# a field width or precision too big for an int: we say so and stop, macOS does something else (unspecified)
+'%99999999999d\n' 1
+'%.99999999999s\n' 1
+# what follows a backslash that is no escape sequence is unspecified: macOS drops the backslash, we write both
+'\q|'
+'%b\n' 'a\qb'
+# \0 in %b is a byte with the value 0 (item 7); macOS ends the string there as a C string
+'%b|\n' '\0|\01|\012|\0101|\01012'
+# a quote and no character after it is not a number: we say so, macOS writes 0 without a message
+"%d\n" "'"
+# macOS reports the underflow of 1e-999 as an error; the standard names overflow (APPLICATION USAGE), and a number too small to hold is not an error here
+'%f|%e|\n' 1e-999 1e-999

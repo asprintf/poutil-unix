@@ -1797,6 +1797,93 @@ eq "du with stdin closed: fine, it reads nothing" 0 $?
 "$OURS/du" -a /usr 2> /dev/null | head -n 1 > out
 eq "du into a closed pipe ends quietly" 1 "$(wc -l < out | tr -d ' ')"
 
+#---------------------------------------------------------------------- printf
+fresh
+"$OURS/printf" 'hello %s\n' world > out 2> err
+eq "printf: status, output, silence" "0 hello world 0" "$? $(cat out | tr '\n' ' ' | sed 's/ $//') $(wc -c < err | tr -d ' ')"
+"$OURS/printf" '\aPlease fill in the following: \nName: ' | od -An -tx1 | tr -d ' \n' > out
+eq "printf: the EXAMPLES prompt, a bell first" "07506c65617365" "$(cut -c1-14 out)"
+"$OURS/printf" '%2d right\t%2d wrong\t(%s%%)\n' 3 1 75.0 | tr '\t' '>' > out
+eq "printf: the EXAMPLES right and wrong, tabs between" " 3 right> 1 wrong>(75.0%)" "$(cat out)"
+"$OURS/printf" '%5d%4d\n' 1 21 321 4321 54321 > out
+eq "printf: the EXAMPLES three lines from one format" "    1  21/  3214321/54321   0/" "$(tr '\n' '/' < out)"
+"$OURS/printf" '%d\n' 3 +3 -3 \'3 \"+3 "'-3" > out 2> err
+eq "printf: the EXAMPLES character constants" "0 3 3 -3 51 43 45 0" "$? $(tr '\n' ' ' < out | sed 's/ $//') $(wc -c < err | tr -d ' ')"
+"$OURS/printf" '%d\n' 5a > out 2> err
+eq "printf %d 5a: the value so far, a diagnostic, status 1" "1 5 1" "$? $(cat out) $(wc -l < err | tr -d ' ')"
+"$OURS/printf" '%d\n' 9999999999999999999999 -9999999999999999999999 ABC > out 2> err
+eq "printf: overflow and a non-number: the values of strtoimax, a diagnostic each" "1 9223372036854775807/-9223372036854775808/0/ 3" "$? $(tr '\n' '/' < out) $(wc -l < err | tr -d ' ')"
+"$OURS/printf" '[%d][%d][%d]\n' 1 x 3 > out 2> err
+eq "printf: an error does not stop the other arguments" "1 [1][0][3] 1" "$? $(cat out) $(wc -l < err | tr -d ' ')"
+"$OURS/printf" '%d\n' > out 2> err
+eq "printf: a missing argument is a zero, without a message" "0 0 0" "$? $(cat out) $(wc -c < err | tr -d ' ')"
+"$OURS/printf" 'x\0y\377z' | od -An -tx1 | tr -d ' \n' > out
+eq "printf: octal escapes make any byte" "780079ff7a" "$(cat out)"
+"$OURS/printf" '%b' 'a\0101\0b\033[0m' | od -An -tx1 | tr -d ' \n' > out
+eq "printf %b: \\0ddd and the other escapes" "614100621b5b306d" "$(cat out)"
+"$OURS/printf" '[%b][%s]\n' 'ab\ccd' next > out
+eq "printf %b: \\c ends everything, the rest of the format too" "[ab" "$(cat out)"
+"$OURS/printf" '%s %s %s\n' a b > out
+eq "printf: a missing string is empty" "a b " "$(cat out)"
+"$OURS/printf" 'no conversion\n' ignored arguments > out 2> err
+eq "printf: a format with no conversion and arguments: once, silently" "0 no conversion 0" "$? $(cat out) $(wc -c < err | tr -d ' ')"
+"$OURS/printf" '%s\n' a b c > out
+eq "printf: the format is used for each argument" "a/b/c/" "$(tr '\n' '/' < out)"
+"$OURS/printf" 'before %z after\n' 1 > out 2> err
+eq "printf: an invalid conversion: what came before, a diagnostic, status 1" "1 before  1" "$? $(cat out) $(wc -l < err | tr -d ' ')"
+"$OURS/printf" '%f|%.2e|%g|%8.3f|\n' 1.5 1234 100000 3.14159 > out 2> err
+eq "printf: the floating-point conversions" "0 1.500000|1.23e+03|100000|   3.142| 0" "$? $(cat out) $(wc -c < err | tr -d ' ')"
+"$OURS/printf" '%f\n' abc 1.5x 1e999 > out 2> err
+eq "printf %f: wrong arguments: the value so far, a diagnostic each, status 1" "1 0.000000/1.500000/inf/ 3" "$? $(tr '\n' '/' < out) $(wc -l < err | tr -d ' ')"
+"$OURS/printf" '%f|%6F|%-6f|%+f|\n' -nan -NAN nan nan > out 2> err
+eq "printf: a NaN keeps its sign, in capitals for F, to the field width" "-nan|  -NAN|nan   |+nan| 0" "$(cat out) $(wc -c < err | tr -d ' ')"
+LC_ALL=C LC_NUMERIC=C "$OURS/printf" '%.1f\n' 1.5 > out
+eq "printf %f: the radix character in the C locale" "1.5" "$(cat out)"
+if LC_ALL=de_DE.UTF-8 "$OURS/printf" '%.1f' 1,5 2> /dev/null | grep -q ','; then
+	eq "printf %f: LC_NUMERIC gives the radix character, in the output and in the argument" "1,5 0" "$(LC_ALL=de_DE.UTF-8 "$OURS/printf" '%.1f' 1,5 2> err) $(wc -c < err | tr -d ' ')"
+	eq "printf %f: LC_NUMERIC alone is enough" "2,5" "$(LC_ALL= LC_NUMERIC=de_DE.UTF-8 "$OURS/printf" '%.1f' 2,5 2> /dev/null)"
+else
+	echo "skip: no locale de_DE.UTF-8"
+fi
+"$OURS/printf" 2> err
+eq "printf with no operand is a usage error" "2 1" "$? $(wc -l < err | tr -d ' ')"
+"$OURS/printf" -x 2> /dev/null
+eq "printf -x is a usage error (it has no options)" 2 $?
+"$OURS/printf" -- '%s\n' -x > out
+eq "printf -- format -x: the -- ends the options, -x is an argument" "0 -x" "$? $(cat out)"
+"$OURS/printf" -- '-%d\n' 5 > out
+eq "printf -- '-%d': a format that starts with -" "-5" "$(cat out)"
+"$OURS/printf" '%s\n' -- a > out
+eq "printf format -- a: after the format, -- is an argument" "--/a/" "$(tr '\n' '/' < out)"
+"$OURS/printf" '%s' '' > out
+eq "printf %s of an empty string: nothing" "0 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/printf" '' x y > out
+eq "printf of an empty format: nothing" "0 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/printf" '%.3s|%5s|%-5s|%c\n' abcdef ab ab xyz > out
+eq "printf: width, precision and %c" "abc|   ab|ab   |x" "$(cat out)"
+"$OURS/printf" '%+d|% d|%05d|%.3d|%#o|%#x|%u\n' 5 5 5 5 8 255 -1 > out
+eq "printf: flags of the integer conversions" "+5| 5|00005|005|010|0xff|18446744073709551615" "$(cat out)"
+awk 'BEGIN { for (i = 0; i < 40000; i++) printf "%d\n", i }' > nums
+"$OURS/printf" '%d,' $(cat nums) > out
+eq "printf: the format used 40000 times" "40000 39999," "$(tr -cd ',' < out | wc -c | tr -d ' ') $(tr ',' '\n' < out | sed -n 40000p),"
+head -c 100000 /dev/zero | tr '\0' x > big
+"$OURS/printf" '%s|' "$(cat big)" > out
+eq "printf: an argument of 100000 bytes" 100001 "$(wc -c < out | tr -d ' ')"
+"$OURS/printf" '%100000d' 7 > out
+eq "printf: a field width of 100000" 100000 "$(wc -c < out | tr -d ' ')"
+"$OURS/printf" 'x' >&- 2> /dev/null
+eq "printf with stdout closed: status" 1 $?
+"$OURS/printf" 'x' <&- > /dev/null
+eq "printf with stdin closed: fine, it reads nothing" 0 $?
+"$OURS/printf" '%s\n' $(cat nums) | head -n 2 > out
+eq "printf into a closed pipe ends quietly" "0/1/" "$(tr '\n' '/' < out)"
+if LC_ALL=en_US.UTF-8 "$OURS/printf" '%d' "'$(printf '\303\251')" 2> /dev/null | grep -q '^233$'; then
+	eq "printf %d '<e acute> in a UTF-8 locale: the character's value" 233 "$(LC_ALL=en_US.UTF-8 "$OURS/printf" '%d' "'$(printf '\303\251')")"
+else
+	echo "skip: no locale en_US.UTF-8"
+fi
+eq "printf in the C locale: the first byte of a multibyte character" 195 "$(LC_ALL=C "$OURS/printf" '%d' "'$(printf '\303\251')")"
+
 #---------------------------------------------------------------------- cmp
 fresh
 printf 'abcd\nefgh\n' > a

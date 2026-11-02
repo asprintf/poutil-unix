@@ -1,0 +1,38 @@
+# an operand that starts with - is taken as the format there; printf has no options, so here it is a usage error unless -- comes first
+'-%d\n' 5
+-x
+-d
+# length modifiers and %q are not in the conversion specifications of the standard
+'%ld\n' 5
+'%lld\n' 5
+'%hd\n' 5
+'%q\n'
+# a % that is no conversion specification: the behaviour is unspecified (item 10); it writes something, we write what came before and stop with a diagnostic
+'a%zb\n' 1
+'%5%\n'
+'%n\n'
+'%p\n'
+'%C\n' a
+'%S\n' a
+'%B\n' a
+'x%dy%zz\n' 1 2
+# an argument that is an empty string cannot be converted to a number: a diagnostic is required; it writes 0 without one
+'%d\n' ''
+# a quote and a character: the value is that of the character (the EXAMPLES of the standard: 51, 43, 45); it reports an error for what comes after the character
+'%d\n' "'3" '"+3' "'-3"
+'%d\n' "'ab"
+'%d\n' 3 +3 -3 "'3" '"+3' "'-3"
+# overflow of a floating-point argument is an error (APPLICATION USAGE: "overflow ... shall be reported as errors"); it writes inf without a diagnostic
+'%f\n' 1e999
+'%f\n' -1e999
+# the rounding of a hexadecimal floating-point number with no digits after the point is the C library's choice
+'%.0a\n' 1.5
+# length modifiers are not in the conversion specifications of the standard
+'%lf\n' 1.5
+'%lg\n' 1.5
+'%Lf\n' 1.5
+# it does not read what strtod() reads: 0x10 is a hexadecimal floating-point number ("evaluated as if by the strtod() function"); an empty argument cannot be converted and needs a diagnostic; with 0 in %010a the zeros go after 0x
+'%010a\n' 1
+'%a\n' 0x10
+'%f\n' ''
+'%f\n' 1e3 1E3 2.5e-1 .5 5. -2.5 +2.5 0x10 ' 2.5' 007

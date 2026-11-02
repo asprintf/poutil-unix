@@ -121,10 +121,10 @@ for util in "$@"; do
 					grep -qxF -- "$line" "$cases.known.$kind" 2>/dev/null && known=1
 				fi
 				if [ -n "$why" ] && [ $known -eq 1 ]; then
-					echo "known $util [$loc] $line  vs $name:$why"
+					printf '%s\n' "known $util [$loc] $line  vs $name:$why"
 				elif [ -n "$why" ]; then
 					bad=$((bad + 1))
-					echo "DIFF $util [$loc] $line  vs $name:$why"
+					printf '%s\n' "DIFF $util [$loc] $line  vs $name:$why"
 					if [ $verbose -eq 1 ]; then
 						echo "  ours: $(od -c "$tmp/o.out" | head -3 | tr '\n' '|')"
 						echo "  ref:  $(od -c "$tmp/r.out" | head -3 | tr '\n' '|')"

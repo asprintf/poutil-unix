@@ -1,0 +1,237 @@
+# printf: literal text and the escape sequences of the format
+'hello\n'
+'a b  c\n'
+' leading and trailing '
+'a[]b\n'
+''
+'\\ \a \b \f \n \r \t \v|'
+'\\\\|'
+'\1|\12|\101|\1012|\0|\00|\000|\0101'
+'\377\200\0'
+'\7777'
+'\18'
+'x\'
+# unspecified backslash sequences
+'\q|'
+'a\cb'
+'\x41'
+'\%'
+# percent
+'%%'
+'100%%\n'
+'%%%s%%\n' x
+'%d%%\n' 5 6
+# s
+'%s\n' abc
+'%s\n' ''
+'%s\n' a b c
+'%s %s\n' a b c
+'%s %s\n' a
+'%5s|%-5s|%.2s|%5.2s|%-5.2s|\n' abc abc abc abc abc
+'%.0s|%.s|%2s|\n' abc abc abcdef
+'%s|%s\n' 'a b' ' c '
+# c
+'%c\n' abc
+'%c|%c|%c\n' x 123 y
+'%3c|%-3c|\n' a b
+'[%c]\n' ''
+'[%c]\n'
+# b
+'%b\n' 'a\tb'
+'%b\n' '\\ \a \b \f \n \r \t \v'
+'%b|\n' '\0|\01|\012|\0101|\01012'
+'%b\n' '\033[0m'
+'%b|%s|\n' 'ab\ccd' next
+'[%b][%b]\n' 'x\cy' z
+'%b\n' '\cab'
+'a%bb\n' '\c'
+'%.2b|\n' 'a\tb'
+'%.0b|\n' abc
+'%b\n' 'a\qb'
+'%b\n' 'x\'
+'%b\n' '\101'
+'%d %b %d\n' 1 'x\c' 2
+'%b\n' a 'b\c' c
+# d i u o x X
+'%d\n' 5
+'%d\n' -5
+'%d\n' +5
+'%i\n' 42
+'%u\n' 7
+'%o\n' 8
+'%o\n' 0
+'%x %X\n' 255 255
+'%#x %#X %#o\n' 255 255 8
+'%#x|%#o\n' 0 0
+'%+d|% d|%+d|% d\n' 5 5 -5 -5
+'%5d|%-5d|%05d|%-05d\n' 42 42 42 42
+'%.3d|%.0d|%.0d|%5.3d|%05.3d\n' 5 0 7 5 5
+'%+05d|%+.3d|%08.3d\n' 5 5 -5
+'%3d\n' 12345
+'%-0+5d|%+-5d|%0-5d\n' 3 3 3
+'%u\n' -1
+'%x\n' -1
+'%d\n' 9223372036854775807
+'%d\n' -9223372036854775808
+'%u\n' 18446744073709551615
+'%5o|%-5o|%05o\n' 8 8 8
+'%d\n' 3 +3 -3
+'%d\n' 010
+'%d\n' -010
+'%d\n' 0x1f
+'%d\n' -0x10
+'%d\n' 0X1F
+'%d\n' ' 5'
+'%d\n' 00
+'%x|%o|%u\n' "'A" "'A" "'A"
+'%d\n' "'3" '"+3' "'-3"
+'%d\n' "'A"
+'%d\n' '"A'
+'%d\n' "'ab"
+'%d\n' "' "
+# numeric errors: a diagnostic, the value so far, status non-zero
+'%d\n' 5a
+'%d\n' 08
+'%d\n' 0x
+'%d\n' 1.5
+'%d\n' '5 '
+'%d\n' ABC
+'%d\n' ''
+'%d\n' -
+'%d\n' --5
+'%d\n' 9223372036854775808
+'%d\n' -9223372036854775809
+'%d\n' 99999999999999999999999
+'%u\n' 18446744073709551616
+'%x\n' 99999999999999999999999999
+'[%d][%d][%d]\n' 1 x 3
+'%d %d\n' 1a 2b 3c
+"%d\n" "'"
+# the format is used again, missing arguments are null or zero
+'%5d%4d\n' 1 21 321 4321 54321
+'%s\n' a b c
+'<%s %s>' a b c d
+'%d,' 1 2 3
+'%s %s\n' a b
+'[%s][%b][%c][%d][%i][%u][%o][%x][%X]\n'
+'%s-%s-%s|\n' a
+'%s %d|\n' a 1 b
+'%5s|%-5s|%5d|%05d|\n'
+'%d %s\n'
+'hello\n' a b
+'100%%\n' a b
+# EXAMPLES
+'\aPlease fill in the following: \nName: '
+'Phone number: '
+'%2d right\t%2d wrong\t(%s%%)\n' 3 1 75.0
+'%d\n' 3 +3 -3 "'3" '"+3' "'-3"
+# operands and options
+@
+--
+-- '%d\n' 5
+-- '-%d\n' 5
+'-%d\n' 5
+-x
+-d
+-- '%s\n' -x
+'%s\n' -x
+'%s\n' --
+'%s %s\n' -- --
+# a % that is not a conversion specification (unspecified): the output so far, a diagnostic
+'a%zb\n' 1
+'a%'
+'a%5'
+'a%.'
+'a%-'
+'%ld\n' 5
+'%lld\n' 5
+'%hd\n' 5
+'%5%\n'
+'%*d\n' 3 5
+'%.*s\n' 2 abc
+'%1$d\n' 5
+'%n\n'
+'%p\n'
+'%C\n' a
+'%S\n' a
+'%B\n' a
+'%q\n'
+'x%dy%zz\n' 1 2
+# floating point conversions (optional in the standard)
+'%f\n' 1.5
+'%F\n' 1.5
+'%e\n' 1234
+'%E\n' 1234
+'%g\n' 1.5 100000 1000000 0.0001 0.00001
+'%G\n' 0.00001 1234567
+'%f %f\n' 0 -0.5
+'%.5e|%.2E|%.3f|%.1f|\n' 1234 1234 1234 2.25
+'%.10f|%.0f|%.1f|\n' 0.5 3.7 0.05
+'%.3g|%.10g|%.1g|\n' 3.14159 3.14159 15
+'%.0f|%.0e|%.0E|%.0F|\n' 3 3 3 3
+'%#.0f|%#.0e|%#.0E|%#.0F|\n' 3 3 3 3
+'%#g|%g|%#.3g|\n' 1 1 1
+'%10f|%-10.2f|%10.1e|%10g|\n' 1.5 1.5 1.5 1.5
+'%010.2f|%010.2f|%08.2f|\n' 1.5 -1.5 -1.5
+'%-010.2f|%0-10.2f|\n' 1.5 1.5
+'%+f|% f|%+ f|% +f|%+.1f|% .1f|\n' 1.5 1.5 1.5 1.5 -1.5 -1.5
+'%+e|% g|%+g|\n' 1 1 0
+'%f\n' 1e3 1E3 2.5e-1 .5 5. -2.5 +2.5 0x10 ' 2.5' 007
+'%f\n' inf -inf
+'%F\n' inf
+'%f\n' abc
+'%f\n' ''
+'%f\n' 1.5x
+'%f\n' '1.5 '
+'%f\n' 1e
+'%f\n' --1
+"%f\n" "'A"
+'%f\n' 1e999
+'%f\n' -1e999
+'%f|%e|\n' 1e-999 1e-999
+'%f|%e|%g|%E|%G|%F|%5.1f|\n'
+'%f %f\n' 1 2 3
+'%s=%d (%.1f)\n' a 1 1.25 b 2 2.5
+'%f\n' 1e300
+'%400.2f\n' 1
+'%.300f\n' 1
+'%d %f\n' 5 2.5
+# a NaN keeps its sign: "[-]nan"
+'%f\n' nan -nan +nan NAN -NAN nAn -nAn
+'%F|%E|%G|%A\n' -nan -nan -nan -nan
+'%e|%g|%a\n' -nan -nan -nan
+'%6f|%-6f|%06f|%+f|% f|\n' -nan nan nan nan nan
+'%10.3g|%-10.2e|%.0f|\n' -nAn -NAN nan
+'%f|%F\n' -inf inf
+'%6f|%-6f|%06f|%+f\n' -inf inf inf inf
+'%010f|%+F|% f\n' -inf inf inf
+# hexadecimal floating point (the form of the number is the C library's)
+'%a\n' 0
+'%A\n' 0
+'%a\n' 1 0.5 -2
+'%.2a\n' 1
+'%10a|\n' 1
+'%a\n' x
+'%a\n'
+'%a\n' 0x10
+'%a\n' 1e300
+'%a\n' inf
+'%A\n' inf
+'%a\n' 1e-310
+'%a\n' 3.14159
+'%.0a\n' 1.5
+'%#a\n' 1
+'%+a\n' 1
+'%010a\n' 1
+# length modifiers are not in the specification
+'%lf\n' 1.5
+'%Lf\n' 1.5
+'%lg\n' 1.5
+'%.*f\n' 2 1.5
+'%*f\n' 6 1.5
+'%1$f\n' 1.5
+# a width and a precision that are too big
+'%99999999999d\n' 1
+'%.99999999999s\n' 1
+'%100d|\n' 7
+'%-100s|\n' x

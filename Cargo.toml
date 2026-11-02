@@ -218,6 +218,10 @@ path = "df/df.rs"
 name = "du"
 path = "du/du.rs"
 
+[[bin]]
+name = "printf"
+path = "printf/printf.rs"
+
 [lints.clippy]
 # The default clippy groups only; pedantic is left off on purpose. The st_* and
 # timespec fields of libc have other widths on other systems, so a cast that is
