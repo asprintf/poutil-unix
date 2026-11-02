@@ -31,6 +31,7 @@
 -RF d
 -RL
 -RL d
+-RH dl
 -RLl d
 -Rl d
 -lR
@@ -54,6 +55,8 @@
 # every column as wide as the longest name plus two, GNU fits each column to its own names.
 -x
 -lx
+-C
+-lC
 # -m: ours fills a line up to the width (80 characters, the same as GNU); macOS breaks one name earlier and
 # leaves a blank at the end of the line.
 -m
@@ -80,3 +83,9 @@
 -lL dang
 -L dang
 -H dang
+# A link inside a listed directory that leads nowhere (PCTS ls 69, GA53): with -L the file it refers to has to be
+# evaluated, which cannot be done, so ours writes a diagnostic, exits 1 and leaves the entry out, the same way macOS
+# does for -R (-L alone only needs the names, so all four list the link). With -l macOS leaves the entry out in
+# silence and exits 0, GNU lists it with question marks, posixutils-rs lists it as a link without a diagnostic.
+-RL dl
+-lL dl

@@ -714,9 +714,9 @@ impl Ls {
         let l = stat_path(path, false)?;
         let is_link = kind(&l) == libc::S_IFLNK;
         if is_link && self.o.follow_all {
-            if let Ok(t) = stat_path(path, true) {
-                return Ok((t, true));
-            }
+            /* -L evaluates the file the link refers to; if there is none the entry cannot be described: an error, not the link (PCTS ls 69) */
+            let t = stat_path(path, true)?;
+            return Ok((t, true));
         }
         Ok((l, is_link))
     }

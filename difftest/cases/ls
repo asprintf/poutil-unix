@@ -249,3 +249,10 @@ fut
 -Q
 -2
 -0
+# a link inside a listed directory that leads nowhere: -L must report it, not list it (PCTS ls 69)
+-L dl
+-RL dl
+-lL dl
+-l dl
+-RH dl
+

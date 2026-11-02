@@ -2543,6 +2543,24 @@ eq "ls into a pipe that ends early does not hang or complain" "0" "$("$OURS/ls" 
 "$OURS/ls" f1 f2 < /dev/null <&- > /dev/null 2>&1
 eq "ls with stdin closed" 0 $?
 
+# PCTS ls 69 (GA53): -L has to evaluate the file a link refers to; for a link inside a listed
+# directory that leads nowhere that is an error: diagnostic, status 1, the entry is not listed,
+# the others are (-i is the option that forces the evaluation in the PCTS, -R in difftest).
+fresh
+mkdir dl
+: > dl/ok
+ln -s nowhere dl/dang
+"$OURS/ls" -RLi dl > o 2> e
+st=$?
+eq "ls -RLi: a dangling link in a directory: status 1, diagnostic, not listed, the rest is" "1 err 0 1" "$st $([ -s e ] && echo err) $(grep -c dang o) $(grep -c ok o)"
+"$OURS/ls" -Li dl > o 2> e
+eq "ls -Li dl: same without -R" "1 err 0" "$? $([ -s e ] && echo err) $(grep -c dang o)"
+"$OURS/ls" -L dl > o 2> e
+eq "ls -L dl: the names alone need no evaluation, the link is listed, status 0" "0 2 empty" "$? $(wc -l < o | tr -d ' ') $([ -s e ] || echo empty)"
+"$OURS/ls" -Ri dl > o 2> e
+eq "ls -Ri dl without -L: the link is listed as itself, status 0" "0 2" "$? $(wc -l < o | tr -d ' ' | awk '{print $1-1}')"
+
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then

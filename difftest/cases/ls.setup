@@ -5,6 +5,7 @@ printf '%1000d' 0 > big
 echo h > d/.dot; echo x > d/x; echo yy > d/y; echo s > d/sub/s; echo q > d/sub/deep/q
 : > Z; : > a; : > B; : > _u; : > ./-dash; : > 'ta	b'; : > fut
 mkfifo ff
+mkdir dl; : > dl/ok; ln -s nowhere dl/dang
 ln -s f1 lf; ln -s d ld; ln -s nowhere dang; ln -s ../f1 d/uplink; ln -s sub d/sublink; ln -s .. d/sub/up
 chmod 755 f3; chmod 4755 d/x; chmod 1777 t; chmod 000 nodir; chmod 600 f2
 touch -t 200001021200 f1; touch -t 200101021200 f2; touch -t 199912311159 f3
@@ -14,3 +15,5 @@ touch -t 203001010000 fut
 touch -a -t 199901010101 f1; touch -a -t 199801010101 f2; touch -a -t 199701010101 f3
 touch -h -t 200101010101 lf ld dang d/uplink d/sublink d/sub/up 2>/dev/null
 touch -t 200001010000 .hidden .hid2 d/.dot
+touch -t 200101010101 dl/ok dl
+touch -h -t 200101010101 dl/dang 2>/dev/null
