@@ -1601,6 +1601,79 @@ else
 	eq "cal: LC_ALL overrides LC_TIME" "March 2020" "$(head -n 1 out | sed 's/^ *//')"
 fi
 
+#---------------------------------------------------------------------- df
+fresh
+mkdir sub
+mkfifo pipe
+: > file
+"$OURS/df" -P / > out 2> err
+eq "df -P /: status, a header and one line, silence" "0 2 0" "$? $(wc -l < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+eq "df -P /: the header of the standard" "Filesystem 512-blocks Used Available Capacity Mounted on" "$(sed -n 1p out)"
+eq "df -P /: the line is exactly \"%s %d %d %d %d%% %s\"" 1 "$(sed -n 2p out | grep -c -E '^[^ ]+ [0-9]+ [0-9]+ -?[0-9]+ [0-9]+% /$' | tr -d ' ')"
+"$OURS/df" -kP / > outk
+eq "df -kP /: the header says 1024-blocks" "Filesystem 1024-blocks Used Available Capacity Mounted on" "$(sed -n 1p outk)"
+eq "df -kP /: the total is half of the 512-byte one, rounded up" 1 "$(awk 'NR == FNR { if (FNR == 2) t = $2; next } FNR == 2 { print ($2 * 2 - t == 0 || $2 * 2 - t == 1) ? 1 : 0 }' out outk)"
+"$OURS/df" -P / > a
+/bin/df -P / > b
+eq "df -P / agrees with the system df (total exactly, used and available to 50 MB, capacity to 1)" 1 "$(awk 'NR == FNR { if (FNR == 2) { t = $2; u = $3; v = $4; c = $5 + 0 } next } FNR == 2 { d1 = $3 - u; d2 = $4 - v; if (d1 < 0) d1 = -d1; if (d2 < 0) d2 = -d2; dc = ($5 + 0) - c; if (dc < 0) dc = -dc; print ($2 == t && d1 < 100000 && d2 < 100000 && dc <= 1) ? 1 : 0 }' a b)"
+eq "df -P /: the capacity is used/(used+available) rounded up" 1 "$(awk 'NR == 2 { p = $3 * 100 / ($3 + $4); c = (p == int(p)) ? p : int(p) + 1; sub("%", "", $5); print (c == $5) ? 1 : 0 }' a)"
+eq "df -P /: used and available do not pass the total" 1 "$(awk 'NR == 2 { print ($3 + $4 <= $2) ? 1 : 0 }' a)"
+"$OURS/df" / > out
+eq "df /: the header is the same without -P" "Filesystem 512-blocks Used Available Capacity Mounted on" "$(sed -n 1p out)"
+"$OURS/df" -t / > out
+eq "df -t /: and with -t" "Filesystem 512-blocks Used Available Capacity Mounted on" "$(sed -n 1p out)"
+"$OURS/df" -P . > a
+"$OURS/df" -P sub > b
+eq "df -P dir and df -P dir/sub name the same file system (EXAMPLES)" "$(sed -n 2p a | awk '{ print $1, $NF }')" "$(sed -n 2p b | awk '{ print $1, $NF }')"
+"$OURS/df" -P file pipe sub > out 2> err
+eq "df of a regular file, a FIFO and a directory: three lines after one header" "0 4 0" "$? $(wc -l < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/df" -P / /dev | awk 'NR > 1 { print $NF }' > out
+eq "df -P / /dev: the operands in the order given" "/ /dev" "$(tr '\n' ' ' < out | sed 's/ $//')"
+"$OURS/df" -P /dev / | awk 'NR > 1 { print $NF }' > out
+eq "df -P /dev /: and the other way round" "/dev /" "$(tr '\n' ' ' < out | sed 's/ $//')"
+"$OURS/df" -P /nosuch / > out 2> err
+eq "df -P /nosuch /: it goes on, the status says it failed" "1 2 1" "$? $(wc -l < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/df" -P /nosuch > out 2> err
+eq "df -P /nosuch: status 1, no output, a diagnostic that names it" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(grep -c '/nosuch' err | tr -d ' ')"
+if ln -s '' empty 2> /dev/null; then
+	"$OURS/df" -P empty > out 2> err
+	s=$?
+	[ "$s" -ne 0 ] && s=nonzero
+	eq "df of a symbolic link with an empty target: a diagnostic and a non-zero status" "nonzero 1" "$s $(wc -l < err | tr -d ' ')"
+else
+	echo "skip: this file system refuses a symbolic link with an empty target"
+fi
+ln -s nosuch dangling
+"$OURS/df" -P dangling > out 2> err
+eq "df of a dangling link: a diagnostic and status 1" "1 1" "$? $(wc -l < err | tr -d ' ')"
+"$OURS/df" -P /dev/null > out 2> err
+eq "df of a special file that is no mounted device: status 1, a diagnostic" "1 1 not mounted" "$? $(wc -l < err | tr -d ' ') $(sed 's/.*: //' err)"
+"$OURS/df" -P / > a
+dev=$(sed -n 2p a | awk '{ print $1 }')
+if [ -b "$dev" ]; then
+	"$OURS/df" -P "$dev" > out 2> err
+	eq "df of the device of a mounted file system: that file system" "0 /" "$? $(sed -n 2p out | awk '{ print $NF }')"
+else
+	echo "skip: the file system of / has no device node here ($dev)"
+fi
+"$OURS/df" -P > out 2> err
+eq "df -P: every file system, one header, status 0, silence" "0 1 0" "$? $(grep -c '^Filesystem' out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+eq "df -P: the root is among them, all lines have at least six fields" "1 0" "$(awk 'NR > 1 && $NF == "/"' out | wc -l | tr -d ' ') $(awk 'NR > 1 && NF < 6' out | wc -l | tr -d ' ')"
+"$OURS/df" -P -- / > out
+eq "df -P -- /: the -- ends the options" "0 2" "$? $(wc -l < out | tr -d ' ')"
+"$OURS/df" -P / -k > out 2> err
+eq "df -P / -k: the -k after an operand is a file name" "1 2 1" "$? $(wc -l < out | tr -d ' ') $(grep -c -- '-k' err | tr -d ' ')"
+"$OURS/df" -P -t / 2> /dev/null
+eq "df -P -t is a usage error (the synopsis: -P or -t)" 2 $?
+"$OURS/df" -x / 2> /dev/null
+eq "df -x is a usage error" 2 $?
+"$OURS/df" -P / >&- 2> /dev/null
+eq "df with stdout closed: status" 1 $?
+"$OURS/df" -P / <&- > /dev/null
+eq "df with stdin closed: fine, it reads nothing" 0 $?
+"$OURS/df" -P | head -n 1 > out
+eq "df into a closed pipe ends quietly" "Filesystem 512-blocks Used Available Capacity Mounted on" "$(cat out)"
+
 #---------------------------------------------------------------------- cmp
 fresh
 printf 'abcd\nefgh\n' > a

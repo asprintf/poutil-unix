@@ -1,0 +1,11 @@
+# options of macOS and GNU that are not in the synopsis (-a -b -g -h -H -i -l -m -n -T): a usage error here
+-h
+-b
+-H
+-g
+-m
+-i
+-l
+-a
+-n
+-T hfs

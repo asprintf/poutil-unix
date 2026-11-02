@@ -40,12 +40,16 @@ Implemented, unit tested, difftested and PCTS clean on my machine:
 	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
 	time kill wc head tail tsort uniq expr sort test [
 	expand unexpand uuencode uudecode comm cmp cksum id paste fold cut
-	rm touch date cp ls join cal
+	rm touch date cp ls join cal df
 
 The suite has no tests for true, link, unlink and cal. For those the
 checks are the unit tests, the comparison with other implementations and
 the "shall" sentences of the spec. The spec leaves the format of cal
 open, so its output follows the old BSD layout.
+
+df writes its output as the -P format in every case. The spec leaves the
+output without -P open and asks, for XSI, for the number of free file
+slots when -t is the only option; that figure is not written.
 
 One exception to "clean": tail rejects the obsolete -NUMBER and +NUMBER
 forms, as the 2018 edition of the spec does, so the one old PCTS test
@@ -56,7 +60,7 @@ The suite was written for other systems: some of its assertions need
 access times that APFS only keeps when the volume is mounted with
 strictatime (which is how Apple ran it for its own certification), and
 a few ask the host for limits it does not have. The newest utilities
-(rm touch date cp ls join) were run with the test directory on such a volume;
+(rm touch date cp ls join df) were run with the test directory on such a volume;
 the older results were recorded before that and have not been rerun
 there. The system tools give the same results in these cases. I skip the
 core-file test, which needs a machine set up for it.

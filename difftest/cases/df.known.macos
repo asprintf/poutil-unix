@@ -1,0 +1,22 @@
+# macOS ignores -t when -P is given; the synopsis is [-P|-t], so it is a usage error here
+-P -t
+-tP
+-kPt
+# the output without -P is unspecified: macOS adds iused, ifree and %iused columns, ours is the -P line
+-- /
+-k
+-k -- -P /
+-k -k
+-k -t
+-k /
+-kt
+-t
+-t -t
+-t /
+-tk
+.
+@
+/
+/ -- /
+/ -k
+d

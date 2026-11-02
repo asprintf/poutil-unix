@@ -1,0 +1,94 @@
+# df: all the file systems, the formats and units
+@
+-k
+-P
+-kP
+-Pk
+-k -P
+-P -k
+-t
+-k -t
+-tk
+-kt
+-t -t
+-P -P
+-k -k
+# -P and -t exclude each other in the synopsis
+-P -t
+-tP
+-kPt
+# one file system
+/
+-P /
+-kP /
+-k /
+-t /
+.
+-P .
+d
+-P d
+-P d/sub
+-P f
+-P p
+-P lnd
+-P lnf
+-P /tmp
+-P /dev
+-kP /dev
+-P /dev/
+-P //
+-P /private
+-P /etc/hosts
+-P /Users
+-P /System/Volumes/Data
+-P /Volumes
+# several, in the order given, and with errors among them
+-P / /dev
+-P /dev /
+-P . .
+-P / /
+-P f d p
+-P /nosuch
+-P /nosuch /
+-P / /nosuch
+-P / /nosuch /dev
+-P /nosuch /nosuch2
+-P dangling
+-P dangling /
+-P f/x
+''
+-P ''
+-P '' /
+# special files that are not the device of a mounted file system
+-P /dev/null
+-P /dev/tty
+-P /dev/null /
+-P /dev/zero
+# the options end at "--" and at the first operand
+-- /
+-P -- /
+-P -- -k
+-- -P
+-k -- -P /
+/ -k
+-P / -k
+-P / -P
+/ -- /
+-- /nosuch
+# no such option
+-x
+-h
+-b
+-H
+-g
+-m
+-i
+-l
+-a
+-n
+-T hfs
+-kx
+-P -x /
+-P --version
+--version
+--help

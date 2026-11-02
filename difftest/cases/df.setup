@@ -1,0 +1,6 @@
+mkdir d d/sub
+: > f
+mkfifo p
+ln -s d lnd
+ln -s f lnf
+ln -s nosuch dangling
