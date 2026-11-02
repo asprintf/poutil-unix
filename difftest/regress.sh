@@ -2241,6 +2241,9 @@ eq "cp -R . t/dot: refused" "1 absent" "$? $([ -e t/dot ] || echo absent)"
 ln -s . t/selfloop
 "$OURS/cp" -RL t tloop 2> /dev/null
 eq "cp -RL over a link to the directory itself ends, with an error" 1 $?
+rm -rf tloop
+"$OURS/cp" -RL t tloop 2> e
+eq "cp -RL over that link: one 'causes a cycle' diagnostic, no copy of the link" "1 1 absent" "$? $(grep -c 'causes a cycle' e) $([ -e tloop/selfloop ] || echo absent)"
 rm -rf tloop t/selfloop
 
 # read-only directories are copied, and end up read-only

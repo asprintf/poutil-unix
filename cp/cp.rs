@@ -217,6 +217,8 @@ struct Cp<'a> {
     ask: Box<dyn FnMut(&[u8]) -> bool + 'a>,
     /* destination directories being filled: a source directory that is one of them is being copied into itself */
     active: Vec<Id>,
+    /* source directories on the way down: one met again is a symbolic link cycle (-L) */
+    walking: Vec<Id>,
     buf: Vec<u8>,
     /* the unit tests collect diagnostics here instead of writing them */
     log: Option<Vec<String>>,
@@ -224,7 +226,7 @@ struct Cp<'a> {
 
 impl<'a> Cp<'a> {
     fn new(prog: &[u8], o: Opts, umask: u32, ask: Box<dyn FnMut(&[u8]) -> bool + 'a>) -> Self {
-        Cp { prog: prog.to_vec(), o, umask, status: 0, ask, active: Vec::new(), buf: vec![0u8; BLOCK], log: None }
+        Cp { prog: prog.to_vec(), o, umask, status: 0, ask, active: Vec::new(), walking: Vec::new(), buf: vec![0u8; BLOCK], log: None }
     }
 
     fn err(&mut self, path: &[u8], msg: &str) {
@@ -401,6 +403,10 @@ impl<'a> Cp<'a> {
                     }
                     return Err((false, e));
                 }
+                /* nothing written and no error: give up rather than spin */
+                if w == 0 {
+                    return Err((false, std::io::Error::from(std::io::ErrorKind::WriteZero)));
+                }
                 off += w as usize;
             }
         }
@@ -453,6 +459,11 @@ impl<'a> Cp<'a> {
             self.err(src, "cannot copy a directory into itself");
             return;
         }
+        /* only a symbolic link can lead back to a directory above: nothing is made for it */
+        if self.walking.contains(&id_of(st)) {
+            self.err(src, "directory causes a cycle");
+            return;
+        }
         let cd = posix::cstr(dest);
         let created;
         let dst = match stat_path(dest, true) {
@@ -495,6 +506,7 @@ impl<'a> Cp<'a> {
             }
         };
         self.active.push(id_of(&dst));
+        self.walking.push(id_of(st));
         match read_names(src) {
             Ok(names) => {
                 for n in names {
@@ -503,6 +515,7 @@ impl<'a> Cp<'a> {
             }
             Err(e) => self.err_io(src, &e),
         }
+        self.walking.pop();
         self.active.pop();
         /* steps 2g: the final permissions, and with -p the owner and the times, now that nothing more is added */
         if created {
@@ -1056,6 +1069,23 @@ mod tests {
         cp.copy_one(&t.p("src/sub/loop"), &t.p("elsewhere"), true);
         assert_eq!(cp.status, 1);
         assert!(!t.path("elsewhere").exists());
+    }
+
+    #[test]
+    fn a_symbolic_link_cycle_under_l_is_reported_once_and_makes_no_nested_copies() {
+        let t = Tmp::new();
+        tree(&t);
+        std::os::unix::fs::symlink("..", t.path("src/sub/up")).unwrap();
+        let l = Opts { recursive: true, link: Link::L, ..opts() };
+        let (st, log) = one(l, t.p("src"), t.p("copy"));
+        assert_eq!(st, 1);
+        assert_eq!(log.len(), 1);
+        assert!(log[0].ends_with("src/sub/up: directory causes a cycle"), "{log:?}");
+        assert!(t.path("copy/sub/deep/c").exists());
+        assert!(!t.path("copy/sub/up").exists());
+        /* without -L the link is copied as a link: no cycle, no error */
+        let (st, _) = one(Opts { recursive: true, ..opts() }, t.p("src"), t.p("copy2"));
+        assert_eq!(st, 0);
     }
 
     #[test]
