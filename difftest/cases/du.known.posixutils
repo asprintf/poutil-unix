@@ -1,0 +1,24 @@
+# with -L it counts a directory again each time a link leads to it, and a link that leads nowhere as the link, without an error; the standard counts a file with more than one link (a directory has at least two) once, and says that du reports an error when it cannot stat a file
+-aHL t
+-aL t
+-H -L t
+-HkL
+-kL
+-L t
+-sL t
+-H t/dang
+-L t/dang
+# with -a it writes the second name of a file with two links, with size 0; the standard says it is counted and written for one entry only
+-a
+-a h
+-ak
+-ak h
+-ax
+# a repeated option is an error there (clap)
+-a -a
+-k -k
+-s -s
+-x -x
+# it takes an option after an operand; POSIX08 treats it as an operand (PCTS du 16)
+t/c -a
+t/c -s t/a

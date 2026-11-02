@@ -1,0 +1,17 @@
+# options of macOS or GNU that are not in the synopsis (-A -b -B -c -d -g -h -I -l -m -n -P -t): a usage error here
+-b
+-A t
+-B 512 t
+-c t
+-d 1 t
+-l t
+-m t
+-P t
+-t 1 t
+-h t
+-g t
+-I x t
+-n t
+# a file that was counted under one operand is counted again under the next here, so that every file operand is written (the standard: "implementation-defined whether a file that occurs under one file operand is counted for other file operands", and -a does not decide whether a file operand is written); all three references count it once for all the operands
+-a h/one h/two
+h/one h/two

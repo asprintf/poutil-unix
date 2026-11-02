@@ -214,6 +214,10 @@ path = "cal/cal.rs"
 name = "df"
 path = "df/df.rs"
 
+[[bin]]
+name = "du"
+path = "du/du.rs"
+
 [lints.clippy]
 # The default clippy groups only; pedantic is left off on purpose. The st_* and
 # timespec fields of libc have other widths on other systems, so a cast that is

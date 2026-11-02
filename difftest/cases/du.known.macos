@@ -1,0 +1,14 @@
+# it writes t//c for the operand t/ (a second slash); here a name is joined to a directory that ends in a slash with no second one
+-a t/
+t/
+t/a/
+# with -L it counts a directory again each time a link leads to it, and a link that leads nowhere as the link, without an error; the standard counts a file with more than one link (a directory has at least two) once, and says that du reports an error when it cannot stat a file
+-aHL t
+-aL t
+-H -L t
+-HkL
+-kL
+-L t
+-sL t
+-H t/dang
+-L t/dang

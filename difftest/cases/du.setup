@@ -1,0 +1,13 @@
+mkdir -p t/a/b t/c t/empty h
+printf x > t/f1
+head -c 5000 /dev/zero > t/a/f2
+printf y > t/a/b/f3
+printf z > t/c/f4
+head -c 70000 /dev/zero > t/c/big
+ln -s a t/lnd
+ln -s f1 t/lnf
+ln -s nosuch t/dang
+ln -s ../a t/c/to_a
+printf data > h/one
+ln h/one h/two
+printf other > h/three

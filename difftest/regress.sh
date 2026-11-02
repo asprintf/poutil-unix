@@ -1674,6 +1674,129 @@ eq "df with stdin closed: fine, it reads nothing" 0 $?
 "$OURS/df" -P | head -n 1 > out
 eq "df into a closed pipe ends quietly" "Filesystem 512-blocks Used Available Capacity Mounted on" "$(cat out)"
 
+#---------------------------------------------------------------------- du
+fresh
+mkdir -p t/a/b t/c t/empty
+printf x > t/f1
+head -c 5000 /dev/zero > t/a/f2
+printf y > t/a/b/f3
+head -c 70000 /dev/zero > t/c/big
+ln -s a t/lnd
+ln -s f1 t/lnf
+ln t/f1 t/c/hard
+"$OURS/du" t/f1 > out 2> err
+eq "du of a file: status, one line, silence" "0 1 0" "$? $(wc -l < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+eq "du of a file: exactly \"%d %s\" with one blank" 1 "$(grep -c -E '^[0-9]+ t/f1$' out | tr -d ' ')"
+"$OURS/du" -a t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > a
+/usr/bin/du -a t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > b
+eq "du -a t/a: the same sizes and names as the system du" "" "$(diff a b)"
+"$OURS/du" -ak t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > a
+/usr/bin/du -ak t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > b
+eq "du -ak t/a: and in 1024-byte units" "" "$(diff a b)"
+"$OURS/du" -s t > out
+eq "du -s t: the total of the operand, as the system du has it" "$(/usr/bin/du -s t | awk '{ print $1 }') t" "$(awk '{ print $1, $2 }' out)"
+"$OURS/du" -sk t > outk
+"$OURS/du" -s t > out
+eq "du -sk is the total of du -s in 1024-byte units, rounded up" 1 "$(awk 'NR == FNR { b = $1; next } { print ($1 == int((b + 1) / 2)) ? 1 : 0 }' out outk)"
+"$OURS/du" t/a t/c > out
+eq "du: a directory is written after the directories below it" "t/a/b t/a t/c" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" t/c t/a > out
+eq "du: the operands in the order given" "t/c t/a/b t/a" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" -a t > out
+eq "du -a t: t/f1 and t/c/hard are one entry" 1 "$(grep -c -E 't/f1$|t/c/hard$' out | tr -d ' ')"
+"$OURS/du" t/lnd > out
+eq "du of a link: the link itself" "t/lnd" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" -H t/lnd > out
+eq "du -H of a link to a directory: its contents, under the link's name" "t/lnd/b t/lnd" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" -L -H t/lnd > out
+eq "du -L -H: the last one decides" "t/lnd/b t/lnd" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" -H -L t/lnd > out
+eq "du -H -L: the last one decides" "t/lnd/b t/lnd" "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+mkdir cyc
+ln -s .. cyc/up
+"$OURS/du" -L cyc > out 2> err
+eq "du -L of a link back to a parent: an error, not endless" "1 1" "$? $(grep -c cycle err | tr -d ' ')"
+"$OURS/du" nosuch t/f1 nosuch2 > out 2> err
+eq "du of a missing file: it goes on, status 1, one diagnostic each" "1 1 2" "$? $(wc -l < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+ln -s nosuch dang
+"$OURS/du" dang > out 2> err
+eq "du of a dangling link: the link, no error" "0 1 0" "$? $(wc -l < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
+"$OURS/du" -H dang > out 2> err
+eq "du -H of a dangling link: an error" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+ln -s lp2 lp1
+ln -s lp1 lp2
+"$OURS/du" lp1/x > out 2> err
+eq "du of a path through a loop of links: an error" "1 1" "$? $(wc -l < err | tr -d ' ')"
+if [ "$(id -u)" -ne 0 ]; then
+	mkdir -p lock/open lock/shut
+	: > lock/shut/f
+	chmod 000 lock/shut
+	"$OURS/du" lock > out 2> err
+	eq "du of an unreadable directory: status 1, a diagnostic, it is still written" "1 1 lock/open lock/shut lock" "$? $(wc -l < err | tr -d ' ') $(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+	chmod 755 lock/shut
+fi
+mkdir cwd
+: > cwd/f
+( cd cwd && "$OURS/du" -a > ../out )
+eq "du without an operand: the current directory" "./f ." "$(awk '{ print $2 }' out | tr '\n' ' ' | sed 's/ $//')"
+"$OURS/du" -a -s t 2> /dev/null
+eq "du -a -s is a usage error" 2 $?
+"$OURS/du" -b t 2> /dev/null
+eq "du -b is a usage error" 2 $?
+"$OURS/du" -- t/f1 > out
+eq "du -- t/f1: the -- ends the options" "0 1" "$? $(wc -l < out | tr -d ' ')"
+"$OURS/du" t/f1 -s > out 2> err
+eq "du t/f1 -s: the -s after an operand is a file name" "1 1 1" "$? $(wc -l < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+if [ -d /Volumes/vscrw ] && [ "$(stat -f %d /Volumes/vscrw)" != "$(stat -f %d /Volumes)" ]; then
+	"$OURS/du" /Volumes > out 2> /dev/null
+	n1=$(grep -c '/Volumes/vscrw' out | tr -d ' ')
+	"$OURS/du" -x /Volumes > out 2> /dev/null
+	n2=$(grep -c '/Volumes/vscrw' out | tr -d ' ')
+	eq "du -x /Volumes leaves out the file systems mounted below it" "yes none" "$([ "$n1" -ge 1 ] && echo yes) $([ "$n2" -eq 0 ] && echo none)"
+else
+	echo "skip: no other file system mounted below /Volumes"
+fi
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 40 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		: > file
+		i=$((i + 1))
+	done
+)
+"$OURS/du" -s deep > out 2> err
+eq "du -s of a tree 40 levels deep (over 700 bytes of path)" "0 1" "$? $(wc -l < out | tr -d ' ')"
+(ulimit -s 512 2> /dev/null; "$OURS/du" deep > out 2> err; echo $? > st)
+eq "du with a small stack, 40 levels deep" "0 41" "$(cat st) $(wc -l < out | tr -d ' ')"
+rm -rf deep
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 300 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		i=$((i + 1))
+	done
+)
+"$OURS/du" -s deep > out 2> err
+eq "du of a tree deeper than PATH_MAX: a diagnostic and status 1, no crash" "1 1 File name too long" "$? $(wc -l < err | tr -d ' ') $(sed 's/.*: //' err | sort -u)"
+rm -rf deep
+mkdir wide
+( cd wide && i=0 && while [ $i -lt 3000 ]; do : > "file$i"; i=$((i + 1)); done )
+"$OURS/du" -a wide > out
+eq "du -a of a directory with 3000 entries" 3001 "$(wc -l < out | tr -d ' ')"
+rm -rf wide
+"$OURS/du" t >&- 2> /dev/null
+eq "du with stdout closed: status" 1 $?
+"$OURS/du" t <&- > /dev/null
+eq "du with stdin closed: fine, it reads nothing" 0 $?
+"$OURS/du" -a /usr 2> /dev/null | head -n 1 > out
+eq "du into a closed pipe ends quietly" 1 "$(wc -l < out | tr -d ' ')"
+
 #---------------------------------------------------------------------- cmp
 fresh
 printf 'abcd\nefgh\n' > a

@@ -1,0 +1,144 @@
+# du: no operand is the current directory
+@
+-a
+-s
+-k
+-ak
+-sk
+-x
+-ax
+-kx
+# a directory
+t
+-a t
+-s t
+-k t
+-ak t
+-sk t
+-x t
+-ax t
+-sx t
+t/a
+-a t/a
+t/a/b
+t/c
+-a t/c
+t/empty
+-s t/empty
+# the pathname as it is written
+t/
+-a t/
+-s t/
+t/a/
+./t
+-a ./t
+t/../t
+t/./a
+.
+-s .
+# a file
+t/f1
+-a t/f1
+-s t/f1
+-k t/f1
+t/a/f2
+-ak t/a/f2
+t/c/big
+-k t/c/big
+# symbolic links: the link itself unless -H (operands) or -L (all)
+t/lnd
+t/lnf
+-H t/lnd
+-H t/lnf
+-L t/lnd
+-L t/lnf
+-a t/lnd
+-aH t/lnd
+-aL t/lnd
+-s t/lnd
+-sH t/lnd
+-sL t/lnd
+-H t
+-L t
+-aH t
+-aL t
+-sH t
+-sL t
+-H -L t/lnd
+-L -H t/lnd
+-HL t/lnd
+-LH t/lnd
+-H -L t
+-L -H t
+-aLH t
+-aHL t
+t/dang
+-H t/dang
+-L t/dang
+-L t/c
+-aL t/c
+# hard links
+h
+-a h
+-s h
+-ak h
+h/one
+h/two
+h/one h/two
+-a h/one h/two
+# several operands, in the order given
+t/a t/c
+t/c t/a
+-s t/a t/c t/empty
+-s t/c t/a t/empty
+t/f1 t/a
+t/a t/a
+-s t/a t/a
+t/f1 t/f1
+-a t/f1 t/lnf
+# errors among the operands
+nosuch
+nosuch t/c
+t/c nosuch
+-s nosuch t/c nosuch
+nosuch/x
+t/f1/x
+t/lnd/x
+-H t/lnd/x
+''
+'' t/c
+-a nosuch
+# "--" and arguments that start with a dash
+-- t
+-a -- t/c
+-- -a
+-s -- -s
+t/c -a
+t/c -s t/a
+-- t/c -k
+# the options
+-a -s
+-s -a
+-as
+-sa
+-s -s
+-a -a
+-k -k
+-x -x
+-b
+-d 1 t
+-h t
+-c t
+-g t
+-m t
+-P t
+-i t
+-l t
+-n t
+-t 1 t
+-A t
+-I x t
+-B 512 t
+-kH
+-kL
+-HkL

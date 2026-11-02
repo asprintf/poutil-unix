@@ -1,0 +1,4 @@
+# The order of the lines is the order the directory gives its entries in, and
+# the standard writes "%d %s\n": compare the lines sorted, with a blank after
+# the size (macOS and GNU write a tab).
+sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | LC_ALL=C sort
