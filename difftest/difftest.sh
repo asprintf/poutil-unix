@@ -25,6 +25,7 @@
 # built posixutils-rs binaries, UTIL from there is compared too, as a black
 # box (it is only ever run, never read). Lines accepted only for that one are
 # listed in UTIL.known.posixutils; UTIL.known applies to every reference.
+# UTIL.known.gnu and UTIL.known.macos are the same for one of the others.
 #
 # Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
 # POSIXUTILS_RS (default unset: no third reference), SHARD=K/N (run only every
@@ -111,9 +112,13 @@ for util in "$@"; do
 				fi
 				known=0
 				grep -qxF -- "$line" "$cases.known" 2>/dev/null && known=1
-				if [ $known -eq 0 ] && [ $is_rs -eq 1 ] &&
-				    grep -qxF -- "$line" "$cases.known.posixutils" 2>/dev/null; then
-					known=1
+				if [ $known -eq 0 ]; then
+					if [ $is_rs -eq 1 ]; then
+						kind=posixutils
+					else
+						case $ref in /opt/local/bin/*) kind=gnu ;; *) kind=macos ;; esac
+					fi
+					grep -qxF -- "$line" "$cases.known.$kind" 2>/dev/null && known=1
 				fi
 				if [ -n "$why" ] && [ $known -eq 1 ]; then
 					echo "known $util [$loc] $line  vs $name:$why"
