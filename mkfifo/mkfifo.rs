@@ -20,17 +20,19 @@ fn main() {
     if g.operands().is_empty() {
         posix::usage(SYNOPSIS);
     }
-    let mask = unsafe {
-        let m = libc::umask(0);
-        libc::umask(m);
-        m as u32
-    };
-    /* symbolic modes are relative to a=rw */
+    /* symbolic modes are relative to a=rw; the umask is read (it can only be read by setting it) only for -m */
     let mode = match &mode_arg {
-        Some(m) => match posix::mode::parse(m, 0o666, false, mask) {
-            Some(v) => Some(v),
-            None => posix::fail(&prog, "invalid mode"),
-        },
+        Some(m) => {
+            let mask = unsafe {
+                let u = libc::umask(0);
+                libc::umask(u);
+                u as u32
+            };
+            match posix::mode::parse(m, 0o666, false, mask) {
+                Some(v) => Some(v),
+                None => posix::fail(&prog, "invalid mode"),
+            }
+        }
         None => None,
     };
     let mut status = 0;
