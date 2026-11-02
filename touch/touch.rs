@@ -213,7 +213,7 @@ fn stored_fd(fd: libc::c_int) -> Option<[(i64, i64); 2]> {
  * from the requested one means the time was not representable.
  */
 fn held(want: &[(i64, i64); 2], got: &[(i64, i64); 2]) -> bool {
-    (0..2).all(|i| !is_explicit(&want[i]) || (want[i].0 - got[i].0).abs() <= 2)
+    (0..2).all(|i| !is_explicit(&want[i]) || want[i].0.abs_diff(got[i].0) <= 2)
 }
 
 fn out_of_range() -> Fail {
@@ -687,6 +687,9 @@ mod tests {
         let part = [(0, libc::UTIME_OMIT as i64), (100, 0)];
         assert!(held(&part, &[(5000, 0), (100, 0)]));
         assert!(held(&[(0, libc::UTIME_NOW as i64); 2], &[(5000, 0), (7, 0)]));
+        /* the far ends of i64 must not overflow the comparison */
+        assert!(!held(&[(i64::MIN, 0); 2], &[(i64::MAX, 0); 2]));
+        assert!(!held(&[(i64::MAX, 0); 2], &[(i64::MIN, 0); 2]));
     }
 
     #[test]
