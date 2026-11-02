@@ -1,0 +1,37 @@
+printf '1 a\n2 b\n4 d\n6 f\n' > f1
+printf '2 x\n3 y\n4 z\n5 w\n6 v\n' > f2
+cp f1 f1copy
+: > empty
+printf 'a x\na y\na z\n' > fa
+printf 'a p\n' > fb
+printf 'a b c\na d e\n' > ga
+printf 'a w x\na y z\na o p\n' > gb
+printf 'Name\tPhone Number\nDon\t+1 123-456-7890\nHal\t+1 234-567-8901\nYasushi\t+2 345-678-9012\n' > phone
+printf 'Name\tFax Number\nDon\t+1 123-456-7899\nKeith\t+1 456-789-0122\nYasushi\t+2 345-678-9011\n' > fax
+printf 'a:1:x\nb:2:y\nc::z\ne:5\n' > c1
+printf 'a:p\nc:q\nd:r\ne::\n' > c2
+printf 'x k1 y\nx k2 y\nx k4 y\n' > k1
+printf 'k2 p q\nk3 p q\nk4 p q\n' > k2
+printf 'q k2 r s\nq k3 r s\n' > k3
+printf '  a   1\n\tb\t2\n c 3  \n' > sp1
+printf 'a 9\n  b    8\nd 7\n' > sp2
+printf 'a 1\nb 2' > nonl1
+printf 'b 3\nc 4' > nonl2
+printf '\n\nb 1\nc 1\n' > blank1
+printf '\nb 2\nd 2\n' > blank2
+printf 'a\0b x\nc\0d y\n' > nul1
+printf 'a\0b z\nc\0e w\n' > nul2
+printf '\377 1\na 2\n' > bin1
+printf '\377 3\nb 4\n' > bin2
+printf 'a 1\n\303\251 2\n' > utf1
+printf 'a 3\n\303\251 4\n' > utf2
+printf '1.5 a\n' > dot1
+printf 'a\nb\nc\n' > keys1
+printf 'b\nc\nd\n' > keys2
+printf 'a  b\na  c\n' > two1
+printf 'a  d\n' > two2
+printf 'a;b\n' > semi1
+printf 'a;c\n' > semi2
+printf 'a\303\251b 1\n' > eacute1
+printf 'a\303\251b 2\n' > eacute2
+mkdir dir

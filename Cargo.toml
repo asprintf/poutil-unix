@@ -202,6 +202,10 @@ path = "fold/fold.rs"
 name = "cut"
 path = "cut/cut.rs"
 
+[[bin]]
+name = "join"
+path = "join/join.rs"
+
 [lints.clippy]
 # The default clippy groups only; pedantic is left off on purpose. The st_* and
 # timespec fields of libc have other widths on other systems, so a cast that is

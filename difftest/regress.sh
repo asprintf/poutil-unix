@@ -1466,6 +1466,90 @@ eq "comm -12 of two big files: the common 100000 lines" 100000 "$(wc -l < out | 
 "$OURS/comm" big1 big2 | head -n 2 > out
 eq "comm into a closed pipe ends quietly" "0000000 0000001" "$(tr '\n' ' ' < out | sed 's/ $//')"
 
+#---------------------------------------------------------------------- join
+fresh
+printf '1 a\n2 b\n4 d\n' > f1
+printf '2 x\n3 y\n4 z\n' > f2
+"$OURS/join" f1 f2 > out
+eq "join: status and the paired lines" "0 2 b x/4 d z/" "$? $(tr '\n' '/' < out)"
+"$OURS/join" -a 1 -a 2 f1 f2 > out
+eq "join -a 1 -a 2: all unpairable lines too" "0 1 a/2 b x/3 y/4 d z/" "$? $(tr '\n' '/' < out)"
+"$OURS/join" -v 1 -v 2 f1 f2 > out
+eq "join -v 1 -v 2: only the unpairable lines" "0 1 a/3 y/" "$? $(tr '\n' '/' < out)"
+"$OURS/join" -o 0,1.2,2.2 -e - -a 2 f1 f2 > out
+eq "join -o -e: a missing field is the -e string" "0 2 b x/3 - y/4 d z/" "$? $(tr '\n' '/' < out)"
+printf 'Name\tPhone Number\nDon\t+1 123-456-7890\nHal\t+1 234-567-8901\nYasushi\t+2 345-678-9012\n' > phone
+printf 'Name\tFax Number\nDon\t+1 123-456-7899\nKeith\t+1 456-789-0122\nYasushi\t+2 345-678-9011\n' > fax
+"$OURS/join" -t '	' -a 1 -a 2 -e '(unknown)' -o 0,1.2,2.2 phone fax > out
+eq "join: the EXAMPLES phone and fax" "0 Name>Phone Number>Fax Number/Don>+1 123-456-7890>+1 123-456-7899/Hal>+1 234-567-8901>(unknown)/Keith>(unknown)>+1 456-789-0122/Yasushi>+2 345-678-9012>+2 345-678-9011/" "$? $(tr '\t\n' '>/' < out)"
+printf 'a x\na y\na z\n' > fa
+printf 'a p\n' > fb
+"$OURS/join" fa fb > out
+eq "join: the EXAMPLES one key three times" "a x p/a y p/a z p/" "$(tr '\n' '/' < out)"
+printf 'a b c\na d e\n' > ga
+printf 'a w x\na y z\na o p\n' > gb
+"$OURS/join" ga gb > out
+eq "join: the EXAMPLES every combination, file 1 outer" "a b c w x/a b c y z/a b c o p/a d e w x/a d e y z/a d e o p/" "$(tr '\n' '/' < out)"
+printf '\n\n1 a\n2 b' > g1
+printf '\n2 c\n' > g2
+"$OURS/join" -a 1 g1 g2 > out
+eq "join: blank lines are lines, a last line needs no newline" " / /1 a/2 b c/" "$(sed 's/^$/ /' out | tr '\n' '/')"
+"$OURS/join" f1 f2 f1 2> /dev/null
+eq "join with three operands is a usage error" 2 $?
+"$OURS/join" f1 2> /dev/null
+eq "join with one operand is a usage error" 2 $?
+"$OURS/join" 2> /dev/null
+eq "join without operands is a usage error" 2 $?
+"$OURS/join" -a 3 f1 f2 2> /dev/null
+eq "join -a 3 is a usage error" 2 $?
+"$OURS/join" -v 0 f1 f2 2> /dev/null
+eq "join -v 0 is a usage error" 2 $?
+"$OURS/join" -a 1 -v 2 f1 f2 2> /dev/null
+eq "join -a with -v is a usage error" 2 $?
+"$OURS/join" -1 0 f1 f2 2> /dev/null
+eq "join -1 0 is a usage error" 2 $?
+"$OURS/join" -o 3.1 f1 f2 2> /dev/null
+eq "join -o 3.1 is a usage error" 2 $?
+"$OURS/join" -t ab f1 f2 2> /dev/null
+eq "join -t of two characters is a usage error" 2 $?
+"$OURS/join" -j 1 f1 f2 2> /dev/null
+eq "join -j (removed in Issue 6) is a usage error" 2 $?
+"$OURS/join" -a 2> /dev/null
+eq "join -a without its argument is a usage error" 2 $?
+"$OURS/join" f1 nosuch > out 2> err
+eq "join of a missing file: status, no output, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/join" nosuch f1 2> /dev/null
+eq "join of a missing first file: status" 1 $?
+"$OURS/join" f1 . > out 2> err
+eq "join of a directory: status, no output, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/join" f1 -t > out 2> err
+eq "join f1 -t: the -t after an operand is a file name" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/join" f1 -- > out 2> err
+eq "join f1 --: the -- after an operand is a file name" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+"$OURS/join" -- f1 f2 > out
+eq "join -- f1 f2: the -- ends the options" "0 2 b x/4 d z/" "$? $(tr '\n' '/' < out)"
+printf '1 a\n2 b\n4 d\n' | "$OURS/join" - f2 > out
+eq "join - reads standard input as file1" "2 b x/4 d z/" "$(tr '\n' '/' < out)"
+printf '2 x\n3 y\n4 z\n' | "$OURS/join" f1 - > out
+eq "join - reads standard input as file2" "2 b x/4 d z/" "$(tr '\n' '/' < out)"
+: > empty
+"$OURS/join" empty empty > out
+eq "join of two empty files: status, no output" "0 0" "$? $(wc -c < out | tr -d ' ')"
+"$OURS/join" f1 f2 >&- 2> /dev/null
+eq "join with stdout closed: status" 1 $?
+"$OURS/join" - f1 <&- 2> /dev/null
+eq "join with stdin closed: status" 1 $?
+awk 'BEGIN { for (i = 0; i < 200000; i++) printf "%07d a\n", i }' > big1
+awk 'BEGIN { for (i = 0; i < 200000; i++) printf "%07d b\n", i + 100000 }' > big2
+"$OURS/join" big1 big2 > out
+eq "join of two big files: the common 100000 lines" "100000 0100000 a b" "$(wc -l < out | tr -d ' ') $(head -n 1 out)"
+"$OURS/join" -a 1 -a 2 big1 big2 | head -n 2 > out
+eq "join into a closed pipe ends quietly" "0000000 a/0000001 a/" "$(tr '\n' '/' < out)"
+printf 'k a\n' > h1
+awk 'BEGIN { for (i = 0; i < 3000; i++) printf "k b%d\n", i }' > h2
+"$OURS/join" h1 h2 | wc -l | tr -d ' ' > out
+eq "join: one line against 3000 lines with the same key" 3000 "$(cat out)"
+
 #---------------------------------------------------------------------- cmp
 fresh
 printf 'abcd\nefgh\n' > a

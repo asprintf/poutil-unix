@@ -1,0 +1,5 @@
+# a very big field number is an error there; here it is a field no line has
+-1 99999999999999999999999 -2 99999999999999999999999 f1 f2
+-o 1.99999999999999999999999 -e z f1 f2
+# trailing blanks of a line are not fields (the spec: multiple separators count as one and leading ones are ignored); it writes the last blank of "c 3  " back
+-a 1 -a 2 sp1 sp2
