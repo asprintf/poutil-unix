@@ -1,0 +1,11 @@
+# macOS takes more than a decimal integer operand (1.5, +5, 1x, a blank after the number) and has options (-y -j -3 -m); the standard has none and a month or a year is a decimal integer
+1x
+'12 '
+-y
+-y 2026
+-j 2026
+-3
+-m 3 2026
++5
+1.5
++3 2026

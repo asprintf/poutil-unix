@@ -1550,6 +1550,57 @@ awk 'BEGIN { for (i = 0; i < 3000; i++) printf "k b%d\n", i }' > h2
 "$OURS/join" h1 h2 | wc -l | tr -d ' ' > out
 eq "join: one line against 3000 lines with the same key" 3000 "$(cat out)"
 
+#---------------------------------------------------------------------- cal
+fresh
+printf '   February 2024\nSu Mo Tu We Th Fr Sa\n             1  2  3\n 4  5  6  7  8  9 10\n11 12 13 14 15 16 17\n18 19 20 21 22 23 24\n25 26 27 28 29\n' > want
+"$OURS/cal" 2 2024 > out
+eq "cal 2 2024: status" 0 $?
+eq "cal 2 2024: the month" "$(cat want)" "$(cat out)"
+printf '   September 1752\nSu Mo Tu We Th Fr Sa\n       1  2 14 15 16\n17 18 19 20 21 22 23\n24 25 26 27 28 29 30\n' > want
+"$OURS/cal" 9 1752 > out
+eq "cal 9 1752: the days 3 to 13 do not exist" "$(cat want)" "$(cat out)"
+"$OURS/cal" 2026 > out
+eq "cal 2026: twelve months and no blank at the end of a line" "12 0" "$(grep -o 'Su Mo Tu We Th Fr Sa' out | wc -l | tr -d ' ') $(grep -c '[[:space:]]$' out | tr -d ' ')"
+eq "cal 2026: the year is the first line" 2026 "$(head -n 1 out | tr -d ' ')"
+"$OURS/cal" 83 > out
+eq "cal 83 is the year 83, not 1983" "83 12" "$(head -n 1 out | tr -d ' ') $(grep -o 'Su Mo Tu We Th Fr Sa' out | wc -l | tr -d ' ')"
+"$OURS/cal" -- 3 2026 > out
+eq "cal -- 3 2026: the -- ends the options" "March 2026" "$(head -n 1 out | sed 's/^ *//')"
+"$OURS/cal" > out
+eq "cal: the current month, as date says" "$(date '+%B %Y')" "$(head -n 1 out | sed 's/^ *//')"
+TZ=Etc/GMT+12 "$OURS/cal" > out
+eq "cal follows TZ (UTC-12)" "$(TZ=Etc/GMT+12 date '+%B %Y')" "$(head -n 1 out | sed 's/^ *//')"
+TZ=Pacific/Kiritimati "$OURS/cal" > out
+eq "cal follows TZ (UTC+14)" "$(TZ=Pacific/Kiritimati date '+%B %Y')" "$(head -n 1 out | sed 's/^ *//')"
+TZ= "$OURS/cal" > out
+eq "cal with a null TZ: still a month" 1 "$(grep -c 'Su Mo Tu We Th Fr Sa' out | tr -d ' ')"
+"$OURS/cal" 1 2 3 2> /dev/null
+eq "cal with three operands is a usage error" 2 $?
+"$OURS/cal" -y 2026 2> /dev/null
+eq "cal -y is a usage error (it has no options)" 2 $?
+"$OURS/cal" -1 2> /dev/null
+eq "cal -1 is a usage error" 2 $?
+for bad in 0 10000 abc '13 2020' '0 2020' '1 0' '2020 1' 1.5 +5 99999999999999999999; do
+	"$OURS/cal" $bad > out 2> err
+	eq "cal $bad: status 1, no output, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < err | tr -d ' ')"
+done
+"$OURS/cal" 2026 >&- 2> /dev/null
+eq "cal with stdout closed: status" 1 $?
+"$OURS/cal" 2026 <&- > /dev/null
+eq "cal with stdin closed: fine, it reads nothing" 0 $?
+"$OURS/cal" 2026 | head -n 1 > out
+eq "cal into a closed pipe ends quietly" 2026 "$(tr -d ' ' < out)"
+fr=$(LC_ALL=fr_FR.UTF-8 "$OURS/cal" 3 2020 | sed -n 1p | sed 's/^ *//')
+if [ "$fr" = "March 2020" ]; then
+	echo "skip: no locale fr_FR.UTF-8"
+else
+	eq "cal in fr_FR.UTF-8: LC_TIME gives the names" "mars 2020/di lu ma me je ve sa" "$(LC_ALL=fr_FR.UTF-8 "$OURS/cal" 3 2020 | sed -n 1,2p | sed 's/^ *//' | tr '\n' '/' | sed 's/\/$//')"
+	LC_ALL= LC_TIME= LANG=fr_FR.UTF-8 "$OURS/cal" 3 2020 > out
+	eq "cal: LANG is the default of LC_TIME" "mars 2020" "$(head -n 1 out | sed 's/^ *//')"
+	LC_ALL=C LC_TIME=fr_FR.UTF-8 "$OURS/cal" 3 2020 > out
+	eq "cal: LC_ALL overrides LC_TIME" "March 2020" "$(head -n 1 out | sed 's/^ *//')"
+fi
+
 #---------------------------------------------------------------------- cmp
 fresh
 printf 'abcd\nefgh\n' > a

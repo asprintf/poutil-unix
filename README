@@ -40,7 +40,12 @@ Implemented, unit tested, difftested and PCTS clean on my machine:
 	unlink link cat tee rmdir mkdir mkfifo pathchk env nohup nice
 	time kill wc head tail tsort uniq expr sort test [
 	expand unexpand uuencode uudecode comm cmp cksum id paste fold cut
-	rm touch date cp ls join
+	rm touch date cp ls join cal
+
+The suite has no tests for true, link, unlink and cal. For those the
+checks are the unit tests, the comparison with other implementations and
+the "shall" sentences of the spec. The spec leaves the format of cal
+open, so its output follows the old BSD layout.
 
 One exception to "clean": tail rejects the obsolete -NUMBER and +NUMBER
 forms, as the 2018 edition of the spec does, so the one old PCTS test

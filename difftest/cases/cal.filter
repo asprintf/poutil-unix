@@ -1,0 +1,3 @@
+# The format is unspecified: compare the text. Blanks at the end of a line, the
+# empty rows a month is padded with, and runs of blank lines do not count.
+sed 's/[[:space:]]*$//' | awk 'NF { for (; blank > 0; blank--) print ""; print; started = 1; next } started { blank = 1 }'
