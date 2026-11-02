@@ -101,6 +101,8 @@ impl Opts {
      */
     fn apply(&mut self, c: u8) -> bool {
         match c {
+            /* -f shall turn on -a and may ignore -A: it does, wherever -A stands */
+            b'A' if self.unsorted => {}
             b'A' => {
                 self.almost = true;
                 self.all = false;
@@ -294,16 +296,58 @@ fn mode_string(mode: libc::mode_t) -> [u8; 10] {
 fn time_string(t: i64, now: i64, local: bool) -> Vec<u8> {
     let recent = t <= now && t > now - SIX_MONTHS;
     let fmt = if recent { c"%b %e %H:%M" } else { c"%b %e  %Y" };
-    let tt = t as libc::time_t;
+    /* a time_t that cannot hold the value gets the plain number, like a time the library rejects */
+    let Some(tt) = libc::time_t::try_from(t).ok() else {
+        return t.to_string().into_bytes();
+    };
     let mut tm: libc::tm = unsafe { std::mem::zeroed() };
     let ok = if local { unsafe { libc::localtime_r(&tt, &mut tm) } } else { unsafe { libc::gmtime_r(&tt, &mut tm) } };
     if ok.is_null() {
         return t.to_string().into_bytes();
     }
-    let mut buf = vec![0u8; 128];
-    let n = unsafe { libc::strftime(buf.as_mut_ptr().cast(), buf.len(), fmt.as_ptr(), &tm) };
-    buf.truncate(n);
-    buf
+    /* both formats always produce text, so a zero from strftime means the buffer was too small */
+    let mut size = 128;
+    loop {
+        let mut buf = vec![0u8; size];
+        let n = unsafe { libc::strftime(buf.as_mut_ptr().cast(), size, fmt.as_ptr(), &tm) };
+        if n > 0 || size >= 1 << 16 {
+            buf.truncate(n);
+            return buf;
+        }
+        size *= 4;
+    }
+}
+
+/*
+ * The optional alternate access method flag of the long format: '+' for a
+ * file with an access control list (the character the standard recommends),
+ * 0 for none. Only macOS is covered; other systems say none.
+ */
+#[cfg(target_os = "macos")]
+fn access_flag(path: &[u8], st: &libc::stat) -> u8 {
+    extern "C" {
+        fn acl_get_file(path: *const libc::c_char, acl_type: libc::c_int) -> *mut libc::c_void;
+        fn acl_get_link_np(path: *const libc::c_char, acl_type: libc::c_int) -> *mut libc::c_void;
+        fn acl_free(obj: *mut libc::c_void) -> libc::c_int;
+    }
+    /* ACL_TYPE_EXTENDED of <sys/acl.h> */
+    const EXTENDED: libc::c_int = 0x100;
+    let c = posix::cstr(path);
+    let acl = if kind(st) == libc::S_IFLNK {
+        unsafe { acl_get_link_np(c.as_ptr(), EXTENDED) }
+    } else {
+        unsafe { acl_get_file(c.as_ptr(), EXTENDED) }
+    };
+    if acl.is_null() {
+        return 0;
+    }
+    unsafe { acl_free(acl) };
+    b'+'
+}
+
+#[cfg(not(target_os = "macos"))]
+fn access_flag(_path: &[u8], _st: &libc::stat) -> u8 {
+    0
 }
 
 /* The name as it is written: with -q, a character that is not printable (a tab included) is a "?". */
@@ -602,6 +646,7 @@ impl Ls {
             struct Row {
                 prefix: Vec<u8>,
                 mode: [u8; 10],
+                flag: u8,
                 links: String,
                 owner: Vec<u8>,
                 group: Vec<u8>,
@@ -624,6 +669,7 @@ impl Ls {
                 rows.push(Row {
                     prefix: prefix(self, it),
                     mode: mode_string(st.st_mode),
+                    flag: access_flag(&it.path, st),
                     links: (st.st_nlink as u64).to_string(),
                     owner,
                     group,
@@ -636,9 +682,16 @@ impl Ls {
             let w_owner = rows.iter().map(|r| text_width(&r.owner)).max().unwrap_or(0);
             let w_group = rows.iter().map(|r| text_width(&r.group)).max().unwrap_or(0);
             let w_size = rows.iter().map(|r| r.size.len()).max().unwrap_or(0);
+            /* the flag follows the ten characters; a listing that has one pads the rows that have none */
+            let any_flag = rows.iter().any(|r| r.flag != 0);
             for r in &rows {
                 out.extend_from_slice(&r.prefix);
                 out.extend_from_slice(&r.mode);
+                if r.flag != 0 {
+                    out.push(r.flag);
+                } else if any_flag {
+                    out.push(b' ');
+                }
                 out.push(b' ');
                 out.extend_from_slice(format!("{:>w$}", r.links, w = w_links).as_bytes());
                 out.push(b' ');
@@ -1118,6 +1171,11 @@ mod tests {
         assert!(a.all && !a.almost);
         let a = opts("aA");
         assert!(!a.all && a.almost);
+        /* -f turns on -a, and -A (before or after it) cannot turn that off again */
+        for s in ["fA", "Af", "Afa", "fAA"] {
+            let a = opts(s);
+            assert!(a.all && !a.almost && a.unsorted, "{s}");
+        }
         assert!(opts("Fp").slash && !opts("Fp").classify);
         assert!(opts("pF").classify && !opts("pF").slash);
         assert!(opts("HL").follow_all && !opts("HL").follow_cmd);

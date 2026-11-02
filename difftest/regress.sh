@@ -2563,6 +2563,28 @@ eq "ls -L dl: the names alone need no evaluation, the link is listed, status 0" 
 "$OURS/ls" -Ri dl > o 2> e
 eq "ls -Ri dl without -L: the link is listed as itself, status 0" "0 2" "$? $(wc -l < o | tr -d ' ' | awk '{print $1-1}')"
 
+# -f turns on -a and ignores -A, in either order
+fresh
+: > a
+: > .h
+eq "ls -fA and ls -Af list . and .. like -f" "4 4" "$("$OURS/ls" -fA | wc -l | tr -d ' ') $("$OURS/ls" -Af | wc -l | tr -d ' ')"
+
+# the alternate access method flag: '+' for a file with an ACL (macOS), rows without one are padded
+fresh
+: > plain
+: > acl
+if chmod +a "everyone deny delete" acl 2> /dev/null; then
+	"$OURS/ls" -l acl > o
+	eq "ls -l: a file with an ACL has the + flag right after the ten characters" "11 +" "$(awk '{print length($1), substr($1,11,1)}' o)"
+	"$OURS/ls" -l acl plain > o
+	eq "ls -l: the row without a flag is padded to line up with the one that has it" "-rw-r--r--+ 1 -rw-r--r-- 1" "$(awk '{printf "%s %s ", $1, $2}' o | sed 's/ $//')"
+	eq "ls -l: both rows have the link count at the same column" "$(sed -n 1p o | awk '{print index($0, " 1 ")}')" "$(sed -n 2p o | awk '{print index($0, " 1 ")}')"
+	"$OURS/ls" -l plain > o
+	eq "ls -l: no flag anywhere, no padding" "10" "$(awk '{print length($1)}' o)"
+	# the ACL denies delete: take it off, or the cleanup of this directory fails
+	chmod -N acl
+fi
+
 
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
