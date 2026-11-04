@@ -268,9 +268,10 @@ fn touch_one(path: &CStr, times: &[(i64, i64); 2], create: bool) -> Result<(), F
     Ok(())
 }
 
-fn current_year() -> i64 {
-    /* a time the library cannot break down counts as year 0 of tm: 1900, as before */
-    posix::time::localtime(posix::time::now() as libc::time_t).map_or(1900, |tm| tm.tm_year as i64 + 1900)
+/* None if the clock cannot be read or the library cannot break the time down. */
+fn current_year() -> Option<i64> {
+    let now = libc::time_t::try_from(posix::time::now().ok()?).ok()?;
+    posix::time::localtime(now).map(|tm| tm.tm_year as i64 + 1900)
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -340,7 +341,10 @@ fn main() {
             )
         }
         Some((Kind::T, v)) => {
-            let Some(civ) = parse_t(&v, current_year()) else {
+            let Some(year) = current_year() else {
+                posix::fail(&prog, "cannot read the clock");
+            };
+            let Some(civ) = parse_t(&v, year) else {
                 posix::warn_path(&prog, &v, "invalid time");
                 std::process::exit(2);
             };
@@ -697,7 +701,7 @@ mod tests {
 
     #[test]
     fn the_current_year_is_sane() {
-        let y = current_year();
+        let y = current_year().unwrap();
         assert!((2024..2200).contains(&y));
     }
 }

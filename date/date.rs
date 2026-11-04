@@ -140,10 +140,6 @@ fn set_valid(t: &SetTime, cur_year: i64) -> bool {
     posix::cal::valid(t.year.unwrap_or(cur_year), t.mon, t.day, t.hour, t.min, 0)
 }
 
-fn now() -> i64 {
-    posix::time::realtime()
-}
-
 fn local_tm(secs: i64) -> Option<Tm> {
     /* a time_t that cannot hold the value is no time at all, not a wrapped one */
     let t = libc::time_t::try_from(secs).ok()?;
@@ -171,7 +167,10 @@ fn main() {
         /* "as if the TZ environment variable was set to the string UTC0" */
         posix::time::use_utc();
     }
-    let mut secs = now();
+    let mut secs = match posix::time::now() {
+        Ok(s) => s,
+        Err(e) => posix::fail(&prog, &format!("cannot read the clock: {}", posix::strerror(&e))),
+    };
     let mut format = DEFAULT_FORMAT;
     if let Some(op) = operands.first() {
         if op.first() == Some(&b'+') {

@@ -282,7 +282,7 @@ fn mode_string(mode: libc::mode_t) -> [u8; 10] {
  * says whether the time zone applies (false: UTC, for the unit tests).
  */
 fn time_string(t: i64, now: i64, local: bool) -> Vec<u8> {
-    let recent = t <= now && t > now - SIX_MONTHS;
+    let recent = t <= now && now.checked_sub(SIX_MONTHS).is_none_or(|old| t > old);
     let fmt = if recent { c"%b %e %H:%M" } else { c"%b %e  %Y" };
     /* a time_t that cannot hold the value gets the plain number, like a time the library rejects */
     let Some(tt) = libc::time_t::try_from(t).ok() else {
@@ -966,7 +966,8 @@ fn main() {
     }
     let columns = std::env::var_os("COLUMNS").map(std::os::unix::ffi::OsStringExt::into_vec);
     let width = line_width(columns.as_deref());
-    let now = posix::time::now();
+    /* a clock that cannot be read: every time is shown with its year */
+    let now = posix::time::now().unwrap_or(i64::MIN);
     let mut ls = Ls {
         prog: prog.clone(),
         o,

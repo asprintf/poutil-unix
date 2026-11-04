@@ -23,16 +23,13 @@ pub fn tzset() {
     unsafe { ffi::tzset() }
 }
 
-/* Seconds since the Epoch (time(3)). */
-pub fn now() -> i64 {
-    unsafe { libc::time(std::ptr::null_mut()) as i64 }
-}
-
-/* Seconds of the real-time clock (clock_gettime(2)). */
-pub fn realtime() -> i64 {
+/* Seconds since the Epoch, from the real-time clock; an error if it cannot be read (EOVERFLOW: a 32-bit time_t after 2038). */
+pub fn now() -> io::Result<i64> {
     let mut ts: libc::timespec = crate::sys::zeroed();
-    unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut ts) };
-    ts.tv_sec as i64
+    if unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut ts) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(ts.tv_sec as i64)
 }
 
 /* Set the real-time clock to a whole number of seconds. */

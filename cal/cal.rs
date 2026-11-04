@@ -292,7 +292,7 @@ fn calendar<F: FnOnce() -> Option<(i64, u32)>>(operands: &[Vec<u8>], now: F, nam
 fn today() -> Option<(i64, u32)> {
     posix::cal::null_tz_is_unset();
     posix::time::tzset();
-    let tm = posix::time::localtime(posix::time::now() as libc::time_t)?;
+    let tm = posix::time::localtime(libc::time_t::try_from(posix::time::now().ok()?).ok()?)?;
     Some((i64::from(tm.tm_year) + 1900, (tm.tm_mon + 1) as u32))
 }
 
