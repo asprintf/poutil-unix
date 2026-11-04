@@ -29,7 +29,7 @@ use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::os::unix::ffi::OsStringExt;
 
 static SIGPIPE_WAS_IGNORED: AtomicBool = AtomicBool::new(false);
-/* bit n set: descriptor n was closed when the process started */
+/* bit n set: descriptor n was closed when the process started, and is still a placeholder */
 static CLOSED_STDIO: AtomicU8 = AtomicU8::new(0);
 
 /*
@@ -78,6 +78,39 @@ fn default_unless_ignored(sig: libc::c_int) {
 }
 
 /*
+ * A closed standard descriptor stays taken, so that no file we open becomes
+ * standard input, output or error: /dev/null open the wrong way (a read of 0,
+ * a write to 1 or 2 fails with EBADF, as when closed) and closed on exec.
+ */
+fn placeholder(fd: libc::c_int) {
+    let access = if fd == 0 { libc::O_WRONLY } else { libc::O_RDONLY };
+    unsafe {
+        let n = libc::open(c"/dev/null".as_ptr(), access | libc::O_CLOEXEC);
+        if n < 0 {
+            libc::close(fd);
+            return;
+        }
+        if n != fd {
+            libc::dup2(n, fd);
+            libc::close(n);
+        }
+        libc::fcntl(fd, libc::F_SETFD, libc::FD_CLOEXEC);
+    }
+}
+
+/* Was the standard descriptor fd closed when we started (and not replaced since)? */
+pub fn stdio_closed(fd: i32) -> bool {
+    (0..3).contains(&fd) && CLOSED_STDIO.load(Ordering::Relaxed) & (1 << fd) != 0
+}
+
+/* fd (0, 1 or 2) is a real descriptor now. */
+pub(crate) fn stdio_replaced(fd: i32) {
+    if (0..3).contains(&fd) {
+        CLOSED_STDIO.fetch_and(!(1 << fd), Ordering::Relaxed);
+    }
+}
+
+/*
  * Must be the first call in every utility's main.
  *
  * Rust ignores SIGPIPE by default; POSIX utilities expect the default
@@ -87,11 +120,10 @@ fn default_unless_ignored(sig: libc::c_int) {
  */
 pub fn init() {
     std::hint::black_box(&SAVE_SIGPIPE);
-    /* undo the runtime's /dev/null replacement of closed descriptors */
     let closed = CLOSED_STDIO.load(Ordering::Relaxed);
     for fd in 0..3 {
         if closed & (1 << fd) != 0 {
-            unsafe { libc::close(fd) };
+            placeholder(fd);
         }
     }
     default_unless_ignored(libc::SIGSEGV);
@@ -266,9 +298,8 @@ impl Input {
 
 pub fn open_input(name: &[u8]) -> std::io::Result<Input> {
     if name == b"-" {
-        /* a closed descriptor 0 would be taken by the next open(): refuse it here */
-        if unsafe { libc::fcntl(0, libc::F_GETFD) } < 0 {
-            return Err(std::io::Error::last_os_error());
+        if !sys::is_open(0) {
+            return Err(std::io::Error::from_raw_os_error(libc::EBADF));
         }
         return Ok(Input::Stdin(borrow_fd(0)));
     }

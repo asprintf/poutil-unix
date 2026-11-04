@@ -3234,5 +3234,20 @@ else
 	echo "skip: no C compiler"
 fi
 
+#------------------------------------------- closed standard descriptors
+# A file opened later must not take the number of a closed 0, 1 or 2.
+fresh
+printf 'one\n' > a
+"$OURS/cmp" a - <&- 2> /dev/null
+eq "cmp a - with stdin closed: an error, not a comparison" 2 $?
+"$OURS/paste" a - <&- > out 2> /dev/null
+eq "paste a - with stdin closed: status 1" 1 $?
+echo hi | "$OURS/tee" t /nonexistent/x > /dev/null 2>&-
+eq "tee with stderr closed: no diagnostic in the output file" hi "$(cat t)"
+echo hi | "$OURS/tee" t >&- 2> /dev/null
+eq "tee with stdout closed: status 1, the file written once" "1 hi" "$? $(cat t)"
+"$OURS/env" "$OURS/nohup" "$OURS/echo" hi >&- 2> /dev/null
+eq "env: the utility it runs still finds stdout closed (nohup.out made)" hi "$(cat nohup.out 2> /dev/null)"
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]

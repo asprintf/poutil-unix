@@ -89,7 +89,11 @@ pub fn lseek(fd: RawFd, offset: i64, whence: libc::c_int) -> i64 {
 }
 
 pub fn dup2(from: RawFd, to: RawFd) -> libc::c_int {
-    unsafe { libc::dup2(from, to) }
+    let r = unsafe { libc::dup2(from, to) };
+    if r >= 0 {
+        crate::stdio_replaced(to);
+    }
+    r
 }
 
 /* A copy of fd that is at least min, closed on exec. */
@@ -97,9 +101,9 @@ pub fn dup_cloexec(fd: RawFd, min: RawFd) -> RawFd {
     unsafe { libc::fcntl(fd, libc::F_DUPFD_CLOEXEC, min) }
 }
 
-/* Is the descriptor open? */
+/* Is the descriptor open? A standard one that was closed at the start is not (see init). */
 pub fn is_open(fd: RawFd) -> bool {
-    unsafe { libc::fcntl(fd, libc::F_GETFD) >= 0 }
+    !crate::stdio_closed(fd) && unsafe { libc::fcntl(fd, libc::F_GETFD) >= 0 }
 }
 
 pub fn isatty(fd: RawFd) -> bool {
