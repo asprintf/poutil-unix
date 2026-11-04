@@ -241,3 +241,7 @@ codegen-units = 1
 [[bin]]
 name = "ln"
 path = "ln/ln.rs"
+
+[[bin]]
+name = "chmod"
+path = "chmod/chmod.rs"

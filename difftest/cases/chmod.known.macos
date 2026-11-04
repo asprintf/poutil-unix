@@ -1,0 +1,43 @@
+# The perm X after "-": "the execute/search portion ... if the file is a directory or ... the current
+# (unmodified) file mode bits have an execute bit"; "a-X" clears it there, macOS does nothing.
+-- -X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# A symbolic link named with -R: ours changes the file it leads to and walks into it when it is a
+# directory ("each file operand that names a directory"); a link has no mode bits of its own on every
+# system, so the link itself is never changed. macOS (default -P) changes the link's own mode (lchmod)
+# and does not walk into it, and does not fail on a dangling link.
+-R 600 ld l
+-R 700 l
+-R 700 ld
+-R 700 treelink
+-R 700 dang
+# A directory whose read permission a mode takes away is changed after what is in it, or before it is
+# read if it cannot be read as it is: every file is changed and there is no error. macOS changes the
+# directory first and then fails to read it.
+-R 0 d7
+-R 000 tree
+-R a-r tree
+# "=": "Clear the file mode bits specified by the who value" (for no who all of them, the set-ID and
+# sticky bits too), then set those of the perm; with a permcopy u, g or o the perm is the permissions
+# of that class as they were. macOS leaves the set-ID bit of a class that "=" names and the sticky bit.
+=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+r-x=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=g,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=o,g=u,o=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# The grammar: a permcopy (u, g, o) stands alone in an action ("op permcopy"), nothing comes before or
+# after it in the same action. macOS accepts more.
+u+gu f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rg f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+ro f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=ru f0 f4 f6 f7 f77 fs fg d0 d7 dt dg

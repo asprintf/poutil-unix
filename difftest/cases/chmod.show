@@ -1,0 +1,7 @@
+find . ! -name . | sort | while IFS= read -r f; do
+	if [ -L "$f" ]; then
+		echo "L $f -> $(readlink "$f")"
+	else
+		echo "F $f $(stat -f '%Sp' "$f")"
+	fi
+done

@@ -1,0 +1,14 @@
+/usr/bin/true
+touch f0 f4 f6 f7 f77 fs fg
+mkdir d0 d7 dt dg
+# set-group-ID sticks only if the group of the file is one of ours (a new directory takes that of its
+# parent), and a change of group clears it: so the group is set first
+chgrp "$(id -g)" f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+chmod 000 f0; chmod 400 f4; chmod 644 f6; chmod 755 f7; chmod 777 f77; chmod 4755 fs; chmod 2755 fg
+chmod 000 d0; chmod 755 d7; chmod 1777 dt; chmod 2755 dg
+ln -s f6 l; ln -s nowhere dang; ln -s d7 ld
+mkdir -p tree/s tree/e
+touch tree/a tree/s/b tree/e/c
+ln -s ../f6 tree/lo; ln -s a tree/la; ln -s nowhere tree/dl; ln -s .. tree/s/up
+ln -s tree treelink
+chmod 644 tree/a tree/s/b tree/e/c f6

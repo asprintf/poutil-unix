@@ -1,0 +1,76 @@
+# posixutils-rs follows the DESCRIPTION less closely. Checked on samples of each class, none is a
+# difference on a permission bit that the grammar defines:
+# - a permcopy (u, g, o) is ignored or used wrongly (+u, g+u, a-g, a+u, u=g, ...);
+# - "=" with a who clears the set-ID bits of the other classes (u=rwx,go= clears the setgid bit of a
+#   directory, g= and o= the setuid bit of a file), and the sticky bit with u, g or o is set, which is
+#   unspecified;
+# - an octal mode keeps the set-ID and sticky bits of a directory (implementation-defined);
+# - it accepts an empty clause and "" as a mode (",", "u+x,"), which are not in the grammar;
+# - repeated options and options after the mode or the "--" operands are errors there (clap), ours takes
+#   them as the Utility Syntax Guidelines say.
+-- -u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-R -R 755 f6
+-R 0 d7
+-R 000 tree
+-R a-r tree
+-R a-x tree
+-R o+t dt dg
+-R u-x tree
+-R u=rwx d0 d7 dt dg
+-RR 755 f6
+, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+,, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+,u+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'' f6
++u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+10000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+1755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+4755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+755 -- f6
+755 -R f6
+755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+755 f6 --
+755 f6 -R
+a-g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-x,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=r,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+gu=rw f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=g,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-rwxst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+gu f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rx,g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x,,g+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x,g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=o,g=u,o=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rw+x-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=rx,o=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,go= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'u+x,' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg

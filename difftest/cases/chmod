@@ -1,0 +1,239 @@
+0 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+4755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+2755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+1755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+7777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+07777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+00755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+000000644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+10000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+8 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+08 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+09 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0x1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+rx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+go-rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=rx,o=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x,g+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+x,u-x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,go= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=,u+r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rwx,a-w,a-r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g-s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rws f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+rwxs f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+rwxst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-rwxst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rwxst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=,a+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=o,g=u,o=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=g,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+r-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+r+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rw-r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+r-x=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rw+x-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x-x+r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rX f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+rX f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+X,g=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=r,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+X,a-x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-x,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-x,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=x,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a+ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a- f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u- f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug+ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug- f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+uo-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+go+r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ouga+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+gu=rw f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+aaa+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+uuu+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+,u+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x,,g+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+,, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+, f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+x,g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+ro f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rg f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+gu f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=ru f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+rx,g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+z f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+z+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+x+u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=z f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++xz f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- -r-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+-- --x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# options and operands
+@
+755
+-R
+-R 755
+755 nosuch
+755 nosuch f6 f7
+755 f6 nosuch f7
+-R 755 nosuch
+-- 755 f6
+-- -- f6
+755 -- f6
+755 f6 --
+-Z 755 f6
+-RZ 755 f6
+-RR 755 f6
+-R -R 755 f6
+755 -R f6
+755 f6 -R
+'' f6
+755 ''
+755 f6 '' f7
+755 f6/
+755 f6/x
+755 d7/
+755 d7//
+755 ./f6
+755 d7/../f6
+755 .
+755 ./
+# symbolic links as operands: the file they lead to
+600 l
+u+x l
+600 dang
+600 ld
+600 l ld
+700 ld/
+600 treelink
+a+r l f6
+# -R
+-R 700 tree
+-R go-w tree
+-R u+rwx,go= tree
+-R a+X tree
+-R a+r tree
+-R 755 tree/s
+-R 600 tree/a
+-R go-rwx tree f6
+-R 755 tree nosuch
+-R 755 nosuch tree
+-R a-x tree
+-R a-r tree
+-R u-x tree
+-R 000 tree
+-R u-w tree
+-R 700 treelink
+-R 700 treelink/
+-R 700 l
+-R 700 dang
+-R 700 ld
+-R 600 ld l
+-R 755 tree tree
+-R 700 tree tree/s
+-R 700 tree/s tree
+-R 4755 tree
+-R 2755 tree
+-R u+s tree
+-R a=rwx,u+s tree
+-R a+X f0 f4 f6 f7 d0 d7
+-R 755 d0
+-R u+rwx d0
+-R u=rwx d0 d7 dt dg
+-R 7777 dt dg
+-R 0 d7
+-R o+t dt dg
+-R +x .
+-R -- 755 d7
+'u +x' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+' u+x' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'u+x ' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'u+x,' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'	' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+'u+x	g+w' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
