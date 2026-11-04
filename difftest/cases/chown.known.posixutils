@@ -1,0 +1,33 @@
+# owner[:group] as the standard has it: a user name or a number, and after a colon a group name or a
+# number. posixutils-rs takes more (":group", "user:", ":", "", a plus sign in front of a number) and
+# accepts the number 4294967295, which stands for "no change" in chown(); these are errors here.
+: f
+'' f
+":" f
+":$(id -g)" f
+"$(id -u):" f
+"$(id -u):4294967295" f
+"$(id -un):" f
++$(id -u) f
+4294967295 f
+# Repeated options, and options after the owner or after "--", are errors there (clap); ours takes them
+# as the Utility Syntax Guidelines say.
+-h -h "$(id -u)" f
+-hh "$(id -u)" f
+-R -R "$(id -u)" f
+-RR "$(id -u)" f
+"$(id -u)" -- f
+"$(id -u)" -R f
+"$(id -u)" f --
+"$(id -u)" f -R
+# -H, -L and -P only go with -R; there -P without -R changes the link itself, ours ignores it.
+-P "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-P "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+# A dangling link named as an operand with -RH: chown() fails (ENOENT) and so does ours; posixutils-rs
+# changes the link itself.
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+# -h with -H or -L: the options exclude each other and -h wins here (the link itself is meant); posixutils-rs
+# refuses the combination.
+-RhH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RHh "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RhL "$(id -u):$(id -G | cut -d' ' -f2)" treelink

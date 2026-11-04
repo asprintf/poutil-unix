@@ -245,3 +245,7 @@ path = "ln/ln.rs"
 [[bin]]
 name = "chmod"
 path = "chmod/chmod.rs"
+
+[[bin]]
+name = "chown"
+path = "chown/chown.rs"

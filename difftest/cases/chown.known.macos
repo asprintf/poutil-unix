@@ -1,0 +1,34 @@
+# owner[:group] as the standard has it: a user name or a number, and after a colon a group name or a
+# number. macOS takes more (":group", "user:", "", a sign or a blank in front of a number); these are
+# errors here.
+: f
+'' f
+" $(id -u)" f
+":" f
+":$(id -g)" f
+"$(id -u):" f
+"$(id -un):" f
++$(id -u) f
+# A dangling link as an operand: chown() fails (ENOENT) and so does ours; macOS changes the link itself.
+# Under -L the same for a dangling link met in the hierarchy, and a link back to a directory above is
+# reported here ("directory causes a cycle") and not by macOS.
+-R -H -L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RPL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+"$(id -u):$(id -G | cut -d' ' -f2)" dang
+# -h with -H or -L: the options exclude each other and -h wins here (the link itself is meant); macOS
+# refuses the combination.
+-RhH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RHh "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RhL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+# -H, -L and -P only go with -R; ours ignores them without it, macOS says so on standard error.
+-H "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-H "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-L "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-P "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-P "$(id -u):$(id -G | cut -d' ' -f2)" treelink
