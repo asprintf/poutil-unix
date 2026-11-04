@@ -63,6 +63,8 @@ fn apply_clause(clause: &[u8], mut mode: u32, orig: u32, is_dir: bool, umask: u3
         }
         i += 1;
         let mut bits: u32 = 0;
+        /* a perm symbol was read: the bits may still be none (s with o, X on a file without x) */
+        let mut seen = false;
         while i < clause.len() && !matches!(clause[i], b'+' | b'-' | b'=') {
             match clause[i] {
                 b'r' => bits |= 0o444,
@@ -84,7 +86,7 @@ fn apply_clause(clause: &[u8], mut mode: u32, orig: u32, is_dir: bool, umask: u3
                 b't' => bits |= STICKY,
                 c @ (b'u' | b'g' | b'o') => {
                     /* permcopy is a single symbol and must follow the op directly */
-                    if bits != 0 || (i + 1 < clause.len() && !matches!(clause[i + 1], b'+' | b'-' | b'=')) {
+                    if seen || (i + 1 < clause.len() && !matches!(clause[i + 1], b'+' | b'-' | b'=')) {
                         return None;
                     }
                     let shift = match c {
@@ -96,6 +98,7 @@ fn apply_clause(clause: &[u8], mut mode: u32, orig: u32, is_dir: bool, umask: u3
                 }
                 _ => return None,
             }
+            seen = true;
             i += 1;
         }
         bits &= wmask;
@@ -120,6 +123,20 @@ mod tests {
 
     fn p(s: &str, cur: u32) -> Option<u32> {
         parse(s.as_bytes(), cur, false, 0o022)
+    }
+
+    #[test]
+    fn a_permcopy_stands_alone_even_when_the_perm_before_it_adds_nothing() {
+        /* s with who o changes nothing, X on a file without x adds nothing: still perms before the u */
+        for m in ["o+su", "o+sg", "u+Xg", "g+Xo", "o=su", "o-sg", "u+Xu", "o+sXu", "u+xu", "u+tu", "u+ug", "u+uu"] {
+            assert_eq!(p(m, 0o644), None, "{m}");
+            assert_eq!(parse(m.as_bytes(), 0o755, true, 0o022), None, "{m} on a directory");
+        }
+        /* a permcopy after an op of its own, or alone, is fine */
+        assert_eq!(p("o+s,g=u", 0o640), Some(0o660));
+        assert_eq!(p("u+X-g", 0o640), Some(0o240));
+        assert_eq!(p("u+Xx=g", 0o640), Some(0o440));
+        assert_eq!(p("o+s+u", 0o640), Some(0o646));
     }
 
     #[test]
