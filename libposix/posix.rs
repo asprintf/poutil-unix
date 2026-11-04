@@ -18,6 +18,7 @@ pub mod sys;
 pub mod tabs;
 pub mod time;
 pub mod user;
+pub mod walk;
 
 use std::ffi::CString;
 use std::fs::File;

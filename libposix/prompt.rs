@@ -55,10 +55,15 @@ impl Default for Yes {
  * End of file or an error ends the line; the newline is not returned.
  */
 pub fn read_line() -> Vec<u8> {
+    read_line_fd(0)
+}
+
+/* The same for any descriptor (xargs -p reads the terminal, not its input). */
+pub fn read_line_fd(fd: i32) -> Vec<u8> {
     let mut line = Vec::new();
     loop {
         let mut b = [0u8; 1];
-        let n = unsafe { libc::read(0, b.as_mut_ptr().cast(), 1) };
+        let n = crate::sys::read(fd, &mut b);
         if n < 0 && std::io::Error::last_os_error().kind() == std::io::ErrorKind::Interrupted {
             continue;
         }
@@ -71,12 +76,17 @@ pub fn read_line() -> Vec<u8> {
 
 /* Write the prompt to standard error, read the answer from standard input. */
 pub fn ask(yes: &Yes, prompt: &[u8]) -> bool {
+    ask_fd(yes, 0, prompt)
+}
+
+/* Write the prompt to standard error, read the answer from the descriptor. */
+pub fn ask_fd(yes: &Yes, fd: i32, prompt: &[u8]) -> bool {
     {
         let mut e = std::io::stderr().lock();
         let _ = e.write_all(prompt);
         let _ = e.flush();
     }
-    yes.matches(&read_line())
+    yes.matches(&read_line_fd(fd))
 }
 
 #[cfg(test)]

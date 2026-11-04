@@ -156,6 +156,11 @@ pub fn link(from: &CStr, to: &CStr) -> libc::c_int {
     unsafe { libc::link(from.as_ptr(), to.as_ptr()) }
 }
 
+/* linkat(2) between two directory descriptors (or AT_FDCWD); flags 0 or AT_SYMLINK_FOLLOW. */
+pub fn linkat(olddirfd: RawFd, old: &CStr, newdirfd: RawFd, new: &CStr, flags: libc::c_int) -> libc::c_int {
+    unsafe { libc::linkat(olddirfd, old.as_ptr(), newdirfd, new.as_ptr(), flags) }
+}
+
 pub fn symlink(target: &CStr, path: &CStr) -> libc::c_int {
     unsafe { libc::symlink(target.as_ptr(), path.as_ptr()) }
 }
@@ -244,6 +249,73 @@ pub fn chmod(path: &CStr, mode: libc::mode_t) -> libc::c_int {
     unsafe { libc::chmod(path.as_ptr(), mode) }
 }
 
+/* flags must be 0: AT_SYMLINK_NOFOLLOW is not available on every system for chmod. */
+pub fn fchmodat(dirfd: RawFd, path: &CStr, mode: libc::mode_t) -> libc::c_int {
+    unsafe { libc::fchmodat(dirfd, path.as_ptr(), mode, 0) }
+}
+
+
+/* flags: 0 or AT_SYMLINK_NOFOLLOW (not supported everywhere for chmod) */
+pub fn fchmodat_flags(dirfd: RawFd, path: &CStr, mode: libc::mode_t, flags: libc::c_int) -> libc::c_int {
+    unsafe { libc::fchmodat(dirfd, path.as_ptr(), mode, flags) }
+}
+
+fn errno_is(e: &io::Error, codes: &[libc::c_int]) -> bool {
+    e.raw_os_error().is_some_and(|n| codes.contains(&n))
+}
+
+/*
+ * chmod of an entry seen as not a symbolic link (st), without following one
+ * put there since: open with O_NOFOLLOW and fchmod() the descriptor, with the
+ * mode taken from mode_of(stat of the opened file). Only regular files and
+ * directories are opened. If neither read nor write is allowed, use
+ * fchmodat(AT_SYMLINK_NOFOLLOW), and where that is not supported, plain
+ * fchmodat() (the one case left open to the race).
+ */
+pub fn chmod_entry(
+    dirfd: RawFd,
+    name: &CStr,
+    st: &libc::stat,
+    mode_of: &mut dyn FnMut(&libc::stat) -> Option<libc::mode_t>,
+) -> io::Result<()> {
+    let kind = st.st_mode & libc::S_IFMT;
+    if kind == libc::S_IFREG || kind == libc::S_IFDIR {
+        for access in [libc::O_RDONLY, libc::O_WRONLY] {
+            let flags = access | libc::O_NOFOLLOW | libc::O_NONBLOCK | libc::O_NOCTTY | libc::O_CLOEXEC;
+            match openat_owned(dirfd, name, flags, 0) {
+                Ok(fd) => {
+                    let now = fstat(std::os::fd::AsRawFd::as_raw_fd(&fd))?;
+                    let Some(m) = mode_of(&now) else {
+                        return Err(io::Error::from_raw_os_error(libc::EINVAL));
+                    };
+                    return result(fchmod(std::os::fd::AsRawFd::as_raw_fd(&fd), m));
+                }
+                /* a symbolic link now */
+                Err(e) if errno_is(&e, &[libc::ELOOP, libc::EMLINK]) => {
+                    return Err(io::Error::from_raw_os_error(libc::ELOOP));
+                }
+                Err(e) if errno_is(&e, &[libc::EACCES]) => continue,
+                Err(_) => break,
+            }
+        }
+    }
+    let now = fstatat(dirfd, name, libc::AT_SYMLINK_NOFOLLOW)?;
+    if now.st_mode & libc::S_IFMT == libc::S_IFLNK {
+        return Err(io::Error::from_raw_os_error(libc::ELOOP));
+    }
+    let Some(m) = mode_of(&now) else {
+        return Err(io::Error::from_raw_os_error(libc::EINVAL));
+    };
+    if fchmodat_flags(dirfd, name, m, libc::AT_SYMLINK_NOFOLLOW) == 0 {
+        return Ok(());
+    }
+    let e = io::Error::last_os_error();
+    if errno_is(&e, &[libc::ENOSYS, libc::EINVAL]) || e.raw_os_error() == Some(libc::ENOTSUP) || e.raw_os_error() == Some(libc::EOPNOTSUPP) {
+        return result(fchmodat_flags(dirfd, name, m, 0));
+    }
+    Err(e)
+}
+
 pub fn fchmod(fd: RawFd, mode: libc::mode_t) -> libc::c_int {
     unsafe { libc::fchmod(fd, mode) }
 }
@@ -254,6 +326,11 @@ pub fn chown(path: &CStr, uid: u32, gid: u32) -> libc::c_int {
 
 pub fn fchown(fd: RawFd, uid: u32, gid: u32) -> libc::c_int {
     unsafe { libc::fchown(fd, uid, gid) }
+}
+
+/* flags is 0 or AT_SYMLINK_NOFOLLOW; an ID of u32::MAX (-1) leaves that ID alone. */
+pub fn fchownat(dirfd: RawFd, path: &CStr, uid: u32, gid: u32, flags: libc::c_int) -> libc::c_int {
+    unsafe { libc::fchownat(dirfd, path.as_ptr(), uid, gid, flags) }
 }
 
 pub fn lchown(path: &CStr, uid: u32, gid: u32) -> libc::c_int {
@@ -347,6 +424,114 @@ pub fn wait4(pid: libc::pid_t) -> (libc::pid_t, libc::c_int, libc::rusage) {
     let mut ru: libc::rusage = zeroed();
     let r = unsafe { libc::wait4(pid, &mut status, 0, &mut ru) };
     (r, status, ru)
+}
+
+/* How a command that was run ended. */
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Wait {
+    Exited(i32),
+    Signaled(i32),
+}
+
+/*
+ * Run a command found through PATH (execvp) and wait for it. An error is the
+ * failure to run it: the errno of fork, or of the exec itself, which the child
+ * sends back through a pipe that closes on a successful exec, so that it
+ * cannot be taken for an exit status of the command. With stdin_null the
+ * command reads /dev/null instead of our standard input. Single thread only.
+ */
+pub fn run_command(argv: &[Vec<u8>], stdin_null: bool) -> io::Result<Wait> {
+    if argv.is_empty() {
+        return Err(io::Error::from_raw_os_error(libc::ENOENT));
+    }
+    let mut cargs = Vec::with_capacity(argv.len());
+    for a in argv {
+        match std::ffi::CString::new(a.as_slice()) {
+            Ok(c) => cargs.push(c),
+            Err(_) => return Err(io::Error::from_raw_os_error(libc::EINVAL)),
+        }
+    }
+    let mut ptrs: Vec<*const libc::c_char> = cargs.iter().map(|c| c.as_ptr()).collect();
+    ptrs.push(std::ptr::null());
+    let mut fds = [0 as libc::c_int; 2];
+    if unsafe { libc::pipe(fds.as_mut_ptr()) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    for fd in fds {
+        unsafe { libc::fcntl(fd, libc::F_SETFD, libc::FD_CLOEXEC) };
+    }
+    let null = if stdin_null { open(c"/dev/null", libc::O_RDONLY | libc::O_CLOEXEC, 0) } else { -1 };
+    let pid = fork();
+    if pid < 0 {
+        let e = io::Error::last_os_error();
+        close(fds[0]);
+        close(fds[1]);
+        if null >= 0 {
+            close(null);
+        }
+        return Err(e);
+    }
+    if pid == 0 {
+        /* the child does nothing but what is safe before an exec: no allocation */
+        unsafe {
+            if null >= 0 {
+                libc::dup2(null, 0);
+            }
+            libc::execvp(ptrs[0], ptrs.as_ptr());
+            let e: libc::c_int = io::Error::last_os_error().raw_os_error().unwrap_or(libc::EINVAL);
+            libc::write(fds[1], (&e as *const libc::c_int).cast(), std::mem::size_of::<libc::c_int>());
+            libc::_exit(127)
+        }
+    }
+    close(fds[1]);
+    if null >= 0 {
+        close(null);
+    }
+    let mut buf = [0u8; std::mem::size_of::<libc::c_int>()];
+    let n = loop {
+        let n = read(fds[0], &mut buf);
+        if n < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
+            continue;
+        }
+        break n;
+    };
+    close(fds[0]);
+    let exec_errno = if n == buf.len() as isize { Some(libc::c_int::from_ne_bytes(buf)) } else { None };
+    let status = loop {
+        let (r, st, _) = wait4(pid);
+        if r < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
+            continue;
+        }
+        break st;
+    };
+    if let Some(e) = exec_errno {
+        return Err(io::Error::from_raw_os_error(e));
+    }
+    if libc::WIFSIGNALED(status) {
+        Ok(Wait::Signaled(libc::WTERMSIG(status)))
+    } else {
+        Ok(Wait::Exited(libc::WEXITSTATUS(status)))
+    }
+}
+
+/* {LINE_MAX}, 2048 if the system does not say */
+pub fn line_max() -> usize {
+    let n = unsafe { libc::sysconf(libc::_SC_LINE_MAX) };
+    if n > 0 {
+        n as usize
+    } else {
+        2048
+    }
+}
+
+/* {ARG_MAX}: the most the system takes for the arguments and the environment of a command, if it says. */
+pub fn arg_max() -> Option<usize> {
+    let n = unsafe { libc::sysconf(libc::_SC_ARG_MAX) };
+    if n > 0 {
+        Some(n as usize)
+    } else {
+        None
+    }
 }
 
 pub fn nice(increment: libc::c_int) -> libc::c_int {

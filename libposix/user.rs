@@ -74,6 +74,16 @@ pub fn user_by_name(name: &[u8]) -> Option<User> {
     Some(User { uid, gid })
 }
 
+/* The group ID of the group of that name; None if there is none (or the name holds a NUL). */
+pub fn group_by_name(name: &[u8]) -> Option<u32> {
+    let c = CString::new(name).ok()?;
+    let p = unsafe { libc::getgrnam(c.as_ptr()) };
+    if p.is_null() {
+        return None;
+    }
+    Some(unsafe { (*p).gr_gid } as u32)
+}
+
 /* The supplementary groups of this process, in the order the system gave them. */
 pub fn process_groups() -> Vec<u32> {
     loop {
@@ -149,6 +159,18 @@ mod tests {
         let (u, g) = (unused(user_name), unused(group_name));
         assert_eq!(user_name(u), None);
         assert_eq!(group_name(g), None);
+    }
+
+    #[test]
+    fn groups_by_name() {
+        assert_eq!(group_by_name(b"no-such-group-poutil"), None);
+        assert_eq!(group_by_name(b"a\0b"), None);
+        assert_eq!(group_by_name(b""), None);
+        /* the group of this process has a name on a normal system; whatever it is must map back */
+        if let Some(n) = group_name(egid()) {
+            let back = group_by_name(&n);
+            assert!(back.is_some());
+        }
     }
 
     #[test]
