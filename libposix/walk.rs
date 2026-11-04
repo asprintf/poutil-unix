@@ -6,7 +6,7 @@
  */
 
 use crate::sys;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 
@@ -63,15 +63,28 @@ pub trait Visit {
     }
 }
 
-/* Each level holds a descriptor and a stack frame. */
+/* Each level is a stack frame; only the deepest MAX_OPEN (fewer when out of descriptors) keep a descriptor. */
 const MAX_DEPTH: usize = 2000;
+const MAX_OPEN: usize = 32;
+
+/* A directory being read: how to open it again, and its descriptor while it has one. */
+struct Level {
+    /* relative to the level above (AT_FDCWD for the operand) */
+    name: CString,
+    path: Vec<u8>,
+    followed: bool,
+    id: (u64, u64),
+    fd: Option<OwnedFd>,
+}
 
 struct Walker<'v, V: Visit> {
     recursive: bool,
     links: Links,
     max_depth: usize,
-    /* (device, inode) of the directories above */
-    above: Vec<(u64, u64)>,
+    max_open: usize,
+    /* the directories above, the deepest last; those from open_from on have a descriptor */
+    stack: Vec<Level>,
+    open_from: usize,
     v: &'v mut V,
 }
 
@@ -88,8 +101,34 @@ fn id_of(st: &libc::stat) -> (u64, u64) {
     (st.st_dev as u64, st.st_ino as u64)
 }
 
+fn dir_flags(followed: bool) -> libc::c_int {
+    let flags = libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC;
+    if followed {
+        flags
+    } else {
+        flags | libc::O_NOFOLLOW
+    }
+}
+
+fn too_many(e: &io::Error) -> bool {
+    matches!(e.raw_os_error(), Some(libc::EMFILE) | Some(libc::ENFILE))
+}
+
+fn changed() -> io::Error {
+    io::Error::other("directory changed during the walk")
+}
+
 impl<V: Visit> Walker<'_, V> {
-    fn entry(&mut self, dirfd: RawFd, name: &CStr, path: &[u8], operand: bool, depth: usize) {
+    /* The directory the next entry is in (-1 if it was lost). */
+    fn dirfd(&self) -> RawFd {
+        match self.stack.last() {
+            None => libc::AT_FDCWD,
+            Some(l) => l.fd.as_ref().map_or(-1, |f| f.as_raw_fd()),
+        }
+    }
+
+    fn entry(&mut self, name: &CStr, path: &[u8], operand: bool, depth: usize) {
+        let dirfd = self.dirfd();
         let lst = match sys::fstatat(dirfd, name, libc::AT_SYMLINK_NOFOLLOW) {
             Ok(s) => s,
             Err(e) => {
@@ -128,8 +167,11 @@ impl<V: Visit> Walker<'_, V> {
         if self.v.after_contents() {
             match self.open(&e, depth) {
                 Ok((fd, names)) => {
-                    self.children(&e, &fd, names, depth);
-                    self.visit(&e);
+                    /* the descriptor of the directory above may have been opened again */
+                    if self.children(&e, fd, names, depth) {
+                        let dirfd = self.dirfd();
+                        self.visit(&Entry { dirfd, ..e });
+                    }
                 }
                 /* not entered, but still visited */
                 Err(Opened::Report(err)) => {
@@ -157,29 +199,31 @@ impl<V: Visit> Walker<'_, V> {
     /* Open a directory, check it is the one that was seen, and read its names. */
     fn open(&mut self, e: &Entry, depth: usize) -> Result<(OwnedFd, Vec<Vec<u8>>), Opened> {
         let id = id_of(&e.st);
-        if self.above.contains(&id) {
+        if self.stack.iter().any(|l| l.id == id) {
             return Err(Opened::Report(io::Error::other("directory causes a cycle")));
         }
         if depth >= self.max_depth {
             return Err(Opened::Report(io::Error::other("file hierarchy too deep")));
         }
-        let mut flags = libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC;
-        if !e.followed {
-            flags |= libc::O_NOFOLLOW;
-        }
-        let fd = match sys::openat_owned(e.dirfd, e.name, flags, 0) {
-            Ok(fd) => fd,
-            Err(err) if matches!(err.raw_os_error(), Some(libc::EACCES) | Some(libc::EPERM)) => return Err(Opened::Retry),
-            Err(err) => return Err(Opened::Report(err)),
+        let fd = loop {
+            match sys::openat_owned(e.dirfd, e.name, dir_flags(e.followed), 0) {
+                Ok(fd) => break fd,
+                Err(err) if too_many(&err) && self.shed() => continue,
+                Err(err) if matches!(err.raw_os_error(), Some(libc::EACCES) | Some(libc::EPERM)) => return Err(Opened::Retry),
+                Err(err) => return Err(Opened::Report(err)),
+            }
         };
         match sys::fstat(fd.as_raw_fd()) {
             Ok(s) if id_of(&s) == id => {}
-            Ok(_) => return Err(Opened::Report(io::Error::other("directory changed during the walk"))),
+            Ok(_) => return Err(Opened::Report(changed())),
             Err(err) => return Err(Opened::Report(err)),
         }
-        let mut names = match sys::read_dir_fd(fd.as_raw_fd()) {
-            Ok(n) => n,
-            Err(err) => return Err(Opened::Report(err)),
+        let mut names = loop {
+            match sys::read_dir_fd(fd.as_raw_fd()) {
+                Ok(n) => break n,
+                Err(err) if too_many(&err) && self.shed() => continue,
+                Err(err) => return Err(Opened::Report(err)),
+            }
         };
         names.retain(|n| n != b"." && n != b"..");
         /* a fixed order */
@@ -189,7 +233,9 @@ impl<V: Visit> Walker<'_, V> {
 
     fn descend(&mut self, e: &Entry, depth: usize) {
         match self.open(e, depth) {
-            Ok((fd, names)) => self.children(e, &fd, names, depth),
+            Ok((fd, names)) => {
+                self.children(e, fd, names, depth);
+            }
             Err(Opened::Report(err)) => self.v.report(e.path, &err),
             Err(Opened::Retry) => {
                 let err = sys::openat_owned(e.dirfd, e.name, libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC, 0).err();
@@ -198,14 +244,86 @@ impl<V: Visit> Walker<'_, V> {
         }
     }
 
-    fn children(&mut self, e: &Entry, fd: &OwnedFd, names: Vec<Vec<u8>>, depth: usize) {
-        self.above.push(id_of(&e.st));
+    /* Walk the names of e; false if the directory above e could not be opened again. */
+    fn children(&mut self, e: &Entry, fd: OwnedFd, names: Vec<Vec<u8>>, depth: usize) -> bool {
+        self.push(Level { name: e.name.to_owned(), path: e.path.to_vec(), followed: e.followed, id: id_of(&e.st), fd: Some(fd) });
         for n in &names {
+            if self.dirfd() < 0 {
+                break;
+            }
             let cname = crate::cstr(n);
             let p = join(e.path, n);
-            self.entry(fd.as_raw_fd(), &cname, &p, false, depth + 1);
+            self.entry(&cname, &p, false, depth + 1);
         }
-        self.above.pop();
+        self.pop()
+    }
+
+    /* Enter a level; past max_open, the shallowest open one gives up its descriptor. */
+    fn push(&mut self, l: Level) {
+        self.stack.push(l);
+        if self.stack.len() - self.open_from > self.max_open {
+            self.stack[self.open_from].fd = None;
+            self.open_from += 1;
+        }
+    }
+
+    /* Out of descriptors: the shallowest open level other than the deepest gives up its own, for good. */
+    fn shed(&mut self) -> bool {
+        if self.stack.len() - self.open_from < 2 {
+            return false;
+        }
+        self.stack[self.open_from].fd = None;
+        self.open_from += 1;
+        self.max_open = self.stack.len() - self.open_from;
+        true
+    }
+
+    /* Leave a level, opening the one above again if it gave up its descriptor. */
+    fn pop(&mut self) -> bool {
+        let child = self.stack.pop().expect("a level to leave");
+        let n = self.stack.len();
+        if n == 0 {
+            self.open_from = 0;
+            return true;
+        }
+        if self.stack[n - 1].fd.is_some() {
+            return true;
+        }
+        match self.reopen(child.fd) {
+            Ok(fd) => {
+                self.stack[n - 1].fd = Some(fd);
+                self.open_from = n - 1;
+                true
+            }
+            Err(err) => {
+                self.v.report(&self.stack[n - 1].path, &err);
+                self.open_from = n;
+                false
+            }
+        }
+    }
+
+    /* The deepest level again: ".." of the child, else every level from the operand down. */
+    fn reopen(&self, child: Option<OwnedFd>) -> io::Result<OwnedFd> {
+        let want = self.stack.last().expect("a level").id;
+        if let Some(c) = child {
+            if let Ok(fd) = sys::openat_owned(c.as_raw_fd(), c"..", dir_flags(false), 0) {
+                if sys::fstat(fd.as_raw_fd()).is_ok_and(|s| id_of(&s) == want) {
+                    return Ok(fd);
+                }
+            }
+        }
+        /* entered through a followed link, or moved */
+        let mut fd: Option<OwnedFd> = None;
+        for l in &self.stack {
+            let base = fd.as_ref().map_or(libc::AT_FDCWD, |f| f.as_raw_fd());
+            let next = sys::openat_owned(base, &l.name, dir_flags(l.followed), 0)?;
+            if id_of(&sys::fstat(next.as_raw_fd())?) != l.id {
+                return Err(changed());
+            }
+            fd = Some(next);
+        }
+        fd.ok_or_else(changed)
     }
 }
 
@@ -217,13 +335,14 @@ enum Opened {
 
 /* Visit the operand and, if recursive, everything below it. */
 pub fn walk<V: Visit>(operand: &[u8], recursive: bool, links: Links, v: &mut V) {
-    walk_limited(operand, recursive, links, MAX_DEPTH, v)
+    walk_limited(operand, recursive, links, MAX_DEPTH, MAX_OPEN, v)
 }
 
-fn walk_limited<V: Visit>(operand: &[u8], recursive: bool, links: Links, max_depth: usize, v: &mut V) {
-    let mut w = Walker { recursive, links, max_depth, above: Vec::new(), v };
+fn walk_limited<V: Visit>(operand: &[u8], recursive: bool, links: Links, max_depth: usize, max_open: usize, v: &mut V) {
+    let max_open = max_open.max(1);
+    let mut w = Walker { recursive, links, max_depth, max_open, stack: Vec::new(), open_from: 0, v };
     let c = crate::cstr(operand);
-    w.entry(libc::AT_FDCWD, &c, operand, true, 0);
+    w.entry(&c, operand, true, 0);
 }
 
 #[cfg(test)]
@@ -376,7 +495,7 @@ mod tests {
         let t = Tmp::new();
         std::fs::create_dir_all(t.0.join("a/b/c/d")).unwrap();
         let mut r = Rec { seen: vec![], errs: vec![], root_len: t.p("").len(), post: true };
-        walk_limited(&t.p(""), true, Links::Never, 3, &mut r);
+        walk_limited(&t.p(""), true, Links::Never, 3, MAX_OPEN, &mut r);
         assert_eq!(r.seen, vec!["Da/b/c", "Da/b", "Da", "D"]);
         assert_eq!(r.errs, vec!["a/b/c: file hierarchy too deep"]);
     }
@@ -417,6 +536,47 @@ mod tests {
         crate::user::euid()
     }
 
+    fn go_open(t: &Tmp, operand: &str, links: Links, post: bool, max_open: usize) -> (Vec<String>, Vec<String>) {
+        let mut r = Rec { seen: vec![], errs: vec![], root_len: t.p("").len(), post };
+        walk_limited(&t.p(operand), true, links, MAX_DEPTH, max_open, &mut r);
+        (r.seen, r.errs)
+    }
+
+    #[test]
+    fn one_or_two_descriptors_walk_a_deep_tree_like_many() {
+        let t = Tmp::new();
+        let mut p = t.0.join("d");
+        for i in 0..12 {
+            std::fs::create_dir_all(&p).unwrap();
+            std::fs::write(p.join(format!("f{i}")), "").unwrap();
+            p = p.join("s");
+        }
+        for post in [false, true] {
+            for max_open in [1, 2] {
+                let few = go_open(&t, "d", Links::Never, post, max_open);
+                assert!(few.1.is_empty(), "{:?}", few.1);
+                assert_eq!(few.0.len(), 24);
+                assert_eq!(few, go_open(&t, "d", Links::Never, post, MAX_OPEN), "post {post}");
+            }
+        }
+    }
+
+    #[test]
+    fn a_level_entered_through_a_link_is_opened_again_from_the_operand() {
+        let t = Tmp::new();
+        std::fs::create_dir_all(t.0.join("real/a/b/c")).unwrap();
+        std::fs::write(t.0.join("real/a/b/c/f"), "").unwrap();
+        std::fs::create_dir(t.0.join("top")).unwrap();
+        symlink("../real", t.0.join("top/l")).unwrap();
+        std::fs::write(t.0.join("top/z"), "").unwrap();
+        for post in [false, true] {
+            let few = go_open(&t, "top", Links::All, post, 2);
+            assert!(few.1.is_empty(), "{:?}", few.1);
+            assert!(few.0.contains(&"ftop/l/a/b/c/f".to_string()) && few.0.contains(&"ftop/z".to_string()), "{:?}", few.0);
+            assert_eq!(few, go_open(&t, "top", Links::All, post, MAX_OPEN), "post {post}");
+        }
+    }
+
     #[test]
     fn deep_hierarchy_does_not_need_a_long_pathname() {
         let t = Tmp::new();
@@ -437,7 +597,7 @@ mod tests {
         let t = Tmp::new();
         std::fs::create_dir_all(t.0.join("a/b/c/d/e/f")).unwrap();
         let mut r = Rec { seen: vec![], errs: vec![], root_len: t.p("").len(), post: false };
-        walk_limited(&t.p(""), true, Links::Never, 3, &mut r);
+        walk_limited(&t.p(""), true, Links::Never, 3, MAX_OPEN, &mut r);
         /* depth 0 is the operand: its entries are 1, a/b/c is 3, and c cannot be entered */
         assert_eq!(r.seen, vec!["D", "Da", "Da/b", "Da/b/c"]);
         assert_eq!(r.errs, vec!["a/b/c: file hierarchy too deep"]);

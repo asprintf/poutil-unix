@@ -3170,7 +3170,7 @@ mkdir deep
 (ulimit -s 512 2> /dev/null; "$OURS/chmod" -R 700 deep 2> e; echo $? > st)
 eq "chmod -R of a tree 300 levels deep (over 5000 bytes of path), small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
 (ulimit -n 12 2> /dev/null && "$OURS/chmod" -R 755 deep 2> e; echo $? > st)
-eq "chmod -R with 12 descriptors allowed: the level it cannot enter is an error, no crash" "1 yes" "$(cat st) $(grep -c 'Too many open files' e | sed 's/[1-9].*/yes/')"
+eq "chmod -R of 300 levels with 12 descriptors allowed: every file changed" "0 0 0" "$(cat st) $(wc -c < e | tr -d ' ') $(find deep ! -perm 755 | wc -l | tr -d ' ')"
 rm -rf deep
 
 # chown: only what a user may do, to oneself
@@ -3208,6 +3208,8 @@ mkdir deep
 )
 (ulimit -s 512 2> /dev/null; "$OURS/chown" -R "$me" deep 2> e; echo $? > st)
 eq "chown -R of a tree 300 levels deep, small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
+(ulimit -n 12 2> /dev/null && "$OURS/chown" -R "$me" deep 2> e; echo $? > st)
+eq "chown -R of 300 levels with 12 descriptors allowed" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
 rm -rf deep
 
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
