@@ -16,12 +16,13 @@ fn main() {
         posix::write_stdout(&prog, b"not a tty\n");
         std::process::exit(1);
     }
-    posix::clear_errno();
-    let Some(mut out) = posix::sys::ttyname(0) else {
-        /* errno says why: no entry for the device under /dev, no memory, ... */
-        let e = std::io::Error::last_os_error();
-        posix::warn(&prog, &format!("cannot determine the terminal name: {}", posix::strerror(&e)));
-        std::process::exit(2);
+    let mut out = match posix::sys::ttyname(0) {
+        Ok(name) => name,
+        /* no entry for the device under /dev, no memory, ... */
+        Err(e) => {
+            posix::warn(&prog, &format!("cannot determine the terminal name: {}", posix::strerror(&e)));
+            std::process::exit(2);
+        }
     };
     out.push(b'\n');
     posix::write_stdout(&prog, &out);

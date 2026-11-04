@@ -10,7 +10,7 @@
  *
  * Some calls are safe only in a process with one thread, as the utilities
  * are: fork (the child of a threaded process may only call async-signal-safe
- * functions), getlogin and ttyname (static storage), and umask, set_umask
+ * functions), getlogin (static storage), and umask, set_umask
  * and ignore_signal (state of the whole process).
  */
 
@@ -110,13 +110,24 @@ pub fn isatty(fd: RawFd) -> bool {
     unsafe { libc::isatty(fd) == 1 }
 }
 
-/* The name of the terminal on fd (the caller clears errno first, to tell why it failed). */
-pub fn ttyname(fd: RawFd) -> Option<Vec<u8>> {
-    let p = unsafe { libc::ttyname(fd) };
-    if p.is_null() {
-        None
-    } else {
-        Some(unsafe { CStr::from_ptr(p) }.to_bytes().to_vec())
+/* The name of the terminal on fd (ttyname_r(3)), or why there is none. */
+pub fn ttyname(fd: RawFd) -> io::Result<Vec<u8>> {
+    let max = unsafe { libc::sysconf(libc::_SC_TTY_NAME_MAX) };
+    let mut size = if max > 0 { max as usize } else { 64 };
+    loop {
+        let mut buf = vec![0u8; size];
+        let r = unsafe { libc::ttyname_r(fd, buf.as_mut_ptr().cast(), buf.len()) };
+        if r == 0 {
+            let n = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+            buf.truncate(n);
+            return Ok(buf);
+        }
+        /* POSIX returns the error number; -1 and errno is the old convention */
+        let e = if r < 0 { io::Error::last_os_error() } else { io::Error::from_raw_os_error(r) };
+        if e.raw_os_error() != Some(libc::ERANGE) || size >= 1 << 16 {
+            return Err(e);
+        }
+        size *= 2;
     }
 }
 

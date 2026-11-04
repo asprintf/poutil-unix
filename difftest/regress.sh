@@ -673,6 +673,8 @@ if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /de
 
 	ttyrun '"$OURS/nohup" sh -c "kill -HUP \$\$; echo survived"'
 	eq "nohup on a terminal: SIGHUP is ignored by the utility" survived "$(cat nohup.out)"
+	ttyrun '"$OURS/tty" > "$W/ours"; echo $? > "$W/st"; /usr/bin/tty > "$W/sys"'
+	eq "tty on a terminal: status 0, the name the system's tty gives" "0 $(cat "$W/sys")" "$(cat "$W/st") $(cat "$W/ours")"
 	cd "$tmp" || exit 1
 	rm -rf "$W"
 	fresh
