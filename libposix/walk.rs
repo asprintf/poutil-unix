@@ -131,7 +131,11 @@ impl<V: Visit> Walker<'_, V> {
                     self.children(&e, &fd, names, depth);
                     self.visit(&e);
                 }
-                Err(Opened::Report(err)) => self.v.report(e.path, &err),
+                /* not entered, but still visited */
+                Err(Opened::Report(err)) => {
+                    self.v.report(e.path, &err);
+                    self.visit(&e);
+                }
                 /* cannot be read as it is: visit it first, then try again */
                 Err(Opened::Retry) => {
                     self.visit(&e);
@@ -365,6 +369,16 @@ mod tests {
             assert_eq!(r.errs.len(), 1, "{:?}", r.errs);
             assert!(r.errs[0].starts_with("d/s: "));
         }
+    }
+
+    #[test]
+    fn after_contents_still_visits_a_directory_it_cannot_enter() {
+        let t = Tmp::new();
+        std::fs::create_dir_all(t.0.join("a/b/c/d")).unwrap();
+        let mut r = Rec { seen: vec![], errs: vec![], root_len: t.p("").len(), post: true };
+        walk_limited(&t.p(""), true, Links::Never, 3, &mut r);
+        assert_eq!(r.seen, vec!["Da/b/c", "Da/b", "Da", "D"]);
+        assert_eq!(r.errs, vec!["a/b/c: file hierarchy too deep"]);
     }
 
     #[test]
