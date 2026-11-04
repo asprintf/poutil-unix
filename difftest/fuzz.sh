@@ -91,8 +91,9 @@ check() {
 		ref=
 		(cd "$tmp/w" && env -i PATH=/usr/bin:/bin LC_ALL="$loc" POSIXLY_CORRECT=1 \
 			"$OURS/$util" "$@" < "${STDIN:-/dev/null}" > "$tmp/o.ours" 2>/dev/null; echo $? > "$tmp/s.ours")
-		for bin in /usr/bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util ${RS:+${NO_RS:-$RS/$util}}; do
+		for bin in /usr/bin/$util /bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util ${RS:+${NO_RS:-$RS/$util}}; do
 			[ -x "$bin" ] || continue
+			case $bin in /usr/bin/* | /bin/*) [ -n "$NO_MAC" ] && continue ;; esac
 			(cd "$tmp/w" && env -i PATH=/usr/bin:/bin LC_ALL="$loc" POSIXLY_CORRECT=1 \
 				"$bin" "$@" < "${STDIN:-/dev/null}" > "$tmp/o.ref" 2>/dev/null; echo $? > "$tmp/s.ref")
 			[ "$(cat "$tmp/s.ours")" -eq 0 ] && so=0 || so=1
@@ -205,6 +206,108 @@ fuzz_cut() {
 	fi
 	CHECK_LOCALES=en_US.UTF-8 check -c "$list" u || return
 	CHECK_LOCALES=en_US.UTF-8 check -f "$list" -d "$(printf '\303\251')" u || return
+}
+
+# xargs: random input made of words, blanks, newlines, quotes, backslashes and the logical end-of-file
+# string, with a random choice of -n, -L, -s, -x, -E and -I. The utility prints how many arguments it
+# got and which. Left out: posixutils-rs (quoting), -s (they allow a command line of size bytes, we
+# less than size), unmatched quotes (GNU runs what it read before) and an escaped blank ending a line
+# (they take it for a continuation under -L). macOS squeezes the blanks of -I lines: GNU only there.
+mkxargs_in() {
+	awk -v seed="$(rnd 1000000)" -v n="$((1 + $(rnd 60)))" -v nq="$1" 'BEGIN {
+		srand(seed)
+		split("a bb ccc d_e _ EOF x1 y2", w, " ")
+		for (i = 0; i < n; i++) {
+			r = rand()
+			if (r < 0.40) printf "%s", w[1 + int(rand() * 9)]
+			else if (r < 0.55) printf " "
+			else if (r < 0.62) printf "\t"
+			else if (r < 0.75) printf "\n"
+			else if (r < 0.80) printf "\\\\"
+			else if (r < 0.85) printf " \\ x"
+			else if (nq == 0) printf "x"
+			else if (r < 0.90) printf "\"%s\"", w[1 + int(rand() * 9)]
+			else if (r < 0.95) printf "\047%s\047", w[1 + int(rand() * 9)]
+			else if (r < 0.97) printf "\"a b\""
+			else printf "x"
+		}
+		if (rand() < 0.8) printf "\n"
+	}' > "$2"
+}
+
+fuzz_xargs() {
+	mkxargs_in $(rnd 2) in
+	set -- sh -c 'echo "$#:$*"' x
+	NO_RS=x
+	case $(rnd 8) in
+	0) o= ;;
+	1) o="-n $((1 + $(rnd 5)))" ;;
+	2) o="-L $((1 + $(rnd 4)))" ;;
+	3) o="-n $((1 + $(rnd 9)))" ;;
+	4) o="-L $((1 + $(rnd 9)))" ;;
+	5) o="-E EOF" ;;
+	6) o="-E _ -n 2" ;;
+	7) o="-E '' -L 2" ;;
+	esac
+	case $(rnd 6) in 0) o="$o -x" ;; esac
+	eval "STDIN=in NO_RS=x check $o \"\$@\"" || return
+	STDIN=in NO_RS=x NO_MAC=x check -I '{}' echo '[{}]' || return
+	STDIN=in NO_RS=x NO_MAC=x check -I '{}' -E EOF echo '<{}>' '{}' || return
+}
+
+# chmod: random symbolic and octal modes applied to files of every mode; what is compared is the mode
+# of each file afterwards. macOS is left out (it keeps the set-ID and sticky bits that a mode with "="
+# must clear and ignores "X" after "-"; see chmod.known.macos), and so are the modes of directories,
+# where the set-ID and sticky bits of an octal mode are kept by GNU and posixutils-rs.
+mkmode() {
+	awk -v seed="$(rnd 1000000)" 'BEGIN {
+		srand(seed)
+		if (rand() < 0.12) {
+			n = 1 + int(rand() * 5)
+			for (i = 0; i < n; i++) printf "%d", int(rand() * 8)
+			exit
+		}
+		nc = 1 + int(rand() * 3)
+		for (c = 0; c < nc; c++) {
+			if (c) printf ","
+			nw = int(rand() * 4)
+			for (i = 0; i < nw; i++) printf "%s", substr("ugoa", 1 + int(rand() * 4), 1)
+			na = 1 + int(rand() * 3)
+			for (a = 0; a < na; a++) {
+				printf "%s", substr("+-=", 1 + int(rand() * 3), 1)
+				if (rand() < 0.2) printf "%s", substr("ugo", 1 + int(rand() * 3), 1)
+				else {
+					np = int(rand() * 5)
+					for (i = 0; i < np; i++) printf "%s", substr("rwxXst", 1 + int(rand() * 6), 1)
+				}
+			}
+		}
+	}'
+}
+
+fuzz_chmod() {
+	m=$(mkmode)
+	ops="f0 f4 f6 f7 f77 fs fg"
+	for bin in /opt/local/bin/gchmod ${RS:+$RS/chmod}; do
+		[ -x "$bin" ] || continue
+		for who in ours ref; do
+			rm -rf "$tmp/m"; mkdir "$tmp/m"
+			(cd "$tmp/m" && touch f0 f4 f6 f7 f77 fs fg && chgrp "$(id -g)" $ops \
+				&& chmod 000 f0 && chmod 400 f4 && chmod 644 f6 && chmod 755 f7 && chmod 777 f77 \
+				&& chmod 4755 fs && chmod 2755 fg)
+			if [ $who = ours ]; then b=$OURS/chmod; else b=$bin; fi
+			(cd "$tmp/m" && env -i PATH=/usr/bin:/bin LC_ALL=C POSIXLY_CORRECT=1 "$b" "$m" $ops > /dev/null 2>&1; echo $? > "$tmp/s.$who"
+				for f in $ops; do ls -ld "$f" | cut -c1-10; done > "$tmp/o.$who")
+		done
+		[ "$(cat "$tmp/s.ours")" -eq 0 ] && so=0 || so=1
+		[ "$(cat "$tmp/s.ref")" -eq 0 ] && sr=0 || sr=1
+		if ! cmp -s "$tmp/o.ours" "$tmp/o.ref" || [ $so -ne $sr ]; then
+			echo "FUZZ DIFF chmod vs $bin: mode $m (status $so/$sr)"
+			paste "$tmp/o.ours" "$tmp/o.ref" | tr '\t' ' ' | tr '\n' ';'; echo
+			return 1
+		fi
+	done
+	return 0
 }
 
 bad=0 total=0

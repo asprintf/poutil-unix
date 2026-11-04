@@ -3015,6 +3015,201 @@ if chmod +a "everyone deny delete" acl 2> /dev/null; then
 fi
 
 
+#------------------------------------------------- xargs, ln, chmod, chown
+fresh
+
+# xargs: the exit status says what happened to the utility (EXIT STATUS, CONSEQUENCES OF ERRORS)
+echo a | "$OURS/xargs" sh -c 'exit 0' 2> e
+eq "xargs: every invocation succeeds: 0" "0 0" "$? $(wc -c < e | tr -d ' ')"
+printf 'a b c\n' | "$OURS/xargs" -n 1 sh -c 'exit 3' 2> e
+eq "xargs: an invocation exits 3 (all of them run): 123" "123" "$?"
+printf 'a b c\n' | "$OURS/xargs" -n 1 sh -c 'echo "$1" >> ran; [ "$1" = b ] && exit 255; exit 0' x 2> e
+eq "xargs: an invocation exits 255: xargs ends, 124, nothing after it runs" "124 a b" "$? $(tr '\n' ' ' < ran | sed 's/ $//')"
+rm -f ran
+printf 'a b c\n' | "$OURS/xargs" -n 1 sh -c 'echo "$1" >> ran; [ "$1" = b ] && kill -9 $$; exit 0' x 2> e
+eq "xargs: an invocation dies of a signal: 125, nothing after it runs" "125 a b" "$? $(tr '\n' ' ' < ran | sed 's/ $//')"
+rm -f ran
+echo a | "$OURS/xargs" ./nosuchcmd 2> e
+eq "xargs: utility not found: 127 and a diagnostic" "127 1" "$? $(wc -l < e | tr -d ' ')"
+: > noexec
+echo a | "$OURS/xargs" ./noexec 2> e
+eq "xargs: utility found but not executable: 126" "126" "$?"
+rm -f noexec
+echo a | "$OURS/xargs" sh -c 'exit 127' 2> e
+eq "xargs: a utility that itself exits 127 is an invocation that failed, not a missing utility" "123" "$?"
+echo a | "$OURS/xargs" sh -c 'exit 126' 2> e
+eq "xargs: and 126 the same" "123" "$?"
+
+# the utility reads /dev/null, not the input of xargs
+printf 'x y\nz\n' | "$OURS/xargs" -n 1 sh -c 'cat | wc -c | tr -d " "' > out 2> e
+eq "xargs: the utility's standard input is empty" "0 0 0" "$(tr '\n' ' ' < out | sed 's/ $//')"
+
+# size: every invocation is within the limit, nothing is lost, the order is kept
+awk 'BEGIN { for (i = 1; i <= 200000; i++) printf "arg%07d\n", i }' > big
+"$OURS/xargs" sh -c 'echo $#; for a; do echo "$a" >&2; done' x < big > counts 2> seen
+eq "xargs: 200000 arguments: all passed, in order" "$(cat big | cksum)" "$(cksum < seen)"
+eq "xargs: 200000 arguments are split over more than one command line" "yes" "$([ "$(wc -l < counts | tr -d ' ')" -gt 1 ] && echo yes)"
+eq "xargs: and the arguments counted add up" "200000" "$(awk '{ n += $1 } END { print n }' counts)"
+"$OURS/xargs" -n 7 sh -c 'echo $#' x < big > counts
+eq "xargs -n 7: 28571 commands of 7 and one of 3" "28572 28571 3" "$(wc -l < counts | tr -d ' ') $(grep -c '^7$' counts) $(tail -1 counts)"
+awk 'BEGIN { for (i = 0; i < 200000; i++) printf "x" ; print "" }' > huge
+"$OURS/xargs" sh -c 'echo ran' x < huge > out 2> e
+eq "xargs: an argument too big for any command line: 1, nothing run, a diagnostic" "1 0 1" "$? $(wc -c < out | tr -d ' ') $(wc -l < e | tr -d ' ')"
+printf 'a\n%s\nb\n' "$(cat huge)" | "$OURS/xargs" -n 1 sh -c 'echo "$1" | wc -c' x > out 2> e
+eq "xargs -n 1: the arguments before the one too big are run, then it ends" "1 1" "$? $(wc -l < out | tr -d ' ')"
+rm -f big huge counts seen
+echo a | "$OURS/xargs" -s 3 echo > out 2> e
+eq "xargs -s smaller than the utility alone: 1, nothing run" "1 0" "$? $(wc -c < out | tr -d ' ')"
+
+# the input
+"$OURS/xargs" echo < /dev/null > out
+eq "xargs: no input: the utility runs once" "0 1" "$? $(wc -l < out | tr -d ' ')"
+"$OURS/xargs" echo x <&- > out 2> e
+eq "xargs with standard input closed: an error, nothing run" "1 0" "$? $(wc -c < out | tr -d ' ')"
+printf 'a \\\nb' | "$OURS/xargs" -n 1 printf '[%s]' > out
+eq "xargs: an escaped newline is part of the argument" "[a][
+b]" "$(cat out)"
+printf 'a b' | "$OURS/xargs" -I {} echo '<{}>' > out
+eq "xargs -I: a last line without a newline" "<a b>" "$(cat out)"
+printf 'a\nb\n' | "$OURS/xargs" -t -n 1 echo > out 2> e
+eq "xargs -t: the command lines on standard error, the output on standard output" "echo a
+echo b a b" "$(cat e) $(tr '\n' ' ' < out | sed 's/ $//')"
+printf 'a\0b\n' | "$OURS/xargs" echo > out 2> e
+eq "xargs: a NUL byte in the input is an error, nothing run" "1 0" "$? $(wc -c < out | tr -d ' ')"
+
+# -p reads the answers from the terminal, not from the input
+if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /dev/null 2>&1; then
+	# script sends ^D when its input ends, so the answers are followed by a pause
+	(sleep 1; printf 'y\nn\ny\n'; sleep 2) | /usr/bin/script -q /dev/null sh -c 'printf "a\nb\nc\n" | "$OURS/xargs" -p -n 1 echo > out' > ty 2>&1
+	eq "xargs -p: y runs, n skips" "a c" "$(tr '\n' ' ' < out | sed 's/ $//')"
+	eq "xargs -p: a prompt for each command line (?... after the -t line)" "3" "$(tr -d '\r' < ty | grep -o 'echo [abc]?\.\.\.' | wc -l | tr -d ' ')"
+fi
+
+# -x and the other size options
+printf 'aaaa bbbb cccc\n' | "$OURS/xargs" -n 3 -s 13 -x echo > out 2> e
+eq "xargs -n 3 -s 13 -x: the three do not fit: 1 and nothing run" "1 0" "$? $(wc -c < out | tr -d ' ')"
+printf 'aaaa bbbb cccc\n' | "$OURS/xargs" -n 3 -s 13 echo > out 2> e
+eq "xargs -n 3 -s 13: cut short without -x (echo and one argument are 10 bytes, two are 15)" "0 3" "$? $(wc -l < out | tr -d ' ')"
+
+# a utility name or argument that is not text
+printf 'a\n' | "$OURS/xargs" printf '%s\n' "$(printf '\377x')" > out
+eq "xargs: bytes are passed through" "ff780a 610a" "$(head -1 out | od -An -tx1 | tr -d ' \n') $(tail -1 out | od -An -tx1 | tr -d ' \n')"
+
+# ln
+fresh
+echo F > f
+ln -s f sl
+"$OURS/ln" -f f f 2> e
+eq "ln -f f f: refused, f is kept" "1 F" "$? $(cat f)"
+"$OURS/ln" -f sl f 2> e
+eq "ln -f link-to-f f: refused, f is kept (its only name)" "1 F" "$? $(cat f)"
+"$OURS/ln" f g
+"$OURS/ln" -f sl g 2> e
+eq "ln -f sl g: g is replaced, f keeps two names" "0 F 2" "$? $(cat g) $(ls -l f | awk '{print $2}')"
+"$OURS/ln" nosuch h 2> e
+eq "ln nosuch h: the diagnostic names the source" "1 1" "$? $(grep -c nosuch e)"
+echo H > h
+"$OURS/ln" -f nosuch h 2> e
+eq "ln -f nosuch h: h is not removed for a link that cannot be made" "1 H" "$? $(cat h)"
+mkdir dd; : > dd/x
+"$OURS/ln" -f f dd/x
+"$OURS/ln" -s f dd 2> e
+eq "ln -s f dd: into the directory, as dd/f" "0 f" "$? $(readlink dd/f)"
+"$OURS/ln" f g h dd 2> e
+eq "ln f g h dd: dd/f exists: one error, the other two are linked" "1 1" "$? $(wc -l < e | tr -d ' ')"
+"$OURS/ln" <&- >&- f nl 2>&-
+eq "ln with the three standard descriptors closed" "0 F" "$? $(cat nl)"
+"$OURS/ln" f 2> /dev/null
+eq "ln f: one operand is a usage error" "2" "$?"
+
+# chmod
+fresh
+echo x > f; chmod 644 f
+"$OURS/chmod" 600 f <&- >&- 2>&-
+eq "chmod with the standard descriptors closed" "0 -rw-------" "$? $(mode f)"
+"$OURS/chmod" 600 nosuch 2>&-
+eq "chmod of a missing file with standard error closed: 1" "1" "$?"
+(umask 027; "$OURS/chmod" +rwx f)
+eq "chmod +rwx under umask 027: the bits of the mask are left out" "-rwxr-x---" "$(mode f)"
+(umask 077; "$OURS/chmod" a+r f)
+eq "chmod a+r under umask 077: with a who the mask is not used" "-rwxr-xr--" "$(mode f)"
+"$OURS/chmod" -R 755 nosuch f 2> e
+eq "chmod -R 755 nosuch f: the error does not stop the next" "1 -rwxr-xr-x" "$? $(mode f)"
+"$OURS/chmod" -- -w f 2> e
+eq "chmod -- -w f: a mode that starts with -" "0 -r-xr-xr-x" "$? $(mode f)"
+"$OURS/chmod" -w f 2> e
+eq "chmod -w f: an option, so a usage error" "2" "$?"
+chmod 644 f
+mkdir -p t/a/b; echo 1 > t/top; echo 2 > t/a/b/f; ln -s ../top t/a/lnk; ln -s nowhere t/dang
+chmod 600 t/top
+"$OURS/chmod" -R go+r t 2> e
+eq "chmod -R: status 0 and silent, a link and a dangling link are left alone" "0 0" "$? $(wc -c < e | tr -d ' ')"
+eq "chmod -R: files and directories changed" "-rw-r--r-- drwxr-xr-x -rw-r--r--" "$(mode t/top) $(mode t/a) $(mode t/a/b/f)"
+chmod 600 t/top
+"$OURS/chmod" -R a-x t 2> e
+eq "chmod -R a-x t: the directories are changed after what is in them: no error" "0 0" "$? $(wc -c < e | tr -d ' ')"
+chmod -R u+rwx t
+if [ "$(id -u)" -ne 0 ]; then
+	mkdir shut; echo 1 > shut/f; chmod 000 shut
+	"$OURS/chmod" -R u+rwx shut 2> e
+	eq "chmod -R u+rwx on a directory that cannot be read: changed first, then read" "0 -rwxr--r--" "$? $(mode shut/f)"
+	rm -rf shut
+fi
+# depth: a tree deeper than any pathname, a small stack, and few descriptors
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 300 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		: > file
+		i=$((i + 1))
+	done
+)
+(ulimit -s 512 2> /dev/null; "$OURS/chmod" -R 700 deep 2> e; echo $? > st)
+eq "chmod -R of a tree 300 levels deep (over 5000 bytes of path), small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
+(ulimit -n 12 2> /dev/null && "$OURS/chmod" -R 755 deep 2> e; echo $? > st)
+eq "chmod -R with 12 descriptors allowed: the level it cannot enter is an error, no crash" "1 yes" "$(cat st) $(grep -c 'Too many open files' e | sed 's/[1-9].*/yes/')"
+rm -rf deep
+
+# chown: only what a user may do, to oneself
+fresh
+echo x > f; ln -s f sl; mkdir -p t/a; : > t/a/g; ln -s a t/up; ln -s nowhere t/dang
+me=$(id -u); gr=$(id -g)
+"$OURS/chown" "$me:$gr" f <&- >&- 2>&-
+eq "chown with the standard descriptors closed" "0" "$?"
+"$OURS/chown" "$me" nosuch 2>&-
+eq "chown of a missing file with standard error closed: 1" "1" "$?"
+"$OURS/chown" "$me" f nosuch f 2> e
+eq "chown: an error does not stop the next file, one diagnostic" "1 1" "$? $(wc -l < e | tr -d ' ')"
+"$OURS/chown" nosuch-user-poutil f 2> e
+eq "chown: a user that does not exist: 1, a diagnostic" "1 1" "$? $(wc -l < e | tr -d ' ')"
+"$OURS/chown" "$me:nosuch-group-poutil" f 2> e
+eq "chown: a group that does not exist: 1" "1" "$?"
+"$OURS/chown" -R "$me:$gr" t 2> e
+eq "chown -R: the dangling link is a link itself and fine" "0 0" "$? $(wc -c < e | tr -d ' ')"
+"$OURS/chown" -RL "$me:$gr" t 2> e
+eq "chown -RL: the dangling link cannot be followed: one error" "1 1" "$? $(wc -l < e | tr -d ' ')"
+"$OURS/chown" -h "$me:$gr" sl t/dang 2> /dev/null
+eq "chown -h: of a link and of a dangling link" "0" "$?"
+"$OURS/chown" "$me:$gr" sl
+eq "chown of a link: the file it leads to" "0" "$?"
+mkdir deep
+(
+	cd deep || exit 1
+	i=0
+	while [ $i -lt 300 ]; do
+		mkdir dddddddddddddddd || exit 1
+		cd dddddddddddddddd || exit 1
+		: > file
+		i=$((i + 1))
+	done
+)
+(ulimit -s 512 2> /dev/null; "$OURS/chown" -R "$me" deep 2> e; echo $? > st)
+eq "chown -R of a tree 300 levels deep, small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
+rm -rf deep
+
 # argc == 0: execve() with a null argv (legal for the caller, the kernel allows it).
 # No utility may index args[0] or args[1..] blindly and abort.
 if command -v cc > /dev/null 2>&1; then
