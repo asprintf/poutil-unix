@@ -481,6 +481,7 @@ pub fn run_command(argv: &[Vec<u8>], stdin_null: bool) -> io::Result<Wait> {
             if null >= 0 {
                 libc::dup2(null, 0);
             }
+            crate::inherited_signals();
             libc::execvp(ptrs[0], ptrs.as_ptr());
             let e: libc::c_int = io::Error::last_os_error().raw_os_error().unwrap_or(libc::EINVAL);
             libc::write(fds[1], (&e as *const libc::c_int).cast(), std::mem::size_of::<libc::c_int>());
@@ -503,10 +504,13 @@ pub fn run_command(argv: &[Vec<u8>], stdin_null: bool) -> io::Result<Wait> {
     let exec_errno = if n == buf.len() as isize { Some(libc::c_int::from_ne_bytes(buf)) } else { None };
     let status = loop {
         let (r, st, _) = wait4(pid);
-        if r < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
-            continue;
+        if r == pid {
+            break st;
         }
-        break st;
+        let e = io::Error::last_os_error();
+        if e.kind() != io::ErrorKind::Interrupted {
+            return Err(e);
+        }
     };
     if let Some(e) = exec_errno {
         return Err(io::Error::from_raw_os_error(e));

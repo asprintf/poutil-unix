@@ -3251,5 +3251,13 @@ eq "tee with stdout closed: status 1, the file written once" "1 hi" "$? $(cat t)
 "$OURS/env" "$OURS/nohup" "$OURS/echo" hi >&- 2> /dev/null
 eq "env: the utility it runs still finds stdout closed (nohup.out made)" hi "$(cat nohup.out 2> /dev/null)"
 
+#------------------------------------------- SIGCHLD inherited as ignored
+# Linux keeps an ignored SIGCHLD across exec and then wait() fails (macOS resets it at exec).
+fresh
+perl -e '$SIG{CHLD} = "IGNORE"; exec @ARGV' "$OURS/xargs" false < /dev/null 2> /dev/null
+eq "xargs under an ignored SIGCHLD: the utility's failure is seen" 123 $?
+perl -e '$SIG{CHLD} = "IGNORE"; exec @ARGV' "$OURS/time" false 2> /dev/null
+eq "time under an ignored SIGCHLD: the utility's status" 1 $?
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]

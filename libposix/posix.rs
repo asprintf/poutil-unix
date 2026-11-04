@@ -29,6 +29,7 @@ use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::os::unix::ffi::OsStringExt;
 
 static SIGPIPE_WAS_IGNORED: AtomicBool = AtomicBool::new(false);
+static SIGCHLD_WAS_IGNORED: AtomicBool = AtomicBool::new(false);
 /* bit n set: descriptor n was closed when the process started, and is still a placeholder */
 static CLOSED_STDIO: AtomicU8 = AtomicU8::new(0);
 
@@ -128,6 +129,14 @@ pub fn init() {
     }
     default_unless_ignored(libc::SIGSEGV);
     default_unless_ignored(libc::SIGBUS);
+    /* an ignored SIGCHLD (Linux keeps it across exec) makes wait fail with ECHILD; put back for exec */
+    unsafe {
+        let mut sa: libc::sigaction = std::mem::zeroed();
+        if libc::sigaction(libc::SIGCHLD, std::ptr::null(), &mut sa) == 0 && sa.sa_sigaction == libc::SIG_IGN {
+            SIGCHLD_WAS_IGNORED.store(true, Ordering::Relaxed);
+            libc::signal(libc::SIGCHLD, libc::SIG_DFL);
+        }
+    }
     unsafe {
         let h = if SIGPIPE_WAS_IGNORED.load(Ordering::Relaxed) {
             libc::SIG_IGN
@@ -423,6 +432,13 @@ unsafe fn set_environ(p: *mut *mut libc::c_char) {
  * SIGPIPE and the signal mask in the child, which would lose inherited
  * dispositions.
  */
+/* Give back the dispositions init() changed for our own use (async-signal-safe: for a child before exec). */
+pub(crate) fn inherited_signals() {
+    if SIGCHLD_WAS_IGNORED.load(Ordering::Relaxed) {
+        unsafe { libc::signal(libc::SIGCHLD, libc::SIG_IGN) };
+    }
+}
+
 pub fn exec_utility(prog: &[u8], argv: &[Vec<u8>], env: Option<&[Vec<u8>]>) -> ! {
     let cargs: Vec<CString> = argv.iter().map(|a| cstr(a)).collect();
     let mut pargs: Vec<*const libc::c_char> = cargs.iter().map(|a| a.as_ptr()).collect();
@@ -434,6 +450,7 @@ pub fn exec_utility(prog: &[u8], argv: &[Vec<u8>], env: Option<&[Vec<u8>]>) -> !
         unsafe { set_environ(penv.as_mut_ptr()) };
         std::mem::forget(penv);
     }
+    inherited_signals();
     unsafe { libc::execvp(pargs[0], pargs.as_ptr()) };
     let e = std::io::Error::last_os_error();
     warn_path(prog, &argv[0], &strerror(&e));
