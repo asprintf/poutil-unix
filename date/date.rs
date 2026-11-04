@@ -226,9 +226,14 @@ fn main() {
 mod tests {
     use super::*;
 
+    /* Does a time_t hold secs? Not outside 1901-2038 where it has 32 bits. */
+    fn fits(secs: i64) -> bool {
+        libc::time_t::try_from(secs).is_ok()
+    }
+
     /* a broken-down UTC time; the zone name can be overridden (a static C string) */
     fn tm_at(secs: i64, zone: Option<&'static std::ffi::CStr>) -> Tm {
-        let t = secs as libc::time_t;
+        let t = libc::time_t::try_from(secs).expect("a time that time_t holds");
         let mut tm = posix::time::gmtime(t).expect("gmtime");
         if let Some(z) = zone {
             tm.set_zone(z);
@@ -460,6 +465,10 @@ mod tests {
                     let days = days_from_civil(y, mo, d);
                     let wd = weekday(days);
                     let t = days * 86400 + 13 * 3600 + 5 * 60 + 9;
+                    if !fits(t) {
+                        yday += 1;
+                        continue;
+                    }
                     let tm = tm_at(t, None);
                     let get = |f: &str| {
                         let p = parse_format(f.as_bytes()).unwrap();
@@ -489,7 +498,8 @@ mod tests {
                 }
             }
         }
-        assert!(checked > 100_000);
+        /* 1902 to 2037 at least, with a 32-bit time_t */
+        assert!(checked > 49_000);
     }
 
     #[test]
@@ -503,7 +513,9 @@ mod tests {
     fn the_seconds_field_and_negative_times() {
         assert_eq!(fmt("%S", utc(2020, 1, 1, 0, 0, 59)), "59");
         assert_eq!(fmt("%Y-%m-%d %H:%M:%S", -1), "1969-12-31 23:59:59");
-        assert_eq!(fmt("%Y", utc(12345, 1, 1, 0, 0, 0)), "12345");
+        if fits(utc(12345, 1, 1, 0, 0, 0)) {
+            assert_eq!(fmt("%Y", utc(12345, 1, 1, 0, 0, 0)), "12345");
+        }
     }
 
     #[test]
