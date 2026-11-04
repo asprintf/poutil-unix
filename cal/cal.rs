@@ -108,10 +108,10 @@ impl Names {
 
 /* One strftime conversion for a weekday and a month (0-based); None if it gives nothing. */
 fn strftime(fmt: &std::ffi::CStr, wday: i32, mon: i32) -> Option<Vec<u8>> {
-    let mut tm: libc::tm = posix::sys::zeroed();
-    tm.tm_wday = wday;
-    tm.tm_mon = mon;
-    tm.tm_mday = 1;
+    let mut tm = posix::time::Tm::zero();
+    tm.set_wday(wday);
+    tm.set_mon(mon);
+    tm.set_mday(1);
     let mut buf = [0u8; 256];
     let n = posix::time::strftime(&mut buf, fmt, &tm);
     if n == 0 {

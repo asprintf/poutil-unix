@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 use posix::getopt::{Getopt, Opt};
+use posix::time::Tm;
 
 const SYNOPSIS: &str = "date [-u] [+format]\n       date [-u] mmddhhmm[[cc]yy]";
 
@@ -71,7 +72,7 @@ fn parse_format(f: &[u8]) -> Result<Vec<Piece>, Vec<u8>> {
  * time zone name) but strftime also returns 0 when the buffer is too small,
  * so the format is led by a character that is always produced.
  */
-fn convert(spec: &[u8], tm: &libc::tm) -> Vec<u8> {
+fn convert(spec: &[u8], tm: &Tm) -> Vec<u8> {
     let mut fmt = vec![b'x'];
     fmt.extend_from_slice(spec);
     let cf = posix::cstr(&fmt);
@@ -90,7 +91,7 @@ fn convert(spec: &[u8], tm: &libc::tm) -> Vec<u8> {
 }
 
 /* The text for a broken-down time, without the final newline. */
-fn expand(pieces: &[Piece], tm: &libc::tm) -> Vec<u8> {
+fn expand(pieces: &[Piece], tm: &Tm) -> Vec<u8> {
     let mut out = Vec::new();
     for p in pieces {
         match p {
@@ -143,7 +144,7 @@ fn now() -> i64 {
     posix::time::realtime()
 }
 
-fn local_tm(secs: i64) -> Option<libc::tm> {
+fn local_tm(secs: i64) -> Option<Tm> {
     /* a time_t that cannot hold the value is no time at all, not a wrapped one */
     let t = libc::time_t::try_from(secs).ok()?;
     posix::time::localtime(t)
@@ -227,11 +228,11 @@ mod tests {
     use super::*;
 
     /* a broken-down UTC time; the zone name can be overridden (a static C string) */
-    fn tm_at(secs: i64, zone: Option<&'static std::ffi::CStr>) -> libc::tm {
+    fn tm_at(secs: i64, zone: Option<&'static std::ffi::CStr>) -> Tm {
         let t = secs as libc::time_t;
         let mut tm = posix::time::gmtime(t).expect("gmtime");
         if let Some(z) = zone {
-            tm.tm_zone = z.as_ptr() as *mut libc::c_char;
+            tm.set_zone(z);
         }
         tm
     }
@@ -350,9 +351,9 @@ mod tests {
     #[test]
     fn no_time_zone_name_is_no_characters() {
         let mut tm = tm_at(0, None);
-        tm.tm_zone = c"".as_ptr() as *mut libc::c_char;
+        tm.set_zone(c"");
         /* the daylight saving flag is "not known": glibc would name the zone of TZ from it otherwise */
-        tm.tm_isdst = -1;
+        tm.set_isdst(-1);
         let p = parse_format(b"[%Z]").unwrap();
         assert_eq!(expand(&p, &tm), b"[]");
     }

@@ -88,13 +88,15 @@ GNU compatibility. If one of those fits your needs better than this does,
 use it.
 
 Developed and checked (VSC-PCTS, difftest) on x86_64 macOS. All utilities
-also build on Linux (x86_64, glibc) and pass the unit tests there; df lists
-the mounts from /proc/self/mounts and leaves out file systems with no blocks
-(proc, sysfs and the like). The space comes from statvfs, which POSIX has, so
-"df file" works on any system with it. POSIX cannot list the mounts, so that
-part is system specific: getfsstat on macOS and FreeBSD, getmntent on Linux;
-on any other system plain "df" says unsupported. FreeBSD only type-checks so far. The PCTS and
-difftest results are macOS only. Patches welcome.
+also build on Linux (x86_64, glibc) and pass the unit tests there; FreeBSD
+only type-checks so far. The PCTS and difftest results are macOS only.
+
+df is the one utility with system specific code, because POSIX has no way
+to list the mounted file systems. macOS and FreeBSD ask the kernel with
+getfsstat and statfs. Linux reads /proc/self/mounts with getmntent, takes
+the space from statvfs and leaves out file systems with no blocks (proc,
+sysfs and the like). On any other system "df file" still works through
+statvfs, and plain "df" says unsupported. Patches welcome.
 
 
 DESIGN RULES

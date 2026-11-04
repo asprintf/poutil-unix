@@ -2,6 +2,12 @@
 /*
  * The locale: choosing it, and the few facts about it that the utilities ask
  * for. Character handling is in mb.
+ *
+ * Single thread only: setlocale changes the locale of the whole process,
+ * and every locale-dependent call (mbrtowc, strcoll, localeconv, printf)
+ * may run at the same time on another thread; localeconv and nl_langinfo
+ * hand back storage the next call overwrites. The utilities have one
+ * thread; unit tests that set a locale must hold a lock.
  */
 
 use std::ffi::{CStr, CString};

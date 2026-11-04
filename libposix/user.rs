@@ -3,6 +3,10 @@
  * Process identity and the user and group database, as safe functions: the
  * get*id calls, getpwuid, getpwnam, getgrgid, getgroups and getgrouplist.
  * Names are byte strings, never UTF-8.
+ *
+ * Single thread only: getpwuid, getpwnam and getgrgid return storage that
+ * the next lookup, on any thread, may overwrite. The names are copied out
+ * at once, which is enough with one thread.
  */
 
 use std::ffi::{CStr, CString};
@@ -128,12 +132,23 @@ mod tests {
         assert_eq!(user_name(0).as_deref(), Some(&b"root"[..]));
     }
 
+    /*
+     * An ID with no entry in the database. Fixed values are not portable: on
+     * macOS -2 is the user and the group nobody and -1 the group nogroup,
+     * and directory services hand out IDs almost anywhere.
+     */
+    fn unused(lookup: fn(u32) -> Option<Vec<u8>>) -> u32 {
+        (1..=1000u32).map(|k| u32::MAX - 1000 - k).find(|&id| lookup(id).is_none()).expect("no unused ID in the range")
+    }
+
     #[test]
     fn unknown_names_are_none() {
         assert_eq!(user_by_name(b"no-such-user-poutil"), None);
         assert_eq!(user_by_name(b"a\0b"), None);
-        assert_eq!(user_name(u32::MAX - 1), None);
-        assert_eq!(group_name(u32::MAX - 1), None);
+        /* found with the function under test; root_is_user_zero checks that a known ID is found */
+        let (u, g) = (unused(user_name), unused(group_name));
+        assert_eq!(user_name(u), None);
+        assert_eq!(group_name(g), None);
     }
 
     #[test]

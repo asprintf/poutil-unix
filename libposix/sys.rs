@@ -7,6 +7,11 @@
  *
  * All the unsafe code of the utilities lives in libposix; the utilities
  * themselves have none.
+ *
+ * Some calls are safe only in a process with one thread, as the utilities
+ * are: fork (the child of a threaded process may only call async-signal-safe
+ * functions), getlogin and ttyname (static storage), and umask, set_umask
+ * and ignore_signal (state of the whole process).
  */
 
 use std::ffi::CStr;
@@ -331,7 +336,7 @@ pub fn ignore_signal(sig: libc::c_int) {
     unsafe { libc::signal(sig, libc::SIG_IGN) };
 }
 
-/* fork(2). The utilities have a single thread, so the child may go on to exec. */
+/* fork(2). Single thread only (see above): the child may then do anything before it execs. */
 pub fn fork() -> libc::pid_t {
     unsafe { libc::fork() }
 }
