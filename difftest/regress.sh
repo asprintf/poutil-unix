@@ -1883,6 +1883,8 @@ else
 	echo "skip: no locale en_US.UTF-8"
 fi
 eq "printf in the C locale: the first byte of a multibyte character" 195 "$(LC_ALL=C "$OURS/printf" '%d' "'$(printf '\303\251')")"
+"$OURS/printf" 'a%+.2147483647db' 1 > out 2> err
+eq "printf: a result longer than INT_MAX bytes is an error, the rest is written" "1 ab 1" "$? $(cat out) $(wc -l < err | tr -d ' ')"
 
 #---------------------------------------------------------------------- cmp
 fresh

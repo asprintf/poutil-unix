@@ -310,24 +310,24 @@ fn c_format(sp: &Spec, length: &str) -> std::ffi::CString {
     std::ffi::CString::new(f).unwrap_or_default()
 }
 
-/* Run snprintf with a buffer that grows until the result fits. */
-fn snprintf_into(sp: &Spec, call: impl Fn(&mut [u8]) -> i32) -> Vec<u8> {
+/* Run snprintf with a buffer that grows until the result fits; its error (EOVERFLOW: more than INT_MAX bytes). */
+fn snprintf_into(sp: &Spec, call: impl Fn(&mut [u8]) -> i32) -> io::Result<Vec<u8>> {
     let mut buf: Vec<u8> = vec![0; 64 + sp.width.max(sp.prec.unwrap_or(0))];
     loop {
         let n = call(&mut buf);
         if n < 0 {
-            return Vec::new();
+            return Err(io::Error::last_os_error());
         }
         if (n as usize) < buf.len() {
             buf.truncate(n as usize);
-            return buf;
+            return Ok(buf);
         }
         buf.resize(n as usize + 1, 0);
     }
 }
 
 /* An integer through the C library's printf, which does the flags, the width and the precision. */
-fn format_int(sp: &Spec, bits: u64) -> Vec<u8> {
+fn format_int(sp: &Spec, bits: u64) -> io::Result<Vec<u8>> {
     let cf = c_format(sp, "j");
     let signed = sp.conv == b'd' || sp.conv == b'i';
     snprintf_into(sp, |buf| {
@@ -344,7 +344,7 @@ fn is_real(conv: u8) -> bool {
 }
 
 /* A floating-point number through the C library's printf (LC_NUMERIC gives the radix character). */
-fn format_real(sp: &Spec, v: f64) -> Vec<u8> {
+fn format_real(sp: &Spec, v: f64) -> io::Result<Vec<u8>> {
     if v.is_nan() {
         /*
          * The standard has "[-]nan" for a NaN. Some C libraries (macOS) leave
@@ -363,7 +363,7 @@ fn format_real(sp: &Spec, v: f64) -> Vec<u8> {
         body.extend_from_slice(if sp.conv.is_ascii_uppercase() { b"NAN" } else { b"nan" });
         let mut out = Vec::new();
         pad(&mut out, &body, &Spec { minus: sp.minus, width: sp.width, ..Spec::default() });
-        return out;
+        return Ok(out);
     }
     let cf = c_format(sp, "");
     snprintf_into(sp, |buf| posix::cfmt::format_f64(buf, &cf, v))
@@ -500,7 +500,13 @@ fn printf<W: Write>(fmt: &[u8], args: &[Vec<u8>], w: &mut W, warn: &mut dyn FnMu
                                 warn(&format!("{}: {}", String::from_utf8_lossy(arg), m));
                                 status = 1;
                             }
-                            out.extend_from_slice(&format_int(sp, n.bits));
+                            match format_int(sp, n.bits) {
+                                Ok(b) => out.extend_from_slice(&b),
+                                Err(e) => {
+                                    warn(&format!("{}: {}", String::from_utf8_lossy(arg), posix::strerror(&e)));
+                                    status = 1;
+                                }
+                            }
                         }
                         conv if is_real(conv) => {
                             /* no argument is a zero; an empty one is not a number */
@@ -512,7 +518,13 @@ fn printf<W: Write>(fmt: &[u8], args: &[Vec<u8>], w: &mut W, warn: &mut dyn FnMu
                                 warn(&format!("{}: {}", String::from_utf8_lossy(arg), m));
                                 status = 1;
                             }
-                            out.extend_from_slice(&format_real(sp, r.value));
+                            match format_real(sp, r.value) {
+                                Ok(b) => out.extend_from_slice(&b),
+                                Err(e) => {
+                                    warn(&format!("{}: {}", String::from_utf8_lossy(arg), posix::strerror(&e)));
+                                    status = 1;
+                                }
+                            }
                         }
                         b'c' => pad(&mut out, &arg[..arg.len().min(1)], sp),
                         b's' => {
