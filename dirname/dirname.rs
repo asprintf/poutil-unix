@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* dirname - return the directory portion of a pathname. */
 
+#![forbid(unsafe_code)]
+
 const SYNOPSIS: &str = "dirname string";
 
 /*

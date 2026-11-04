@@ -9,6 +9,7 @@
 use std::sync::OnceLock;
 
 #[repr(C, align(8))]
+#[derive(Clone, Copy)]
 struct MbState([u8; 128]);
 
 extern "C" {
@@ -19,6 +20,8 @@ extern "C" {
         ps: *mut MbState,
     ) -> libc::size_t;
     fn iswblank(wc: libc::c_uint) -> libc::c_int;
+    fn iswspace(wc: libc::c_uint) -> libc::c_int;
+    fn wcwidth(wc: libc::wchar_t) -> libc::c_int;
     fn iswalnum(wc: libc::c_uint) -> libc::c_int;
     fn iswprint(wc: libc::c_uint) -> libc::c_int;
     fn towupper(wc: libc::c_uint) -> libc::c_uint;
@@ -83,6 +86,79 @@ pub fn char_at_stream(s: &[u8]) -> Option<(usize, Option<u32>)> {
     } else {
         Some((r, Some(wc as u32)))
     }
+}
+
+/* What one call of Decoder::decode found. */
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Step {
+    /* the bytes are not a character */
+    Invalid,
+    /* a character that the end of the bytes cuts short */
+    Incomplete,
+    /* a NUL character, one byte */
+    Nul,
+    /* a character: its wide value and its length in bytes */
+    Char(u32, usize),
+}
+
+/* A multibyte decoder with its shift state (mbrtowc(3) and an mbstate_t). */
+#[derive(Clone, Copy)]
+pub struct Decoder(MbState);
+
+impl Decoder {
+    pub fn new() -> Decoder {
+        Decoder(MbState([0; 128]))
+    }
+
+    /* Forget the shift state, as after an invalid sequence. */
+    pub fn reset(&mut self) {
+        self.0 = MbState([0; 128]);
+    }
+
+    /* Decode the first character of s (it may be empty: that is incomplete). */
+    pub fn decode(&mut self, s: &[u8]) -> Step {
+        let mut wc: libc::wchar_t = 0;
+        let r = unsafe { mbrtowc(&mut wc, s.as_ptr() as *const libc::c_char, s.len(), &mut self.0) };
+        match r {
+            usize::MAX => Step::Invalid,
+            x if x == usize::MAX - 1 => Step::Incomplete,
+            0 => Step::Nul,
+            n => Step::Char(wc as u32, n),
+        }
+    }
+}
+
+impl Default for Decoder {
+    fn default() -> Self {
+        Decoder::new()
+    }
+}
+
+/* Is the wide character white space (iswspace(3))? */
+pub fn is_space(wc: u32) -> bool {
+    unsafe { iswspace(wc) != 0 }
+}
+
+/* The columns a wide character takes on a terminal (wcwidth(3)), negative if it is not printable. */
+pub fn width(wc: u32) -> i32 {
+    unsafe { wcwidth(wc as libc::wchar_t) }
+}
+
+/*
+ * strcoll(3) of two byte strings. Like the C function it looks at the bytes
+ * up to the first NUL, so a string may carry its terminator or not.
+ */
+pub fn strcoll(a: &[u8], b: &[u8]) -> std::cmp::Ordering {
+    use std::borrow::Cow;
+    use std::ffi::{CStr, CString};
+    fn cstr(x: &[u8]) -> Cow<'_, CStr> {
+        match CStr::from_bytes_until_nul(x) {
+            Ok(c) => Cow::Borrowed(c),
+            Err(_) => Cow::Owned(CString::new(x).unwrap_or_default()),
+        }
+    }
+    let (ca, cb) = (cstr(a), cstr(b));
+    unsafe { libc::strcoll(ca.as_ptr(), cb.as_ptr()) }.cmp(&0)
 }
 
 /* Is the wide character a <blank> (iswblank(3))? */
@@ -153,9 +229,9 @@ pub fn collate(a: &[u8], b: &[u8], c_locale: bool, sa: &mut Vec<u8>, sb: &mut Ve
                 sb.clear();
                 sb.extend_from_slice(y);
                 sb.push(0);
-                let r = unsafe { libc::strcoll(sa.as_ptr() as *const libc::c_char, sb.as_ptr() as *const libc::c_char) };
-                if r != 0 {
-                    return r.cmp(&0);
+                let r = strcoll(sa, sb);
+                if r != Ordering::Equal {
+                    return r;
                 }
             }
             (Some(_), None) => return Ordering::Greater,

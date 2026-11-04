@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* uudecode - decode a binary file. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, BufReader, BufWriter, Write};

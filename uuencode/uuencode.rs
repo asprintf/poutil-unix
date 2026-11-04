@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* uuencode - encode a binary file. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::fs::File;
 use std::io::{self, BufWriter, Read, Write};
@@ -148,11 +150,7 @@ fn header(base64: bool, mode: u32, name: &[u8]) -> Vec<u8> {
 }
 
 fn umask() -> u32 {
-    unsafe {
-        let m = libc::umask(0);
-        libc::umask(m);
-        m as u32
-    }
+    posix::sys::umask()
 }
 
 /*

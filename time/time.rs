@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* time - time a simple command. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::Write;
 use std::time::Instant;
@@ -11,7 +13,7 @@ const SYNOPSIS: &str = "time [-p] utility [argument...]";
 fn float(v: f64, prec: usize) -> String {
     let fmt = posix::cstr(format!("%.{prec}f").as_bytes());
     let mut buf = [0u8; 64];
-    let n = unsafe { libc::snprintf(buf.as_mut_ptr() as *mut libc::c_char, buf.len(), fmt.as_ptr(), v) };
+    let n = posix::cfmt::format_f64(&mut buf, &fmt, v);
     String::from_utf8_lossy(&buf[..(n.max(0) as usize).min(buf.len() - 1)]).into_owned()
 }
 
@@ -52,18 +54,18 @@ fn main() {
         posix::usage(SYNOPSIS);
     }
     let start = Instant::now();
-    let pid = unsafe { libc::fork() };
+    let pid = posix::sys::fork();
     if pid < 0 {
         posix::fail(&prog, &posix::strerror(&std::io::Error::last_os_error()));
     }
     if pid == 0 {
         posix::exec_utility(&prog, ops, None);
     }
-    let mut status: libc::c_int = 0;
-    let mut ru: libc::rusage = unsafe { std::mem::zeroed() };
+    let (status, ru);
     loop {
-        let r = unsafe { libc::wait4(pid, &mut status, 0, &mut ru) };
+        let (r, st, usage) = posix::sys::wait4(pid);
         if r == pid {
+            (status, ru) = (st, usage);
             break;
         }
         let e = std::io::Error::last_os_error();

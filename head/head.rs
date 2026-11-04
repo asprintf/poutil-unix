@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* head - copy the first part of files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::{self, Read, Write};
 
@@ -68,9 +70,7 @@ fn header(first: bool, name: &[u8]) -> Vec<u8> {
 /* Give back the bytes that were read but not used (seekable input only). */
 fn rewind(fd: i32, unused: u64) {
     if unused > 0 {
-        unsafe {
-            libc::lseek(fd, -(unused.min(i64::MAX as u64) as i64) as libc::off_t, libc::SEEK_CUR);
-        }
+        posix::sys::lseek(fd, -(unused.min(i64::MAX as u64) as i64), libc::SEEK_CUR);
     }
 }
 

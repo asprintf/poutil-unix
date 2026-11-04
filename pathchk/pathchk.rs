@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* pathchk - check pathnames. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
@@ -89,7 +91,7 @@ fn start_dir(path: &[u8]) -> Vec<u8> {
 /* A pathconf limit of a directory; None when there is none. */
 fn limit(dir: &[u8], name: libc::c_int) -> Option<usize> {
     posix::clear_errno();
-    let r = unsafe { libc::pathconf(posix::cstr(dir).as_ptr(), name) };
+    let r = posix::sys::pathconf(&posix::cstr(dir), name);
     if r < 0 { None } else { Some(r as usize) }
 }
 
@@ -112,7 +114,7 @@ fn check_fs(path: &[u8]) -> Result<(), String> {
     let mut exists = true;
     let mut comps = components(path).peekable();
     while let Some(c) = comps.next() {
-        if exists && unsafe { libc::access(posix::cstr(&dir).as_ptr(), libc::X_OK) } < 0 {
+        if exists && posix::sys::access(&posix::cstr(&dir), libc::X_OK) < 0 {
             let e = std::io::Error::last_os_error();
             return Err(format!(
                 "{}: {}",
@@ -230,7 +232,8 @@ mod tests {
     fn file_system_checks() {
         assert!(check_fs(b"/").is_ok());
         assert!(check_fs(b"/no/such/dir/file").is_ok());
-        assert!(check_fs(&b"/a".repeat(1000)).is_err());
+        /* longer than PATH_MAX wherever that is (1024 on macOS, 4096 on Linux) */
+        assert!(check_fs(&b"/a".repeat(libc::PATH_MAX as usize)).is_err());
         assert!(check_fs(format!("/{}", "a".repeat(300)).as_bytes()).is_err());
         assert!(check_fs(b"/etc/passwd/x").is_err());
     }

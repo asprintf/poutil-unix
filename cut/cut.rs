@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* cut - cut out selected fields of each line of a file. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use posix::tabs::Fail;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
@@ -426,9 +428,7 @@ mod tests {
     #[test]
     fn whole_characters_in_utf8() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         /* bytes: e-acute 1-2, a 3, euro sign 4-6 */
@@ -463,6 +463,6 @@ mod tests {
         let mut out = Vec::new();
         assert!(cut_fields("a\u{20ac}b\u{20ac}c".as_bytes(), &list("2"), "\u{20ac}".as_bytes(), false, &mut out));
         assert_eq!(out, b"b");
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 }

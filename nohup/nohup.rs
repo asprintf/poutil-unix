@@ -1,28 +1,24 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* nohup - invoke a utility immune to hangups. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::Getopt;
 use std::io::{IsTerminal, Write};
 
 const SYNOPSIS: &str = "nohup utility [argument...]";
 
 fn is_closed(fd: i32) -> bool {
-    unsafe { libc::fcntl(fd, libc::F_GETFD) < 0 }
+    !posix::sys::is_open(fd)
 }
 
 /* Open path for appending, creating it with mode 0600 whatever the umask. */
 fn open_append(path: &[u8]) -> Option<i32> {
     let c = posix::cstr(path);
-    unsafe {
-        let old = libc::umask(0o177);
-        let fd = libc::open(
-            c.as_ptr(),
-            libc::O_WRONLY | libc::O_APPEND | libc::O_CREAT,
-            0o600 as libc::c_uint,
-        );
-        libc::umask(old);
-        if fd < 0 { None } else { Some(fd) }
-    }
+    let old = posix::sys::set_umask(0o177);
+    let fd = posix::sys::open(&c, libc::O_WRONLY | libc::O_APPEND | libc::O_CREAT, 0o600);
+    posix::sys::set_umask(old);
+    if fd < 0 { None } else { Some(fd) }
 }
 
 /* nohup.out in the current directory, else in $HOME */
@@ -53,7 +49,7 @@ fn main() {
         let _ = writeln!(std::io::stderr(), "usage: {SYNOPSIS}");
         std::process::exit(127);
     }
-    unsafe { libc::signal(libc::SIGHUP, libc::SIG_IGN) };
+    posix::sys::ignore_signal(libc::SIGHUP);
     let out_tty = std::io::stdout().is_terminal();
     let out_closed = is_closed(1);
     if out_tty || out_closed {
@@ -65,19 +61,17 @@ fn main() {
         msg.extend_from_slice(&name);
         msg.push(b'\n');
         let _ = std::io::stderr().write_all(&msg);
-        unsafe {
-            if fd != 1 {
-                libc::dup2(fd, 1);
-            }
-            if std::io::stderr().is_terminal() && fd != 2 {
-                libc::dup2(fd, 2);
-            }
-            if fd > 2 {
-                libc::close(fd);
-            }
+        if fd != 1 {
+            posix::sys::dup2(fd, 1);
+        }
+        if std::io::stderr().is_terminal() && fd != 2 {
+            posix::sys::dup2(fd, 2);
+        }
+        if fd > 2 {
+            posix::sys::close(fd);
         }
     } else if std::io::stderr().is_terminal() {
-        unsafe { libc::dup2(1, 2) };
+        posix::sys::dup2(1, 2);
     }
     posix::exec_utility(&prog, g.operands(), None);
 }

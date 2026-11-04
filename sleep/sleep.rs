@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* sleep - suspend execution for an interval. */
 
+#![forbid(unsafe_code)]
+
 const SYNOPSIS: &str = "sleep time";
 
 /* A non-negative decimal integer; a value that does not fit in u64 is refused. */

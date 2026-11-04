@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* tsort - topological sort. */
 
+#![forbid(unsafe_code)]
+
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::io::{self, Write};

@@ -6,6 +6,8 @@
  * "]". The result is the exit status: 0 true, 1 false, 2 error.
  */
 
+#![forbid(unsafe_code)]
+
 use posix::num::{compare_ints, int};
 use std::cmp::Ordering;
 use std::os::unix::ffi::OsStrExt;
@@ -51,7 +53,7 @@ fn access(path: &[u8], mode: libc::c_int) -> bool {
         return false;
     }
     let c = posix::cstr(path);
-    unsafe { libc::faccessat(libc::AT_FDCWD, c.as_ptr(), mode, libc::AT_EACCESS) == 0 }
+    posix::sys::faccessat(libc::AT_FDCWD, &c, mode, libc::AT_EACCESS) == 0
 }
 
 /* A unary primary applied to its operand. */
@@ -78,7 +80,7 @@ fn unary(op: &[u8], arg: &[u8]) -> R {
             let Some(fd) = posix::parse_decimal(arg) else {
                 return Err(err("bad file descriptor number"));
             };
-            fd <= libc::c_int::MAX as u64 && unsafe { libc::isatty(fd as libc::c_int) } == 1
+            fd <= libc::c_int::MAX as u64 && posix::sys::isatty(fd as libc::c_int)
         }
         _ => return Err(err("unknown operator")),
     })

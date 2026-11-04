@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* mkdir - make directories. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::OsStr;
 use std::fs::{DirBuilder, Permissions};
@@ -63,11 +65,7 @@ fn main() {
     if g.operands().is_empty() {
         posix::usage(SYNOPSIS);
     }
-    let mask = unsafe {
-        let m = libc::umask(0);
-        libc::umask(m);
-        m as u32
-    };
+    let mask = posix::sys::umask();
     /* symbolic modes are relative to a=rwx */
     let mode = match &mode_arg {
         Some(m) => match posix::mode::parse(m, 0o777, true, mask) {

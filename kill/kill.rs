@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* kill - terminate or signal processes. */
 
+#![forbid(unsafe_code)]
+
 const SYNOPSIS: &str = "kill -s signal_name pid...\n       kill -l [exit_status]\n       kill [-signal_name] pid...\n       kill [-signal_number] pid...";
 
 const SIGNALS: &[(&str, i32)] = &[
@@ -131,7 +133,7 @@ fn main() {
             status = 1;
             continue;
         };
-        if unsafe { libc::kill(pid, sig) } < 0 {
+        if posix::sys::kill(pid, sig) < 0 {
             let e = std::io::Error::last_os_error();
             posix::warn_path(&prog, p, &posix::strerror(&e));
             status = 1;

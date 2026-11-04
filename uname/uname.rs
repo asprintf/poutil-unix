@@ -1,14 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* uname - return the system name. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
-use std::ffi::CStr;
 
 const SYNOPSIS: &str = "uname [-amnrsv]";
-
-fn field(p: *const libc::c_char) -> Vec<u8> {
-    unsafe { CStr::from_ptr(p) }.to_bytes().to_vec()
-}
 
 fn main() {
     posix::init();
@@ -36,17 +33,11 @@ fn main() {
     if !any {
         want[0] = true;
     }
-    let mut u: libc::utsname = unsafe { std::mem::zeroed() };
-    if unsafe { libc::uname(&mut u) } < 0 {
-        posix::fail(&prog, &posix::strerror(&std::io::Error::last_os_error()));
-    }
-    let vals = [
-        field(u.sysname.as_ptr()),
-        field(u.nodename.as_ptr()),
-        field(u.release.as_ptr()),
-        field(u.version.as_ptr()),
-        field(u.machine.as_ptr()),
-    ];
+    let u = match posix::sys::uname() {
+        Ok(u) => u,
+        Err(e) => posix::fail(&prog, &posix::strerror(&e)),
+    };
+    let vals = [u.sysname, u.nodename, u.release, u.version, u.machine];
     let mut out = Vec::new();
     for (i, v) in vals.iter().enumerate() {
         if want[i] {

@@ -1,9 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* rm - remove directory entries. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::CStr;
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 
 const SYNOPSIS: &str = "rm [-iRr] file...\n       rm -f [-iRr] [file...]";
 
@@ -68,37 +70,25 @@ fn last_err() -> std::io::Error {
 }
 
 fn lstat_at(dirfd: RawFd, name: &CStr) -> std::io::Result<libc::stat> {
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstatat(dirfd, name.as_ptr(), &mut st, libc::AT_SYMLINK_NOFOLLOW) } < 0 {
-        return Err(last_err());
-    }
-    Ok(st)
+    posix::sys::fstatat(dirfd, name, libc::AT_SYMLINK_NOFOLLOW)
 }
 
 fn fstat(fd: RawFd) -> std::io::Result<libc::stat> {
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstat(fd, &mut st) } < 0 {
-        return Err(last_err());
-    }
-    Ok(st)
+    posix::sys::fstat(fd)
 }
 
 /* Open a directory without following a symbolic link in the last component. */
 fn open_dir_at(dirfd: RawFd, name: &CStr) -> std::io::Result<OwnedFd> {
     let flags = libc::O_RDONLY | libc::O_DIRECTORY | libc::O_NOFOLLOW | libc::O_CLOEXEC;
-    let fd = unsafe { libc::openat(dirfd, name.as_ptr(), flags) };
-    if fd < 0 {
-        return Err(last_err());
-    }
-    Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+    posix::sys::openat_owned(dirfd, name, flags, 0)
 }
 
 fn writable_at(dirfd: RawFd, name: &CStr) -> bool {
-    unsafe { libc::faccessat(dirfd, name.as_ptr(), libc::W_OK, libc::AT_EACCESS) == 0 }
+    posix::sys::faccessat(dirfd, name, libc::W_OK, libc::AT_EACCESS) == 0
 }
 
 fn unlink_at(dirfd: RawFd, name: &CStr, flags: libc::c_int) -> std::io::Result<()> {
-    if unsafe { libc::unlinkat(dirfd, name.as_ptr(), flags) } < 0 {
+    if posix::sys::unlinkat(dirfd, name, flags) < 0 {
         return Err(last_err());
     }
     Ok(())
@@ -106,31 +96,8 @@ fn unlink_at(dirfd: RawFd, name: &CStr, flags: libc::c_int) -> std::io::Result<(
 
 /* Every name in an open directory except "." and "..", read before anything is removed. */
 fn read_names(fd: &OwnedFd) -> std::io::Result<Vec<Vec<u8>>> {
-    let d = unsafe { libc::fcntl(fd.as_raw_fd(), libc::F_DUPFD_CLOEXEC, 3) };
-    if d < 0 {
-        return Err(last_err());
-    }
-    let dir = unsafe { libc::fdopendir(d) };
-    if dir.is_null() {
-        let e = last_err();
-        unsafe { libc::close(d) };
-        return Err(e);
-    }
-    let mut out = Vec::new();
-    let r = loop {
-        posix::clear_errno();
-        let ent = unsafe { libc::readdir(dir) };
-        if ent.is_null() {
-            let e = last_err();
-            break if e.raw_os_error() == Some(0) { Ok(()) } else { Err(e) };
-        }
-        let name = unsafe { CStr::from_ptr((*ent).d_name.as_ptr()) }.to_bytes();
-        if name != b"." && name != b".." {
-            out.push(name.to_vec());
-        }
-    };
-    unsafe { libc::closedir(dir) };
-    r.map(|_| out)
+    let names = posix::sys::read_dir_fd(fd.as_raw_fd())?;
+    Ok(names.into_iter().filter(|n| n != b"." && n != b"..").collect())
 }
 
 fn open_and_read(dirfd: RawFd, name: &CStr) -> std::io::Result<(OwnedFd, Vec<Vec<u8>>)> {
@@ -484,7 +451,7 @@ fn main() {
         }
         posix::usage(SYNOPSIS);
     }
-    let tty = unsafe { libc::isatty(0) } == 1;
+    let tty = posix::sys::isatty(0);
     let yes = posix::prompt::Yes::new();
     let ask = Box::new(move |prompt: &[u8]| -> bool { posix::prompt::ask(&yes, prompt) });
     let mut rm = Rm::new(&prog, o, tty, ask);
@@ -715,7 +682,7 @@ mod tests {
     #[test]
     fn readonly_file_prompts_only_on_a_terminal() {
         use std::os::unix::fs::PermissionsExt;
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -776,7 +743,7 @@ mod tests {
     fn readonly_empty_directory_asks_on_a_terminal() {
         /* PCTS 12 */
         use std::os::unix::fs::PermissionsExt;
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -793,7 +760,7 @@ mod tests {
     #[test]
     fn unremovable_child_is_reported_once_and_the_rest_goes() {
         use std::os::unix::fs::PermissionsExt;
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -814,7 +781,7 @@ mod tests {
     #[test]
     fn unreadable_directory_is_an_error_and_siblings_go() {
         use std::os::unix::fs::PermissionsExt;
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -832,17 +799,17 @@ mod tests {
     /* make a chain of directories n deep without ever forming a long pathname */
     fn deep(base: &Path, name: &str, n: usize) {
         let first = posix::cstr(base.join(name).as_os_str().as_bytes());
-        unsafe { assert_eq!(libc::mkdir(first.as_ptr(), 0o755), 0) };
+        assert_eq!(posix::sys::mkdir(&first, 0o755), 0);
         let mut cur = open_dir_at(libc::AT_FDCWD, &first).unwrap();
         for k in 0..n {
             let leaf = posix::cstr(b"dddddddddddddddd");
-            unsafe { assert_eq!(libc::mkdirat(cur.as_raw_fd(), leaf.as_ptr(), 0o755), 0) };
+            assert_eq!(posix::sys::mkdirat(cur.as_raw_fd(), &leaf, 0o755), 0);
             let next = open_dir_at(cur.as_raw_fd(), &leaf).unwrap();
             if k % 7 == 0 {
                 let f = posix::cstr(b"file");
-                let fd = unsafe { libc::openat(next.as_raw_fd(), f.as_ptr(), libc::O_CREAT | libc::O_WRONLY, 0o644) };
+                let fd = posix::sys::openat(next.as_raw_fd(), &f, libc::O_CREAT | libc::O_WRONLY, 0o644);
                 assert!(fd >= 0);
-                unsafe { libc::close(fd) };
+                posix::sys::close(fd);
             }
             cur = next;
         }

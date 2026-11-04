@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* expr - evaluate arguments as an expression. */
 
+#![forbid(unsafe_code)]
+
 use posix::num::{compare_ints, int, value};
 use std::cmp::Ordering;
 
@@ -43,8 +45,7 @@ fn is_false(v: &[u8]) -> bool {
 /* Order two strings by the collation sequence of the locale. */
 fn collate(a: &[u8], b: &[u8]) -> Ordering {
     /* arguments never contain a NUL, and so nothing made from them does */
-    let (ca, cb) = (posix::cstr(a), posix::cstr(b));
-    unsafe { libc::strcoll(ca.as_ptr(), cb.as_ptr()) }.cmp(&0)
+    posix::mb::strcoll(a, b)
 }
 
 /*
@@ -106,27 +107,22 @@ fn matches(s: &[u8], pat: &[u8]) -> Result<Val, Error> {
     }
     let cs = posix::cstr(s);
     let cp = posix::cstr(pat);
-    unsafe {
-        let mut re: libc::regex_t = std::mem::zeroed();
-        if libc::regcomp(&mut re, cp.as_ptr(), 0) != 0 {
-            return Err(invalid("invalid regular expression"));
-        }
-        let groups = has_group(pat);
-        let mut m: [libc::regmatch_t; 2] = std::mem::zeroed();
-        let r = libc::regexec(&re, cs.as_ptr(), 2, m.as_mut_ptr(), 0);
-        libc::regfree(&mut re);
-        /* the leftmost match starts at 0 whenever any match does */
-        if r != 0 || m[0].rm_so != 0 {
-            return Ok(if groups { Vec::new() } else { b"0".to_vec() });
-        }
-        if groups {
-            if m[1].rm_so < 0 {
-                return Ok(Vec::new());
-            }
-            return Ok(s[m[1].rm_so as usize..m[1].rm_eo as usize].to_vec());
-        }
-        Ok(posix::mb::count_chars(&s[..m[0].rm_eo as usize]).to_string().into_bytes())
+    let Some(re) = posix::regex::Regex::new(&cp, 0) else {
+        return Err(invalid("invalid regular expression"));
+    };
+    let groups = has_group(pat);
+    let m = re.exec(&cs, 2);
+    /* the leftmost match starts at 0 whenever any match does */
+    let Some(whole) = m.as_ref().and_then(|m| m[0]).filter(|r| r.0 == 0) else {
+        return Ok(if groups { Vec::new() } else { b"0".to_vec() });
+    };
+    if groups {
+        return Ok(match m.as_ref().and_then(|m| m[1]) {
+            Some((so, eo)) => s[so..eo].to_vec(),
+            None => Vec::new(),
+        });
     }
+    Ok(posix::mb::count_chars(&s[..whole.1]).to_string().into_bytes())
 }
 
 fn arith(op: u8, a: &[u8], b: &[u8]) -> Result<Val, Error> {
@@ -597,13 +593,11 @@ mod tests {
     #[test]
     fn matching_counts_characters_not_bytes_in_utf8() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         assert_eq!(ok(&["\u{e9}\u{e9}x", ":", ".*"]), "3");
         assert_eq!(ok(&["\u{e9}\u{e9}x", ":", "..\\(.\\)"]), "x");
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 }

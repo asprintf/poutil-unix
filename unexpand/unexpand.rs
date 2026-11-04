@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* unexpand - convert spaces to tabs. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use posix::tabs::{self, Ev, Fail, Stops};
 use std::io::{self, BufWriter, Write};

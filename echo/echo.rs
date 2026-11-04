@@ -6,6 +6,8 @@
  * XSI backslash sequences are interpreted inside every operand.
  */
 
+#![forbid(unsafe_code)]
+
 /*
  * Expand the operands. Returns the output bytes and whether the trailing
  * newline is suppressed (by "\c").

@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* fold - filter for folding lines. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use posix::tabs::{col_width, each_event, Ev, Fail};
 use std::io::{self, BufWriter, Write};

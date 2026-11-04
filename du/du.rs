@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* du - estimate file space usage. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::collections::HashSet;
 use std::ffi::OsStr;
@@ -484,7 +486,8 @@ mod tests {
         let t = Tmp::new();
         t.mkdir("d");
         t.file("d/f", 20000);
-        symlink("f", t.p("d/lf")).unwrap();
+        /* sorts before f, so a followed link is met first */
+        symlink("f", t.p("d/a")).unwrap();
         symlink("d", t.p("lnd")).unwrap();
         let l = t.s("lnd");
         /* -H follows the operand only: the link inside is the link; -L follows it too */
@@ -497,8 +500,8 @@ mod tests {
         assert_eq!(run("-HL -a", &[&l]).text, a.text);
         assert_eq!(run("-H -L -H -a", &[&l]).text, h.text);
         /* the link inside, as the link and as the file it refers to */
-        assert_eq!(h.sizes()[1], t.blocks("d/lf"));
-        assert_eq!(a.sizes()[1], t.blocks("d/f"));
+        assert_eq!(h.sizes()[0], t.blocks("d/a"));
+        assert_eq!(a.sizes()[0], t.blocks("d/f"));
     }
 
     #[test]

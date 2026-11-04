@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* tee - duplicate standard input. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::OsStr;
 use std::fs::{File, OpenOptions};
@@ -71,9 +73,7 @@ fn main() {
     for o in g.by_ref() {
         match o {
             Opt::Flag(b'a') => append = true,
-            Opt::Flag(b'i') => unsafe {
-                libc::signal(libc::SIGINT, libc::SIG_IGN);
-            },
+            Opt::Flag(b'i') => posix::sys::ignore_signal(libc::SIGINT),
             _ => posix::usage(SYNOPSIS),
         }
     }

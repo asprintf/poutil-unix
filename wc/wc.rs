@@ -1,32 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* wc - word, line, and byte or character count. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::fs::File;
 use std::io::{self, Seek, SeekFrom};
 
 const SYNOPSIS: &str = "wc [-c|-m] [-lw] [file...]";
 
-/*
- * The libc crate has no multibyte conversion on every platform, so declare
- * what is needed. mbstate_t is opaque to us and must start zeroed; 128
- * bytes with 8-byte alignment cover macOS (128) and glibc (8).
- */
-#[repr(C, align(8))]
-#[derive(Clone, Copy)]
-struct MbState([u8; 128]);
-
-extern "C" {
-    fn mbrtowc(
-        pwc: *mut libc::wchar_t,
-        s: *const libc::c_char,
-        n: libc::size_t,
-        ps: *mut MbState,
-    ) -> libc::size_t;
-    fn iswspace(wc: libc::c_uint) -> libc::c_int;
-}
-
-const FRESH: MbState = MbState([0; 128]);
+use posix::mb::{Decoder, Step};
 
 #[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
 struct Counts {
@@ -72,7 +55,7 @@ struct Counter {
     ascii: bool,
     /* iswspace() of the character each single byte is, as the slow path would */
     space: [bool; 256],
-    state: MbState,
+    state: Decoder,
     /* bytes of a multibyte character not completed yet */
     pending: usize,
     in_word: bool,
@@ -94,23 +77,17 @@ fn classify_bytes() -> (bool, [bool; 256]) {
     let mut single = true;
     let mut space = [false; 256];
     for b in 0..=255u8 {
-        let mut st = FRESH;
-        let mut wc: libc::wchar_t = 0;
-        let r = unsafe { mbrtowc(&mut wc, &b as *const u8 as *const libc::c_char, 1, &mut st) };
-        if r == 1 {
-            space[b as usize] = unsafe { iswspace(wc as libc::c_uint) } != 0;
-        } else if r != 0 && r != usize::MAX {
-            single = false;
+        match Decoder::new().decode(&[b]) {
+            Step::Char(wc, 1) => space[b as usize] = posix::mb::is_space(wc),
+            Step::Char(..) | Step::Incomplete => single = false,
+            Step::Nul | Step::Invalid => {}
         }
     }
     (single, space)
 }
 
 fn utf8_locale() -> bool {
-    unsafe {
-        let cs = libc::nl_langinfo(libc::CODESET);
-        !cs.is_null() && std::ffi::CStr::from_ptr(cs).to_bytes() == b"UTF-8"
-    }
+    posix::locale::codeset_is_utf8()
 }
 
 impl Counter {
@@ -122,7 +99,7 @@ impl Counter {
             single,
             ascii: decode && utf8_locale(),
             space,
-            state: FRESH,
+            state: Decoder::new(),
             pending: 0,
             in_word: false,
             c: Counts::default(),
@@ -160,22 +137,14 @@ impl Counter {
                 i += 1;
                 continue;
             }
-            let mut wc: libc::wchar_t = 0;
-            let r = unsafe {
-                mbrtowc(
-                    &mut wc,
-                    buf[i..].as_ptr() as *const libc::c_char,
-                    buf.len() - i,
-                    &mut self.state,
-                )
-            };
-            if r == usize::MAX {
+            let step = self.state.decode(&buf[i..]);
+            if step == Step::Invalid {
                 /*
                  * Invalid. The bytes of the unfinished character are
                  * characters of their own; start over at this byte, which
                  * is then the first of a new one.
                  */
-                self.state = FRESH;
+                self.state.reset();
                 if self.pending > 0 {
                     self.c.chars += self.pending as u64;
                     self.pending = 0;
@@ -185,20 +154,20 @@ impl Counter {
                     self.step(false);
                     i += 1;
                 }
-            } else if r == usize::MAX - 1 {
+            } else if step == Step::Incomplete {
                 /* incomplete: the rest of this block belongs to it */
                 self.pending += buf.len() - i;
                 i = buf.len();
-            } else if r == 0 {
+            } else if step == Step::Nul {
                 /* a NUL character */
                 self.pending = 0;
                 self.c.chars += 1;
                 self.step(false);
                 i += 1;
-            } else {
+            } else if let Step::Char(wc, r) = step {
                 self.pending = 0;
                 self.c.chars += 1;
-                self.step(unsafe { iswspace(wc as libc::c_uint) } != 0);
+                self.step(posix::mb::is_space(wc));
                 i += r;
             }
         }
@@ -353,9 +322,7 @@ mod tests {
      */
     fn run(loc: &str, chunks: &[&[u8]]) -> Option<Counts> {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let l = std::ffi::CString::new(loc).unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, l.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale {loc}");
+        if !posix::locale::try_set(loc) {
             return None;
         }
         let mut c = Counter::new(true);
@@ -388,9 +355,7 @@ mod tests {
     /* classify_bytes() in locale loc; None if this machine lacks it */
     fn classify_in(loc: &str) -> Option<(bool, [bool; 256])> {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let l = std::ffi::CString::new(loc).unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, l.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale {loc}");
+        if !posix::locale::try_set(loc) {
             return None;
         }
         Some(classify_bytes())
@@ -438,7 +403,9 @@ mod tests {
     #[test]
     fn a_word_continues_across_blocks() {
         for loc in ["C", U] {
-            let k = run(loc, &[b"ab", b"cd ef", b"", b"gh\n"]).unwrap_or_default();
+            let Some(k) = run(loc, &[b"ab", b"cd ef", b"", b"gh\n"]) else {
+                continue;
+            };
             assert_eq!((k.words, k.lines, k.bytes), (2, 1, 10), "{loc}");
             let k = run(loc, &[b"a ", b" b"]).unwrap_or_default();
             assert_eq!(k.words, 2, "{loc}");

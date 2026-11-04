@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* sort - sort, merge, or sequence check text files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use posix::mb;
 use std::cell::RefCell;
@@ -180,18 +182,11 @@ struct NumLocale {
 }
 
 fn num_locale() -> NumLocale {
-    unsafe {
-        let lc = libc::localeconv();
-        if lc.is_null() {
-            return NumLocale { point: b".".to_vec(), thousands: Vec::new() };
-        }
-        let get = |p: *const libc::c_char| if p.is_null() { Vec::new() } else { std::ffi::CStr::from_ptr(p).to_bytes().to_vec() };
-        let mut point = get((*lc).decimal_point);
-        if point.is_empty() {
-            point = b".".to_vec();
-        }
-        NumLocale { point, thousands: get((*lc).thousands_sep) }
+    let (mut point, thousands) = posix::locale::numeric();
+    if point.is_empty() {
+        point = b".".to_vec();
     }
+    NumLocale { point, thousands }
 }
 
 /* Everything a comparison needs to know. */
@@ -552,7 +547,7 @@ fn compare_lines(ctx: &Ctx, d: &Data, i: usize, j: usize, sc: &mut Scratch) -> O
             a.cmp(b)
         } else if !d.has_nul {
             /* both lines end in a NUL, see find_keys */
-            unsafe { libc::strcoll(a.as_ptr() as *const libc::c_char, b.as_ptr() as *const libc::c_char) }.cmp(&0)
+            posix::mb::strcoll(a, b)
         } else {
             mb::collate(a, b, false, &mut sc.ca, &mut sc.cb)
         };
@@ -1007,9 +1002,7 @@ mod tests {
     fn utf8_fields_characters_and_classes() {
         let si = |a: &[&str], input: &str| run_inner(a, &[input]).expect("usage");
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         /* one character is two bytes: a key of one character must not cut it */
@@ -1018,6 +1011,6 @@ mod tests {
         assert_eq!(si(&["-f"], "\u{e9}\nE\n\u{c9}\n").lines().count(), 3);
         assert_eq!(si(&["-fu"], "\u{e9}\n\u{c9}\n").lines().count(), 1);
         assert_eq!(si(&["-d"], "a\u{e9}\nab\n").lines().count(), 2);
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 }

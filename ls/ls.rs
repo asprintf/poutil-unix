@@ -1,20 +1,17 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* ls - list directory contents. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use posix::mb;
 use std::collections::HashMap;
-use std::ffi::CStr;
 use std::io::Write;
 
 const SYNOPSIS: &str = "ls [-ikqrs] [-glno] [-A|-a] [-C|-m|-x|-1] [-F|-p] [-H|-L] [-R|-d] [-S|-f|-t] [-c|-u] [file...]";
 
 /* A file modified more than this many seconds ago (half a year) is shown with its year. */
 const SIX_MONTHS: i64 = 15_778_476;
-
-extern "C" {
-    fn wcwidth(c: libc::wchar_t) -> libc::c_int;
-}
 
 /* The format of the entries when no long format is asked for. */
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -214,22 +211,13 @@ fn is_dir(st: &libc::stat) -> bool {
     kind(st) == libc::S_IFDIR
 }
 
-fn last_err() -> std::io::Error {
-    std::io::Error::last_os_error()
-}
-
 fn stat_path(path: &[u8], follow: bool) -> std::io::Result<libc::stat> {
     let c = posix::cstr(path);
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    let r = if follow {
-        unsafe { libc::stat(c.as_ptr(), &mut st) }
+    if follow {
+        posix::sys::stat(&c)
     } else {
-        unsafe { libc::lstat(c.as_ptr(), &mut st) }
-    };
-    if r < 0 {
-        return Err(last_err());
+        posix::sys::lstat(&c)
     }
-    Ok(st)
 }
 
 fn join(dir: &[u8], name: &[u8]) -> Vec<u8> {
@@ -300,16 +288,15 @@ fn time_string(t: i64, now: i64, local: bool) -> Vec<u8> {
     let Some(tt) = libc::time_t::try_from(t).ok() else {
         return t.to_string().into_bytes();
     };
-    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
-    let ok = if local { unsafe { libc::localtime_r(&tt, &mut tm) } } else { unsafe { libc::gmtime_r(&tt, &mut tm) } };
-    if ok.is_null() {
+    let broken = if local { posix::time::localtime(tt) } else { posix::time::gmtime(tt) };
+    let Some(tm) = broken else {
         return t.to_string().into_bytes();
-    }
+    };
     /* both formats always produce text, so a zero from strftime means the buffer was too small */
     let mut size = 128;
     loop {
         let mut buf = vec![0u8; size];
-        let n = unsafe { libc::strftime(buf.as_mut_ptr().cast(), size, fmt.as_ptr(), &tm) };
+        let n = posix::time::strftime(&mut buf, fmt, &tm);
         if n > 0 || size >= 1 << 16 {
             buf.truncate(n);
             return buf;
@@ -325,24 +312,11 @@ fn time_string(t: i64, now: i64, local: bool) -> Vec<u8> {
  */
 #[cfg(target_os = "macos")]
 fn access_flag(path: &[u8], st: &libc::stat) -> u8 {
-    extern "C" {
-        fn acl_get_file(path: *const libc::c_char, acl_type: libc::c_int) -> *mut libc::c_void;
-        fn acl_get_link_np(path: *const libc::c_char, acl_type: libc::c_int) -> *mut libc::c_void;
-        fn acl_free(obj: *mut libc::c_void) -> libc::c_int;
-    }
-    /* ACL_TYPE_EXTENDED of <sys/acl.h> */
-    const EXTENDED: libc::c_int = 0x100;
-    let c = posix::cstr(path);
-    let acl = if kind(st) == libc::S_IFLNK {
-        unsafe { acl_get_link_np(c.as_ptr(), EXTENDED) }
+    if posix::sys::has_acl(&posix::cstr(path), kind(st) == libc::S_IFLNK) {
+        b'+'
     } else {
-        unsafe { acl_get_file(c.as_ptr(), EXTENDED) }
-    };
-    if acl.is_null() {
-        return 0;
+        0
     }
-    unsafe { acl_free(acl) };
-    b'+'
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -378,7 +352,7 @@ fn text_width(s: &[u8]) -> usize {
         let len = len.max(1);
         w += match wc {
             Some(c) => {
-                let x = unsafe { wcwidth(c as libc::wchar_t) };
+                let x = mb::width(c);
                 if x < 0 {
                     1
                 } else {
@@ -562,8 +536,7 @@ impl Ls {
         if let Some(n) = self.users.get(&uid) {
             return n.clone();
         }
-        let p = unsafe { libc::getpwuid(uid) };
-        let name = if p.is_null() { uid.to_string().into_bytes() } else { unsafe { CStr::from_ptr((*p).pw_name) }.to_bytes().to_vec() };
+        let name = posix::user::user_name(uid).unwrap_or_else(|| uid.to_string().into_bytes());
         self.users.insert(uid, name.clone());
         name
     }
@@ -575,8 +548,7 @@ impl Ls {
         if let Some(n) = self.groups.get(&gid) {
             return n.clone();
         }
-        let g = unsafe { libc::getgrgid(gid) };
-        let name = if g.is_null() { gid.to_string().into_bytes() } else { unsafe { CStr::from_ptr((*g).gr_name) }.to_bytes().to_vec() };
+        let name = posix::user::group_name(gid).unwrap_or_else(|| gid.to_string().into_bytes());
         self.groups.insert(gid, name.clone());
         name
     }
@@ -723,7 +695,7 @@ impl Ls {
             })
             .collect();
         let fmt = if o.fmt == Fmt::Default {
-            if unsafe { libc::isatty(1) } == 1 {
+            if posix::sys::isatty(1) {
                 Fmt::Down
             } else {
                 Fmt::One
@@ -816,7 +788,7 @@ impl Ls {
                     }
                 }
             } else {
-                Item { name: n, path: p, st: unsafe { std::mem::zeroed() }, is_link: false }
+                Item { name: n, path: p, st: posix::sys::zeroed(), is_link: false }
             };
             items.push(item);
         }
@@ -932,7 +904,7 @@ fn read_link(path: &[u8]) -> Option<Vec<u8>> {
     let mut size = 256usize;
     loop {
         let mut buf = vec![0u8; size];
-        let n = unsafe { libc::readlink(c.as_ptr(), buf.as_mut_ptr().cast(), size) };
+        let n = posix::sys::readlink(&c, &mut buf);
         if n < 0 {
             return None;
         }
@@ -947,24 +919,7 @@ fn read_link(path: &[u8]) -> Option<Vec<u8>> {
 /* Every name in a directory, "." and ".." included. */
 fn read_names(path: &[u8]) -> std::io::Result<Vec<Vec<u8>>> {
     let c = posix::cstr(path);
-    let dir = unsafe { libc::opendir(c.as_ptr()) };
-    if dir.is_null() {
-        return Err(last_err());
-    }
-    let mut out = Vec::new();
-    let r = loop {
-        posix::clear_errno();
-        let ent = unsafe { libc::readdir(dir) };
-        if ent.is_null() {
-            let e = last_err();
-            break if e.raw_os_error() == Some(0) { Ok(()) } else { Err(e) };
-        }
-        let name = unsafe { CStr::from_ptr((*ent).d_name.as_ptr()) }.to_bytes();
-        out.push(name.to_vec());
-    };
-    unsafe { libc::closedir(dir) };
-    r?;
-    Ok(out)
+    posix::sys::read_dir(&c)
 }
 
 /* The line width for -C, -x and -m: COLUMNS, else the terminal's, else 80. */
@@ -976,11 +931,7 @@ fn line_width(columns: Option<&[u8]>) -> usize {
             }
         }
     }
-    let mut ws: libc::winsize = unsafe { std::mem::zeroed() };
-    if unsafe { libc::ioctl(1, libc::TIOCGWINSZ, &mut ws) } == 0 && ws.ws_col > 0 {
-        return ws.ws_col as usize;
-    }
-    80
+    posix::sys::terminal_columns(1).unwrap_or(80)
 }
 
 fn main() {
@@ -1006,7 +957,7 @@ fn main() {
         o.sort = Sort::Name;
     }
     /* on a terminal, a name with unprintable characters is written with question marks anyway */
-    if unsafe { libc::isatty(1) } == 1 {
+    if posix::sys::isatty(1) {
         o.quote = true;
     }
     let mut operands: Vec<Vec<u8>> = g.operands().to_vec();
@@ -1015,7 +966,7 @@ fn main() {
     }
     let columns = std::env::var_os("COLUMNS").map(std::os::unix::ffi::OsStringExt::into_vec);
     let width = line_width(columns.as_deref());
-    let now = unsafe { libc::time(std::ptr::null_mut()) } as i64;
+    let now = posix::time::now();
     let mut ls = Ls {
         prog: prog.clone(),
         o,
@@ -1053,7 +1004,7 @@ mod tests {
     }
 
     fn st_with(mode: libc::mode_t, nlink: u64, uid: u32, gid: u32, size: i64, mtime: i64) -> libc::stat {
-        let mut st: libc::stat = unsafe { std::mem::zeroed() };
+        let mut st: libc::stat = posix::sys::zeroed();
         st.st_mode = mode;
         st.st_nlink = nlink as _;
         st.st_uid = uid;

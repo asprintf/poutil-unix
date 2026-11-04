@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* nice - invoke a utility with an altered nice value. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 
 const SYNOPSIS: &str = "nice [-n increment] utility [argument...]";
@@ -43,7 +45,7 @@ fn main() {
     }
     /* nice(3) can return -1 as a valid value, so errno tells the failure */
     posix::clear_errno();
-    let r = unsafe { libc::nice(inc) };
+    let r = posix::sys::nice(inc);
     if r == -1 {
         let e = std::io::Error::last_os_error();
         if e.raw_os_error().unwrap_or(0) != 0 {

@@ -5,12 +5,19 @@
  */
 
 pub mod cal;
+pub mod cfmt;
+pub mod fsinfo;
 pub mod getopt;
+pub mod locale;
 pub mod mb;
 pub mod mode;
 pub mod num;
 pub mod prompt;
+pub mod regex;
+pub mod sys;
 pub mod tabs;
+pub mod time;
+pub mod user;
 
 use std::ffi::CString;
 use std::fs::File;
@@ -346,11 +353,15 @@ pub fn cstr(b: &[u8]) -> CString {
 /* Set errno to 0, to tell an error return of -1 from a valid one. */
 pub fn clear_errno() {
     unsafe {
-        #[cfg(target_vendor = "apple")]
+        #[cfg(any(target_vendor = "apple", target_os = "freebsd"))]
         {
             *libc::__error() = 0;
         }
-        #[cfg(not(target_vendor = "apple"))]
+        #[cfg(any(target_os = "netbsd", target_os = "openbsd"))]
+        {
+            *libc::__errno() = 0;
+        }
+        #[cfg(not(any(target_vendor = "apple", target_os = "freebsd", target_os = "netbsd", target_os = "openbsd")))]
         {
             *libc::__errno_location() = 0;
         }

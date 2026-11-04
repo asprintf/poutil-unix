@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* touch - change file access and modification times. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::CStr;
 
@@ -184,10 +186,7 @@ fn is_explicit(t: &(i64, i64)) -> bool {
 
 /* The access and modification times a file has now (symbolic links followed). */
 fn stored(path: &CStr) -> Option<[(i64, i64); 2]> {
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstatat(libc::AT_FDCWD, path.as_ptr(), &mut st, 0) } < 0 {
-        return None;
-    }
+    let st = posix::sys::fstatat(libc::AT_FDCWD, path, 0).ok()?;
     Some([
         (st.st_atime as i64, st.st_atime_nsec as i64),
         (st.st_mtime as i64, st.st_mtime_nsec as i64),
@@ -195,10 +194,7 @@ fn stored(path: &CStr) -> Option<[(i64, i64); 2]> {
 }
 
 fn stored_fd(fd: libc::c_int) -> Option<[(i64, i64); 2]> {
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstat(fd, &mut st) } < 0 {
-        return None;
-    }
+    let st = posix::sys::fstat(fd).ok()?;
     Some([
         (st.st_atime as i64, st.st_atime_nsec as i64),
         (st.st_mtime as i64, st.st_mtime_nsec as i64),
@@ -230,14 +226,14 @@ fn touch_one(path: &CStr, times: &[(i64, i64); 2], create: bool) -> Result<(), F
     let ts = [to_timespec(times[0]), to_timespec(times[1])];
     let explicit = is_explicit(&times[0]) || is_explicit(&times[1]);
     let before = if explicit { stored(path) } else { None };
-    if unsafe { libc::utimensat(libc::AT_FDCWD, path.as_ptr(), ts.as_ptr(), 0) } == 0 {
+    if posix::sys::utimensat(libc::AT_FDCWD, path, &ts, 0) == 0 {
         if explicit {
             if let Some(got) = stored(path) {
                 if !held(times, &got) {
                     /* put the old times back, so that the failure leaves the file as it was */
                     if let Some(b) = before {
                         let back = [to_timespec(b[0]), to_timespec(b[1])];
-                        unsafe { libc::utimensat(libc::AT_FDCWD, path.as_ptr(), back.as_ptr(), 0) };
+                        posix::sys::utimensat(libc::AT_FDCWD, path, &back, 0);
                     }
                     return Err(out_of_range());
                 }
@@ -253,14 +249,14 @@ fn touch_one(path: &CStr, times: &[(i64, i64); 2], create: bool) -> Result<(), F
         return Ok(());
     }
     let flags = libc::O_WRONLY | libc::O_CREAT | libc::O_NOCTTY | libc::O_CLOEXEC;
-    let fd = unsafe { libc::open(path.as_ptr(), flags, 0o666 as libc::c_uint) };
+    let fd = posix::sys::open(path, flags, 0o666);
     if fd < 0 {
         return Err(Fail::Soft(std::io::Error::last_os_error()));
     }
-    let r = unsafe { libc::futimens(fd, ts.as_ptr()) };
+    let r = posix::sys::futimens(fd, &ts);
     let e = std::io::Error::last_os_error();
     let kept = if r == 0 && explicit { stored_fd(fd) } else { None };
-    unsafe { libc::close(fd) };
+    posix::sys::close(fd);
     if r < 0 {
         return Err(classify(e));
     }
@@ -273,10 +269,8 @@ fn touch_one(path: &CStr, times: &[(i64, i64); 2], create: bool) -> Result<(), F
 }
 
 fn current_year() -> i64 {
-    let t = unsafe { libc::time(std::ptr::null_mut()) };
-    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
-    unsafe { libc::localtime_r(&t, &mut tm) };
-    tm.tm_year as i64 + 1900
+    /* a time the library cannot break down counts as year 0 of tm: 1900, as before */
+    posix::time::localtime(posix::time::now() as libc::time_t).map_or(1900, |tm| tm.tm_year as i64 + 1900)
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -333,12 +327,13 @@ fn main() {
         None => Source::Now,
         Some((Kind::R, r)) => {
             let cr = posix::cstr(&r);
-            let mut st: libc::stat = unsafe { std::mem::zeroed() };
-            if unsafe { libc::stat(cr.as_ptr(), &mut st) } < 0 {
-                let e = std::io::Error::last_os_error();
-                posix::warn_path(&prog, &r, &posix::strerror(&e));
-                std::process::exit(1);
-            }
+            let st = match posix::sys::stat(&cr) {
+                Ok(st) => st,
+                Err(e) => {
+                    posix::warn_path(&prog, &r, &posix::strerror(&e));
+                    std::process::exit(1);
+                }
+            };
             Source::Pair(
                 (st.st_atime as i64, st.st_atime_nsec as i64),
                 (st.st_mtime as i64, st.st_mtime_nsec as i64),
@@ -584,11 +579,7 @@ mod tests {
         assert!(m.is_file() && m.len() == 0);
         assert_eq!(meta_times(&t.path("new")), ((1194862530, 123_000_000), (1194862530, 123_000_000)));
         /* mode is 0666 less the umask */
-        let um = unsafe {
-            let u = libc::umask(0);
-            libc::umask(u);
-            u as u32
-        };
+        let um = posix::sys::umask();
         assert_eq!(m.mode() & 0o777, 0o666 & !um);
     }
 

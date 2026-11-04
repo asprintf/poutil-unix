@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* uniq - report or filter out repeated lines in a file. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, BufReader, Write};
@@ -287,16 +289,14 @@ mod tests {
     #[test]
     fn utf8_characters_for_s() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         /* one character is two bytes: -s 1 must not cut inside it */
         assert_eq!(skip(0, 1, "\u{e9}a\n\u{e8}a\n\u{e8}b\n"), "\u{e9}a\n\u{e8}b\n");
         /* U+2003 EM SPACE is a blank, so it ends a field */
         assert_eq!(skip(1, 0, "a\u{2003}x\nb\u{2003}x\n"), "a\u{2003}x\n");
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 
     #[test]

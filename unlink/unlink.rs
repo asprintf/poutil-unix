@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* unlink - call the unlink function. */
 
+#![forbid(unsafe_code)]
+
 use std::ffi::OsStr;
 use std::os::unix::ffi::OsStrExt;
 

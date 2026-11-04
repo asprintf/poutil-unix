@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* id - return user identity. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
-use std::ffi::CStr;
+use posix::user;
 
 const SYNOPSIS: &str = "id [user]\n       id -G [-n] [user]\n       id -g [-nr] [user]\n       id -u [-nr] [user]";
 
@@ -106,92 +108,21 @@ fn list(values: &[u32], names: Option<Lookup>) -> (Vec<u8>, Vec<u32>) {
     (out, missing)
 }
 
-fn cstr_bytes(p: *const libc::c_char) -> Option<Vec<u8>> {
-    if p.is_null() {
-        None
-    } else {
-        Some(unsafe { CStr::from_ptr(p) }.to_bytes().to_vec())
-    }
-}
-
-fn user_name(uid: u32) -> Option<Vec<u8>> {
-    let p = unsafe { libc::getpwuid(uid) };
-    if p.is_null() {
-        None
-    } else {
-        cstr_bytes(unsafe { (*p).pw_name })
-    }
-}
-
-fn group_name(gid: u32) -> Option<Vec<u8>> {
-    let p = unsafe { libc::getgrgid(gid) };
-    if p.is_null() {
-        None
-    } else {
-        cstr_bytes(unsafe { (*p).gr_name })
-    }
-}
-
-/* The supplementary groups of this process. */
-fn process_groups() -> Vec<u32> {
-    loop {
-        let n = unsafe { libc::getgroups(0, std::ptr::null_mut()) };
-        if n <= 0 {
-            return Vec::new();
-        }
-        let mut v = vec![0 as libc::gid_t; n as usize];
-        let m = unsafe { libc::getgroups(n, v.as_mut_ptr()) };
-        if m >= 0 {
-            v.truncate(m as usize);
-            return v;
-        }
-        /* the list grew between the two calls: ask again */
-    }
-}
-
+/* The identity of this process. */
 fn this_process() -> Ids {
-    unsafe {
-        Ids {
-            uid: libc::getuid(),
-            euid: libc::geteuid(),
-            gid: libc::getgid(),
-            egid: libc::getegid(),
-            groups: process_groups(),
-        }
-    }
-}
-
-/* The groups the system database lists for a user (the primary one too). */
-fn user_groups(name: &CStr, gid: u32) -> Vec<u32> {
-    let mut size: usize = 64;
-    loop {
-        #[cfg(target_vendor = "apple")]
-        type Gid = libc::c_int;
-        #[cfg(not(target_vendor = "apple"))]
-        type Gid = libc::gid_t;
-        let mut v: Vec<Gid> = vec![0; size];
-        let mut n = size as libc::c_int;
-        let r = unsafe { libc::getgrouplist(name.as_ptr(), gid as Gid, v.as_mut_ptr(), &mut n) };
-        if r >= 0 {
-            v.truncate(n.max(0) as usize);
-            return v.into_iter().map(|g| g as u32).collect();
-        }
-        if size >= 1 << 20 {
-            return vec![gid];
-        }
-        size = size.max(n.max(0) as usize).saturating_mul(2);
+    Ids {
+        uid: user::uid(),
+        euid: user::euid(),
+        gid: user::gid(),
+        egid: user::egid(),
+        groups: user::process_groups(),
     }
 }
 
 /* The identity of a named user, real and effective IDs being the same; None if there is no such user. */
 fn named_user(name: &[u8]) -> Option<Ids> {
-    let c = posix::cstr(name);
-    let p = unsafe { libc::getpwnam(c.as_ptr()) };
-    if p.is_null() {
-        return None;
-    }
-    let (uid, gid) = unsafe { ((*p).pw_uid as u32, (*p).pw_gid as u32) };
-    Some(Ids { uid, euid: uid, gid, egid: gid, groups: user_groups(&c, gid) })
+    let u = user::user_by_name(name)?;
+    Some(Ids { uid: u.uid, euid: u.uid, gid: u.gid, egid: u.gid, groups: user::user_groups(name, u.gid) })
 }
 
 /*
@@ -258,9 +189,9 @@ fn main() {
     };
     let mut status = 0;
     let out = match mode {
-        Mode::Full => full_line(&ids, &user_name, &group_name),
+        Mode::Full => full_line(&ids, &user::user_name, &user::group_name),
         Mode::Groups => {
-            let (o, missing) = list(&all_groups(&ids), name.then_some(&group_name as Lookup));
+            let (o, missing) = list(&all_groups(&ids), name.then_some(&user::group_name as Lookup));
             for m in missing {
                 posix::warn(&prog, &format!("cannot find name for group ID {}", m));
                 status = 1;
@@ -269,10 +200,10 @@ fn main() {
         }
         Mode::Group | Mode::User => {
             let (id, names): (u32, Lookup) = match (mode, real) {
-                (Mode::Group, false) => (ids.egid, &group_name),
-                (Mode::Group, true) => (ids.gid, &group_name),
-                (_, false) => (ids.euid, &user_name),
-                (_, true) => (ids.uid, &user_name),
+                (Mode::Group, false) => (ids.egid, &user::group_name),
+                (Mode::Group, true) => (ids.gid, &user::group_name),
+                (_, false) => (ids.euid, &user::user_name),
+                (_, true) => (ids.uid, &user::user_name),
             };
             let (o, missing) = list(&[id], name.then_some(names));
             for m in missing {

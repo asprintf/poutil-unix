@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* cp - copy files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::CStr;
 use std::os::fd::RawFd;
@@ -64,24 +66,15 @@ fn last_err() -> std::io::Error {
 
 fn stat_path(path: &[u8], follow: bool) -> std::io::Result<libc::stat> {
     let c = posix::cstr(path);
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    let r = if follow {
-        unsafe { libc::stat(c.as_ptr(), &mut st) }
+    if follow {
+        posix::sys::stat(&c)
     } else {
-        unsafe { libc::lstat(c.as_ptr(), &mut st) }
-    };
-    if r < 0 {
-        return Err(last_err());
+        posix::sys::lstat(&c)
     }
-    Ok(st)
 }
 
 fn fstat(fd: RawFd) -> std::io::Result<libc::stat> {
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstat(fd, &mut st) } < 0 {
-        return Err(last_err());
-    }
-    Ok(st)
+    posix::sys::fstat(fd)
 }
 
 /* The last component of a pathname, without trailing slashes ("" for a pathname of only slashes). */
@@ -120,25 +113,7 @@ fn dest_in(target: &[u8], src: &[u8]) -> Vec<u8> {
 /* The names in a directory, except "." and "..", sorted. */
 fn read_names(path: &[u8]) -> std::io::Result<Vec<Vec<u8>>> {
     let c = posix::cstr(path);
-    let dir = unsafe { libc::opendir(c.as_ptr()) };
-    if dir.is_null() {
-        return Err(last_err());
-    }
-    let mut out = Vec::new();
-    let r = loop {
-        posix::clear_errno();
-        let ent = unsafe { libc::readdir(dir) };
-        if ent.is_null() {
-            let e = last_err();
-            break if e.raw_os_error() == Some(0) { Ok(()) } else { Err(e) };
-        }
-        let name = unsafe { CStr::from_ptr((*ent).d_name.as_ptr()) }.to_bytes();
-        if name != b"." && name != b".." {
-            out.push(name.to_vec());
-        }
-    };
-    unsafe { libc::closedir(dir) };
-    r?;
+    let mut out: Vec<Vec<u8>> = posix::sys::read_dir(&c)?.into_iter().filter(|n| n != b"." && n != b"..").collect();
     out.sort();
     Ok(out)
 }
@@ -148,7 +123,7 @@ fn read_link(path: &[u8]) -> std::io::Result<Vec<u8>> {
     let mut size = 256usize;
     loop {
         let mut buf = vec![0u8; size];
-        let n = unsafe { libc::readlink(c.as_ptr(), buf.as_mut_ptr().cast(), size) };
+        let n = posix::sys::readlink(&c, &mut buf);
         if n < 0 {
             return Err(last_err());
         }
@@ -169,14 +144,7 @@ fn timespecs(st: &libc::stat) -> [libc::timespec; 2] {
 
 /* The real path of an existing file, as bytes. */
 fn real_path(p: &[u8]) -> Option<Vec<u8>> {
-    let c = posix::cstr(p);
-    let r = unsafe { libc::realpath(c.as_ptr(), std::ptr::null_mut()) };
-    if r.is_null() {
-        return None;
-    }
-    let v = unsafe { CStr::from_ptr(r) }.to_bytes().to_vec();
-    unsafe { libc::free(r.cast()) };
-    Some(v)
+    posix::sys::realpath(&posix::cstr(p))
 }
 
 /* Is dest (not yet created) the directory src itself or somewhere below it? */
@@ -318,7 +286,7 @@ impl<'a> Cp<'a> {
         if nofollow {
             sflags |= libc::O_NOFOLLOW;
         }
-        let sfd = unsafe { libc::open(cs.as_ptr(), sflags) };
+        let sfd = posix::sys::open(&cs, sflags, 0);
         if sfd < 0 {
             let e = last_err();
             self.err_io(src, &e);
@@ -329,7 +297,7 @@ impl<'a> Cp<'a> {
         let dfd = match self.open_dest(&cd, dest, exists, sst.st_mode & 0o777) {
             Some(fd) => fd,
             None => {
-                unsafe { libc::close(sfd) };
+                posix::sys::close(sfd);
                 return;
             }
         };
@@ -344,8 +312,8 @@ impl<'a> Cp<'a> {
         if ok && self.o.preserve {
             self.preserve_fd(dfd, dest, &sst);
         }
-        unsafe { libc::close(sfd) };
-        if unsafe { libc::close(dfd) } < 0 {
+        posix::sys::close(sfd);
+        if posix::sys::close(dfd) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
         }
@@ -355,7 +323,7 @@ impl<'a> Cp<'a> {
     fn open_dest(&mut self, cd: &CStr, dest: &[u8], exists: bool, mode: libc::mode_t) -> Option<RawFd> {
         let base = libc::O_WRONLY | libc::O_NOCTTY | libc::O_CLOEXEC;
         if exists {
-            let fd = unsafe { libc::open(cd.as_ptr(), base | libc::O_TRUNC) };
+            let fd = posix::sys::open(cd, base | libc::O_TRUNC, 0);
             if fd >= 0 {
                 return Some(fd);
             }
@@ -365,7 +333,7 @@ impl<'a> Cp<'a> {
                 return None;
             }
             /* -f: remove it and make a new one */
-            if unsafe { libc::unlink(cd.as_ptr()) } < 0 {
+            if posix::sys::unlink(cd) < 0 {
                 self.err_io(dest, &e);
                 return None;
             }
@@ -373,7 +341,7 @@ impl<'a> Cp<'a> {
         /* a dangling link as destination is written through, as open() does; anything else is made anew */
         let through = matches!(stat_path(dest, false), Ok(l) if kind(&l) == libc::S_IFLNK);
         let flags = if through { base | libc::O_CREAT | libc::O_TRUNC } else { base | libc::O_CREAT | libc::O_EXCL };
-        let fd = unsafe { libc::open(cd.as_ptr(), flags, mode as libc::c_uint) };
+        let fd = posix::sys::open(cd, flags, mode as libc::c_uint);
         if fd < 0 {
             let e = last_err();
             self.err_io(dest, &e);
@@ -385,7 +353,7 @@ impl<'a> Cp<'a> {
     /* The loop of step 3d. Err: (was it a read error, the error). */
     fn copy_data(&mut self, sfd: RawFd, dfd: RawFd) -> Result<(), (bool, std::io::Error)> {
         loop {
-            let n = unsafe { libc::read(sfd, self.buf.as_mut_ptr().cast(), self.buf.len()) };
+            let n = posix::sys::read(sfd, &mut self.buf);
             if n < 0 {
                 let e = last_err();
                 if e.kind() == std::io::ErrorKind::Interrupted {
@@ -398,7 +366,7 @@ impl<'a> Cp<'a> {
             }
             let mut off = 0usize;
             while off < n as usize {
-                let w = unsafe { libc::write(dfd, self.buf[off..n as usize].as_ptr().cast(), n as usize - off) };
+                let w = posix::sys::write(dfd, &self.buf[off..n as usize]);
                 if w < 0 {
                     let e = last_err();
                     if e.kind() == std::io::ErrorKind::Interrupted {
@@ -421,17 +389,17 @@ impl<'a> Cp<'a> {
      * the times, last, so that nothing after them can change the modification time.
      */
     fn preserve_fd(&mut self, dfd: RawFd, dest: &[u8], sst: &libc::stat) {
-        let owner_ok = unsafe { libc::fchown(dfd, sst.st_uid, sst.st_gid) } == 0;
+        let owner_ok = posix::sys::fchown(dfd, sst.st_uid, sst.st_gid) == 0;
         let mut mode = sst.st_mode & 0o7777;
         if !owner_ok {
             mode &= !(libc::S_ISUID | libc::S_ISGID);
         }
-        if unsafe { libc::fchmod(dfd, mode) } < 0 {
+        if posix::sys::fchmod(dfd, mode) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
         }
         let ts = timespecs(sst);
-        if unsafe { libc::futimens(dfd, ts.as_ptr()) } < 0 {
+        if posix::sys::futimens(dfd, &ts) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
         }
@@ -440,17 +408,17 @@ impl<'a> Cp<'a> {
     /* The same for something named by a path: a directory, a FIFO, a device. */
     fn preserve_path(&mut self, dest: &[u8], sst: &libc::stat) {
         let cd = posix::cstr(dest);
-        let owner_ok = unsafe { libc::chown(cd.as_ptr(), sst.st_uid, sst.st_gid) } == 0;
+        let owner_ok = posix::sys::chown(&cd, sst.st_uid, sst.st_gid) == 0;
         let mut mode = sst.st_mode & 0o7777;
         if !owner_ok {
             mode &= !(libc::S_ISUID | libc::S_ISGID);
         }
-        if unsafe { libc::chmod(cd.as_ptr(), mode) } < 0 {
+        if posix::sys::chmod(&cd, mode) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
         }
         let ts = timespecs(sst);
-        if unsafe { libc::utimensat(libc::AT_FDCWD, cd.as_ptr(), ts.as_ptr(), 0) } < 0 {
+        if posix::sys::utimensat(libc::AT_FDCWD, &cd, &ts, 0) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
         }
@@ -489,7 +457,7 @@ impl<'a> Cp<'a> {
                 }
                 /* the owner can always enter it and write to it while it is being filled */
                 let mode = ((st.st_mode & 0o777) | 0o700) as libc::mode_t;
-                if unsafe { libc::mkdir(cd.as_ptr(), mode) } < 0 {
+                if posix::sys::mkdir(&cd, mode) < 0 {
                     let e = last_err();
                     self.err_io(dest, &e);
                     return;
@@ -526,7 +494,7 @@ impl<'a> Cp<'a> {
                 self.preserve_path(dest, st);
             } else {
                 let mode = (st.st_mode & 0o777) & !self.umask as libc::mode_t;
-                if unsafe { libc::chmod(cd.as_ptr(), mode) } < 0 {
+                if posix::sys::chmod(&cd, mode) < 0 {
                     let e = last_err();
                     self.err_io(dest, &e);
                 }
@@ -549,7 +517,7 @@ impl<'a> Cp<'a> {
                 if self.o.interactive && !self.confirm(dest) {
                     return false;
                 }
-                if unsafe { libc::unlink(posix::cstr(dest).as_ptr()) } < 0 {
+                if posix::sys::unlink(&posix::cstr(dest)) < 0 {
                     let e = last_err();
                     self.err_io(dest, &e);
                     return false;
@@ -576,16 +544,16 @@ impl<'a> Cp<'a> {
         if !self.clear_dest(src, dest, st) {
             return;
         }
-        if unsafe { libc::symlink(posix::cstr(&target).as_ptr(), posix::cstr(dest).as_ptr()) } < 0 {
+        if posix::sys::symlink(&posix::cstr(&target), &posix::cstr(dest)) < 0 {
             let e = last_err();
             self.err_io(dest, &e);
             return;
         }
         if self.o.preserve {
             let cd = posix::cstr(dest);
-            unsafe { libc::lchown(cd.as_ptr(), st.st_uid, st.st_gid) };
+            posix::sys::lchown(&cd, st.st_uid, st.st_gid);
             let ts = timespecs(st);
-            if unsafe { libc::utimensat(libc::AT_FDCWD, cd.as_ptr(), ts.as_ptr(), libc::AT_SYMLINK_NOFOLLOW) } < 0 {
+            if posix::sys::utimensat(libc::AT_FDCWD, &cd, &ts, libc::AT_SYMLINK_NOFOLLOW) < 0 {
                 let e = last_err();
                 self.err_io(dest, &e);
             }
@@ -599,9 +567,9 @@ impl<'a> Cp<'a> {
         }
         let cd = posix::cstr(dest);
         let r = if kind(st) == libc::S_IFIFO {
-            unsafe { libc::mkfifo(cd.as_ptr(), st.st_mode & 0o777) }
+            posix::sys::mkfifo(&cd, st.st_mode & 0o777)
         } else {
-            unsafe { libc::mknod(cd.as_ptr(), st.st_mode & (libc::S_IFMT | 0o777), st.st_rdev) }
+            posix::sys::mknod(&cd, st.st_mode & (libc::S_IFMT | 0o777), st.st_rdev)
         };
         if r < 0 {
             let e = last_err();
@@ -663,11 +631,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let umask = unsafe {
-        let u = libc::umask(0);
-        libc::umask(u);
-        u as u32
-    };
+    let umask = posix::sys::umask();
     let yes = posix::prompt::Yes::new();
     let ask = Box::new(move |prompt: &[u8]| -> bool { posix::prompt::ask(&yes, prompt) });
     let mut cp = Cp::new(&prog, o, umask, ask);
@@ -731,11 +695,7 @@ mod tests {
     }
 
     fn current_umask() -> u32 {
-        unsafe {
-            let u = libc::umask(0);
-            libc::umask(u);
-            u as u32
-        }
+        posix::sys::umask()
     }
 
     /* run one copy of src to dest as the operands of cp would be; answers feed the -i prompts */
@@ -887,7 +847,7 @@ mod tests {
 
     #[test]
     fn source_is_opened_before_the_destination_is_touched() {
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -936,7 +896,7 @@ mod tests {
 
     #[test]
     fn without_f_an_unwritable_destination_is_an_error_with_f_it_is_replaced() {
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -955,7 +915,7 @@ mod tests {
 
     #[test]
     fn f_replaces_a_hard_linked_destination_without_touching_the_other_link() {
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();
@@ -1194,8 +1154,8 @@ mod tests {
     fn fifos_are_made_again_with_r_and_the_mode_of_the_source_less_the_umask() {
         let t = Tmp::new();
         let c = posix::cstr(&t.p("fifo"));
-        assert_eq!(unsafe { libc::mkfifo(c.as_ptr(), 0o640) }, 0);
-        unsafe { libc::chmod(c.as_ptr(), 0o640) };
+        assert_eq!(posix::sys::mkfifo(&c, 0o640), 0);
+        posix::sys::chmod(&c, 0o640);
         let r = Opts { recursive: true, ..opts() };
         assert_eq!(one(r, t.p("fifo"), t.p("fifo2")), (0, vec![]));
         let m = std::fs::metadata(t.path("fifo2")).unwrap();
@@ -1231,7 +1191,7 @@ mod tests {
         std::fs::set_permissions(t.path("a"), std::fs::Permissions::from_mode(0o4751)).unwrap();
         let old = [libc::timespec { tv_sec: 1000, tv_nsec: 5 }, libc::timespec { tv_sec: 2000, tv_nsec: 7 }];
         let ca = posix::cstr(&t.p("a"));
-        assert_eq!(unsafe { libc::utimensat(libc::AT_FDCWD, ca.as_ptr(), old.as_ptr(), 0) }, 0);
+        assert_eq!(posix::sys::utimensat(libc::AT_FDCWD, &ca, &old, 0), 0);
         let p = Opts { preserve: true, ..opts() };
         assert_eq!(one(p, t.p("a"), t.p("b")), (0, vec![]));
         let m = std::fs::metadata(t.path("b")).unwrap();
@@ -1251,7 +1211,7 @@ mod tests {
         std::fs::set_permissions(t.path("a"), std::fs::Permissions::from_mode(0o644)).unwrap();
         let old = [libc::timespec { tv_sec: 1000, tv_nsec: 0 }, libc::timespec { tv_sec: 2000, tv_nsec: 0 }];
         let ca = posix::cstr(&t.p("a"));
-        unsafe { libc::utimensat(libc::AT_FDCWD, ca.as_ptr(), old.as_ptr(), 0) };
+        posix::sys::utimensat(libc::AT_FDCWD, &ca, &old, 0);
         assert_eq!(one(opts(), t.p("a"), t.p("b")).0, 0);
         assert!(std::fs::metadata(t.path("b")).unwrap().mtime() > 2000);
         assert_eq!(std::fs::metadata(t.path("b")).unwrap().mode() & 0o777, 0o600);
@@ -1267,7 +1227,7 @@ mod tests {
         let old = [libc::timespec { tv_sec: 3000, tv_nsec: 0 }, libc::timespec { tv_sec: 4000, tv_nsec: 0 }];
         for d in ["src", "src/sub", "src/sub/deep", "src/empty"] {
             let c = posix::cstr(&t.p(d));
-            unsafe { libc::utimensat(libc::AT_FDCWD, c.as_ptr(), old.as_ptr(), 0) };
+            posix::sys::utimensat(libc::AT_FDCWD, &c, &old, 0);
         }
         let r = Opts { recursive: true, preserve: true, ..opts() };
         assert_eq!(one(r, t.p("src"), t.p("copy")), (0, vec![]));
@@ -1282,7 +1242,7 @@ mod tests {
         std::os::unix::fs::symlink("target", t.path("l")).unwrap();
         let old = [libc::timespec { tv_sec: 5000, tv_nsec: 0 }, libc::timespec { tv_sec: 6000, tv_nsec: 0 }];
         let c = posix::cstr(&t.p("l"));
-        assert_eq!(unsafe { libc::utimensat(libc::AT_FDCWD, c.as_ptr(), old.as_ptr(), libc::AT_SYMLINK_NOFOLLOW) }, 0);
+        assert_eq!(posix::sys::utimensat(libc::AT_FDCWD, &c, &old, libc::AT_SYMLINK_NOFOLLOW), 0);
         let p = Opts { preserve: true, link: Link::P, ..opts() };
         assert_eq!(one(p, t.p("l"), t.p("l2")), (0, vec![]));
         assert_eq!(std::fs::symlink_metadata(t.path("l2")).unwrap().mtime(), 6000);
@@ -1290,7 +1250,7 @@ mod tests {
 
     #[test]
     fn a_source_directory_that_cannot_be_read_is_reported_and_the_rest_is_copied() {
-        if unsafe { libc::geteuid() } == 0 {
+        if posix::user::euid() == 0 {
             return;
         }
         let t = Tmp::new();

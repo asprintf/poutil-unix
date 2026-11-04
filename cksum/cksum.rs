@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* cksum - write file checksums and sizes. */
 
+#![forbid(unsafe_code)]
+
 use std::io::Read;
 
 const SYNOPSIS: &str = "cksum [file...]";

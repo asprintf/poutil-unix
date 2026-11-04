@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* mkfifo - make FIFO special files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 
 const SYNOPSIS: &str = "mkfifo [-m mode] file...";
@@ -23,11 +25,7 @@ fn main() {
     /* symbolic modes are relative to a=rw; the umask is read (it can only be read by setting it) only for -m */
     let mode = match &mode_arg {
         Some(m) => {
-            let mask = unsafe {
-                let u = libc::umask(0);
-                libc::umask(u);
-                u as u32
-            };
+            let mask = posix::sys::umask();
             match posix::mode::parse(m, 0o666, false, mask) {
                 Some(v) => Some(v),
                 None => posix::fail(&prog, "invalid mode"),
@@ -40,10 +38,10 @@ fn main() {
         let c = posix::cstr(f);
         /* never more permissive than requested, even for a moment */
         let create = mode.map_or(0o666, |m| m & 0o777);
-        let mut r = unsafe { libc::mkfifo(c.as_ptr(), create as libc::mode_t) };
+        let mut r = posix::sys::mkfifo(&c, create as libc::mode_t);
         if r == 0 {
             if let Some(m) = mode {
-                r = unsafe { libc::chmod(c.as_ptr(), m as libc::mode_t) };
+                r = posix::sys::chmod(&c, m as libc::mode_t);
             }
         }
         if r < 0 {

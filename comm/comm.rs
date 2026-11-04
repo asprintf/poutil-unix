@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* comm - select or reject lines common to two files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::cmp::Ordering;
 use std::io::{self, BufRead, BufReader, Write};

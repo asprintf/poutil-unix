@@ -87,9 +87,14 @@ VSC-PCTS, and the GPL. uutils coreutils is another Rust project, aimed at
 GNU compatibility. If one of those fits your needs better than this does,
 use it.
 
-Only tested on x86_64 macOS so far. The code needs nothing but libc and
-has a few cfg(apple) spots (environ, errno, signal names), so Linux and
-the BSDs will need small fixes. Patches welcome.
+Developed and checked (VSC-PCTS, difftest) on x86_64 macOS. All utilities
+also build on Linux (x86_64, glibc) and pass the unit tests there; df lists
+the mounts from /proc/self/mounts and leaves out file systems with no blocks
+(proc, sysfs and the like). The space comes from statvfs, which POSIX has, so
+"df file" works on any system with it. POSIX cannot list the mounts, so that
+part is system specific: getfsstat on macOS and FreeBSD, getmntent on Linux;
+on any other system plain "df" says unsupported. FreeBSD only type-checks so far. The PCTS and
+difftest results are macOS only. Patches welcome.
 
 
 DESIGN RULES
@@ -102,6 +107,12 @@ String and std::env::args() are never used for user data.
 
 The only dependency is the libc crate. No clap, no regex crate: grep,
 sed and awk will use regcomp and regexec from libc, as expr already does.
+
+No unsafe in the utilities. Every system call and every C library call
+goes through a safe function in libposix (sys, user, time, locale, mb, cfmt,
+regex, fsinfo), and each utility starts with #![forbid(unsafe_code)], so the
+compiler keeps it that way. Those functions keep the C convention (-1 and
+errno) where the utilities depend on errno.
 
 Every utility is a pure function core that can be unit tested plus a
 thin main(). Utilities that talk to the outside world call posix::init()

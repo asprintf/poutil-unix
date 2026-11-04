@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* df - report free disk space. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::Write;
 
@@ -16,24 +18,7 @@ struct Opts {
     t: bool,
 }
 
-/* What the system says about one file system, in its own units. */
-#[derive(Clone, Debug)]
-struct Fs {
-    /* the file system name and the directory it is mounted on */
-    name: Vec<u8>,
-    root: Vec<u8>,
-    /* the size of a block, and the counts of blocks: all, free, free for an unprivileged user */
-    bsize: u64,
-    blocks: u64,
-    bfree: u64,
-    bavail: u64,
-    /*
-     * the bytes the files of this file system take, when the system says: on
-     * APFS the blocks and the free blocks are those of the whole container,
-     * which holds other volumes too
-     */
-    spaceused: Option<u64>,
-}
+type Fs = posix::fsinfo::Fs;
 
 /* One line of output, with the space figures already in 512- or 1024-byte units. */
 #[derive(Debug, PartialEq, Eq)]
@@ -168,98 +153,14 @@ fn parse(args: &[Vec<u8>]) -> Option<(Opts, Vec<Vec<u8>>)> {
     Some((o, g.operands().to_vec()))
 }
 
-/* The bytes of a NUL-terminated name in a fixed array. */
-fn name_bytes(a: &[libc::c_char]) -> Vec<u8> {
-    a.iter().take_while(|&&c| c != 0).map(|&c| c as u8).collect()
-}
-
-fn from_statfs(s: &libc::statfs) -> Fs {
-    Fs {
-        name: name_bytes(&s.f_mntfromname),
-        root: name_bytes(&s.f_mntonname),
-        bsize: u64::from(s.f_bsize),
-        blocks: s.f_blocks,
-        bfree: s.f_bfree,
-        bavail: s.f_bavail,
-        spaceused: None,
-    }
-}
-
-/* What getattrlist gives for ATTR_VOL_SPACEUSED: a length, then the bytes. */
-#[repr(C, packed(4))]
-struct SpaceUsed {
-    len: u32,
-    bytes: i64,
-}
-
-/* The bytes used by the files of the file system mounted on root, if it can say. */
-fn space_used(root: &[u8]) -> Option<u64> {
-    let p = posix::cstr(root);
-    let mut al: libc::attrlist = unsafe { std::mem::zeroed() };
-    al.bitmapcount = libc::ATTR_BIT_MAP_COUNT;
-    al.volattr = libc::ATTR_VOL_INFO | libc::ATTR_VOL_SPACEUSED;
-    let mut b = SpaceUsed { len: 0, bytes: -1 };
-    let r = unsafe {
-        libc::getattrlist(p.as_ptr(), &mut al as *mut libc::attrlist as *mut libc::c_void, &mut b as *mut SpaceUsed as *mut libc::c_void, std::mem::size_of::<SpaceUsed>(), 0)
-    };
-    let (len, bytes) = (b.len, b.bytes);
-    if r != 0 || (len as usize) < std::mem::size_of::<SpaceUsed>() || bytes < 0 {
-        return None;
-    }
-    Some(bytes as u64)
-}
-
-/* A file system from statfs: with the figure per volume where the system has one. */
-fn with_used(s: &libc::statfs) -> Fs {
-    let mut fs = from_statfs(s);
-    fs.spaceused = space_used(&fs.root);
-    fs
-}
-
 /* The file system a file is on. */
 fn fs_of(path: &[u8]) -> std::io::Result<Fs> {
-    let p = posix::cstr(path);
-    let mut s: libc::statfs = unsafe { std::mem::zeroed() };
-    if unsafe { libc::statfs(p.as_ptr(), &mut s) } != 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    Ok(with_used(&s))
+    posix::fsinfo::fs_of(&posix::cstr(path))
 }
 
-/*
- * The figures of a mount entry brought up to date: getfsstat(MNT_NOWAIT) may
- * hand out the numbers it cached. If statfs on the mount point fails, or
- * answers for another file system (one mounted over it), the cached ones stay.
- */
-fn refreshed(cached: &libc::statfs) -> libc::statfs {
-    let root = posix::cstr(&name_bytes(&cached.f_mntonname));
-    let mut fresh: libc::statfs = unsafe { std::mem::zeroed() };
-    if unsafe { libc::statfs(root.as_ptr(), &mut fresh) } == 0 && fresh.f_mntfromname == cached.f_mntfromname {
-        fresh
-    } else {
-        *cached
-    }
-}
-
-/* Every mounted file system (MNT_NOWAIT: the list itself is not waited for). */
+/* Every mounted file system. */
 fn mounts() -> std::io::Result<Vec<Fs>> {
-    let size = std::mem::size_of::<libc::statfs>();
-    let mut cap = unsafe { libc::getfsstat(std::ptr::null_mut(), 0, libc::MNT_NOWAIT) };
-    if cap < 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-    loop {
-        cap += 16;
-        let mut buf: Vec<libc::statfs> = vec![unsafe { std::mem::zeroed() }; cap as usize];
-        let n = unsafe { libc::getfsstat(buf.as_mut_ptr(), (cap as usize * size) as libc::c_int, libc::MNT_NOWAIT) };
-        if n < 0 {
-            return Err(std::io::Error::last_os_error());
-        }
-        if n < cap {
-            return Ok(buf[..n as usize].iter().map(|c| with_used(&refreshed(c))).collect());
-        }
-        cap *= 2;
-    }
+    posix::fsinfo::mounts()
 }
 
 /* The mounted file system whose device is the special file at path (by name, or by device number), if any. */
@@ -273,8 +174,7 @@ fn mounted_device(path: &[u8], st: &libc::stat, all: &[Fs]) -> Option<usize> {
             return false;
         }
         let name = posix::cstr(&m.name);
-        let mut ms: libc::stat = unsafe { std::mem::zeroed() };
-        unsafe { libc::stat(name.as_ptr(), &mut ms) == 0 && ms.st_mode & libc::S_IFMT == kind && ms.st_rdev == st.st_rdev }
+        posix::sys::stat(&name).is_ok_and(|ms| ms.st_mode & libc::S_IFMT == kind && ms.st_rdev == st.st_rdev)
     })
 }
 
@@ -286,10 +186,10 @@ fn mounted_device(path: &[u8], st: &libc::stat, all: &[Fs]) -> Option<usize> {
  */
 fn for_operand(path: &[u8], all: &mut Option<Vec<Fs>>) -> Result<Fs, String> {
     let p = posix::cstr(path);
-    let mut st: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::stat(p.as_ptr(), &mut st) } != 0 {
-        return Err(posix::strerror(&std::io::Error::last_os_error()));
-    }
+    let st = match posix::sys::stat(&p) {
+        Ok(st) => st,
+        Err(e) => return Err(posix::strerror(&e)),
+    };
     let kind = st.st_mode & libc::S_IFMT;
     if kind != libc::S_IFBLK && kind != libc::S_IFCHR {
         return fs_of(path).map_err(|e| posix::strerror(&e));

@@ -1,12 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* date - write the date and time, or set it. */
 
-use posix::getopt::{Getopt, Opt};
+#![forbid(unsafe_code)]
 
-extern "C" {
-    /* the libc crate does not declare it on every platform */
-    fn tzset();
-}
+use posix::getopt::{Getopt, Opt};
 
 const SYNOPSIS: &str = "date [-u] [+format]\n       date [-u] mmddhhmm[[cc]yy]";
 
@@ -81,7 +78,7 @@ fn convert(spec: &[u8], tm: &libc::tm) -> Vec<u8> {
     let mut size = 256;
     loop {
         let mut buf = vec![0u8; size];
-        let n = unsafe { libc::strftime(buf.as_mut_ptr().cast(), size, cf.as_ptr(), tm) };
+        let n = posix::time::strftime(&mut buf, &cf, tm);
         if n > 0 {
             return buf[1..n].to_vec();
         }
@@ -143,20 +140,13 @@ fn set_valid(t: &SetTime, cur_year: i64) -> bool {
 }
 
 fn now() -> i64 {
-    let mut ts = libc::timespec { tv_sec: 0, tv_nsec: 0 };
-    unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut ts) };
-    ts.tv_sec as i64
+    posix::time::realtime()
 }
 
 fn local_tm(secs: i64) -> Option<libc::tm> {
     /* a time_t that cannot hold the value is no time at all, not a wrapped one */
     let t = libc::time_t::try_from(secs).ok()?;
-    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
-    if unsafe { libc::localtime_r(&t, &mut tm) }.is_null() {
-        None
-    } else {
-        Some(tm)
-    }
+    posix::time::localtime(t)
 }
 
 fn main() {
@@ -178,10 +168,7 @@ fn main() {
     posix::cal::null_tz_is_unset();
     if utc {
         /* "as if the TZ environment variable was set to the string UTC0" */
-        unsafe {
-            libc::setenv(c"TZ".as_ptr(), c"UTC0".as_ptr(), 1);
-            tzset();
-        }
+        posix::time::use_utc();
     }
     let mut secs = now();
     let mut format = DEFAULT_FORMAT;
@@ -210,9 +197,7 @@ fn main() {
                 posix::warn_path(&prog, op, "date out of range");
                 std::process::exit(1);
             };
-            let ts = libc::timespec { tv_sec, tv_nsec: 0 };
-            if unsafe { libc::clock_settime(libc::CLOCK_REALTIME, &ts) } < 0 {
-                let e = std::io::Error::last_os_error();
+            if let Err(e) = posix::time::set_realtime(tv_sec) {
                 posix::warn(&prog, &format!("cannot set date: {}", posix::strerror(&e)));
                 std::process::exit(1);
             }
@@ -244,8 +229,7 @@ mod tests {
     /* a broken-down UTC time; the zone name can be overridden (a static C string) */
     fn tm_at(secs: i64, zone: Option<&'static std::ffi::CStr>) -> libc::tm {
         let t = secs as libc::time_t;
-        let mut tm: libc::tm = unsafe { std::mem::zeroed() };
-        assert!(!unsafe { libc::gmtime_r(&t, &mut tm) }.is_null());
+        let mut tm = posix::time::gmtime(t).expect("gmtime");
         if let Some(z) = zone {
             tm.tm_zone = z.as_ptr() as *mut libc::c_char;
         }
@@ -367,6 +351,8 @@ mod tests {
     fn no_time_zone_name_is_no_characters() {
         let mut tm = tm_at(0, None);
         tm.tm_zone = c"".as_ptr() as *mut libc::c_char;
+        /* the daylight saving flag is "not known": glibc would name the zone of TZ from it otherwise */
+        tm.tm_isdst = -1;
         let p = parse_format(b"[%Z]").unwrap();
         assert_eq!(expand(&p, &tm), b"[]");
     }

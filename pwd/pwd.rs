@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* pwd - return the working directory name. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::ffi::OsStr;
 use std::os::unix::ffi::{OsStrExt, OsStringExt};

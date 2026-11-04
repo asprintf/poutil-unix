@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* printf - write formatted output. */
 
+#![forbid(unsafe_code)]
+
 
 use std::io::{self, Write};
 
@@ -309,10 +311,10 @@ fn c_format(sp: &Spec, length: &str) -> std::ffi::CString {
 }
 
 /* Run snprintf with a buffer that grows until the result fits. */
-fn snprintf_into(sp: &Spec, call: impl Fn(*mut libc::c_char, usize) -> libc::c_int) -> Vec<u8> {
+fn snprintf_into(sp: &Spec, call: impl Fn(&mut [u8]) -> i32) -> Vec<u8> {
     let mut buf: Vec<u8> = vec![0; 64 + sp.width.max(sp.prec.unwrap_or(0))];
     loop {
-        let n = call(buf.as_mut_ptr() as *mut libc::c_char, buf.len());
+        let n = call(&mut buf);
         if n < 0 {
             return Vec::new();
         }
@@ -328,11 +330,11 @@ fn snprintf_into(sp: &Spec, call: impl Fn(*mut libc::c_char, usize) -> libc::c_i
 fn format_int(sp: &Spec, bits: u64) -> Vec<u8> {
     let cf = c_format(sp, "j");
     let signed = sp.conv == b'd' || sp.conv == b'i';
-    snprintf_into(sp, |p, n| unsafe {
+    snprintf_into(sp, |buf| {
         if signed {
-            libc::snprintf(p, n, cf.as_ptr(), bits as i64 as libc::intmax_t)
+            posix::cfmt::format_int(buf, &cf, bits as i64)
         } else {
-            libc::snprintf(p, n, cf.as_ptr(), bits as libc::uintmax_t)
+            posix::cfmt::format_uint(buf, &cf, bits)
         }
     })
 }
@@ -364,18 +366,13 @@ fn format_real(sp: &Spec, v: f64) -> Vec<u8> {
         return out;
     }
     let cf = c_format(sp, "");
-    snprintf_into(sp, |p, n| unsafe { libc::snprintf(p, n, cf.as_ptr(), v) })
+    snprintf_into(sp, |buf| posix::cfmt::format_f64(buf, &cf, v))
 }
 
 /* An argument for a floating-point conversion: the value and what is wrong with the argument. */
 struct Real {
     value: f64,
     problem: Option<&'static str>,
-}
-
-extern "C" {
-    /* the libc crate does not have it on every target */
-    fn strtod(s: *const libc::c_char, end: *mut *mut libc::c_char) -> f64;
 }
 
 /*
@@ -388,15 +385,13 @@ extern "C" {
 fn real(arg: &[u8]) -> Real {
     let c = std::ffi::CString::new(arg).unwrap_or_default();
     posix::clear_errno();
-    let mut end: *mut libc::c_char = std::ptr::null_mut();
-    let mut value = unsafe { strtod(c.as_ptr(), &mut end) };
+    let (mut value, used) = posix::cfmt::parse_f64(&c);
     if value.is_nan() {
         /* the sign of a NaN is in the text, whatever the C library's strtod does with it */
         let text = arg.iter().position(|&b| !is_space(b)).map_or(&arg[..0], |i| &arg[i..]);
         let neg = u64::from(text.first() == Some(&b'-'));
         value = f64::from_bits((value.to_bits() & !(1 << 63)) | (neg << 63));
     }
-    let used = end as usize - c.as_ptr() as usize;
     let range = std::io::Error::last_os_error().raw_os_error() == Some(libc::ERANGE);
     let problem = if used == 0 {
         Some("expected numeric value")
@@ -821,15 +816,13 @@ mod tests {
     #[test]
     fn a_multibyte_character_is_its_wide_character_value() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         let r = run("%d|%d|%d", &["'\u{e9}", "\"\u{20ac}", "'\u{1f600}x"]);
         assert_eq!(r.text(), "233|8364|128512");
         assert_eq!(r.status, 0);
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 
     #[test]
@@ -1235,9 +1228,7 @@ mod tests {
     #[test]
     fn the_radix_character_follows_lc_numeric() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("de_DE.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale de_DE.UTF-8");
+        if !posix::locale::try_set("de_DE.UTF-8") {
             return;
         }
         let r = run("%.1f|%e", &["1,5", "2,5"]);
@@ -1245,7 +1236,7 @@ mod tests {
         assert_eq!((r.status, r.diags.len()), (0, 0));
         /* the integer conversions do not use the radix character */
         assert_eq!(run("%d", &["12"]).text(), "12");
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 
     #[test]

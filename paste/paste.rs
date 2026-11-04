@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* paste - merge corresponding or subsequent lines of files. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 
@@ -330,15 +332,13 @@ mod tests {
     #[test]
     fn multibyte_delimiters() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         /* a character is one element, and \ before one takes the whole character */
         assert_eq!(d("\u{e9}\u{20ac}"), vec!["\u{e9}".as_bytes().to_vec(), "\u{20ac}".as_bytes().to_vec()]);
         assert_eq!(d("\\\u{20ac}"), vec!["\u{20ac}".as_bytes().to_vec()]);
         assert_eq!(par(&["a\n", "b\n", "c\n"], "\u{20ac}\u{e9}"), "a\u{20ac}b\u{e9}c\n");
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 }

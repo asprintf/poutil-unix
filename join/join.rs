@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* join - relational database operator. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::{self, BufRead, BufReader, Write};
 
@@ -655,9 +657,7 @@ mod tests {
     #[test]
     fn t_takes_a_whole_multibyte_character() {
         let _g = LOCALE.lock().unwrap_or_else(|e| e.into_inner());
-        let loc = std::ffi::CString::new("en_US.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale en_US.UTF-8");
+        if !posix::locale::try_set("en_US.UTF-8") {
             return;
         }
         /* the euro sign is three bytes; the same bytes inside another character do not split */
@@ -668,7 +668,7 @@ mod tests {
         /* two characters, or part of one, are no separator */
         assert!(usage_error(&format!("-t {euro}{euro}")));
         assert!(usage_error("-t ab"));
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 
     #[test]

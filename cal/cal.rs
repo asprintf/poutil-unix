@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* cal - print a calendar. */
 
+#![forbid(unsafe_code)]
+
 use std::io::Write;
 
 const SYNOPSIS: &str = "cal [[month] year]";
@@ -91,12 +93,12 @@ impl Names {
     fn locale() -> Names {
         let mut n = Names::c();
         for (i, name) in n.months.iter_mut().enumerate() {
-            if let Some(s) = strftime(b"%B\0", 0, i as i32) {
+            if let Some(s) = strftime(c"%B", 0, i as i32) {
                 *name = s;
             }
         }
         for (i, name) in n.days.iter_mut().enumerate() {
-            if let Some(s) = strftime(b"%a\0", i as i32, 0) {
+            if let Some(s) = strftime(c"%a", i as i32, 0) {
                 *name = s;
             }
         }
@@ -105,17 +107,17 @@ impl Names {
 }
 
 /* One strftime conversion for a weekday and a month (0-based); None if it gives nothing. */
-fn strftime(fmt: &[u8], wday: i32, mon: i32) -> Option<Vec<u8>> {
-    let mut tm: libc::tm = unsafe { std::mem::zeroed() };
+fn strftime(fmt: &std::ffi::CStr, wday: i32, mon: i32) -> Option<Vec<u8>> {
+    let mut tm: libc::tm = posix::sys::zeroed();
     tm.tm_wday = wday;
     tm.tm_mon = mon;
     tm.tm_mday = 1;
-    let mut buf = [0 as libc::c_char; 256];
-    let n = unsafe { libc::strftime(buf.as_mut_ptr(), buf.len(), fmt.as_ptr() as *const libc::c_char, &tm) };
+    let mut buf = [0u8; 256];
+    let n = posix::time::strftime(&mut buf, fmt, &tm);
     if n == 0 {
         return None;
     }
-    Some(buf[..n].iter().map(|&c| c as u8).collect())
+    Some(buf[..n].to_vec())
 }
 
 /* Append blanks to s up to the given number of characters. */
@@ -286,23 +288,12 @@ fn calendar<F: FnOnce() -> Option<(i64, u32)>>(operands: &[Vec<u8>], now: F, nam
     })
 }
 
-extern "C" {
-    /* the libc crate does not have it on every target */
-    fn tzset();
-}
-
 /* The current year and month in the time zone of TZ. */
 fn today() -> Option<(i64, u32)> {
     posix::cal::null_tz_is_unset();
-    unsafe {
-        tzset();
-        let t = libc::time(std::ptr::null_mut());
-        let mut tm: libc::tm = std::mem::zeroed();
-        if libc::localtime_r(&t, &mut tm).is_null() {
-            return None;
-        }
-        Some((i64::from(tm.tm_year) + 1900, (tm.tm_mon + 1) as u32))
-    }
+    posix::time::tzset();
+    let tm = posix::time::localtime(posix::time::now() as libc::time_t)?;
+    Some((i64::from(tm.tm_year) + 1900, (tm.tm_mon + 1) as u32))
 }
 
 fn main() {
@@ -616,9 +607,7 @@ mod tests {
         assert_eq!(c.months[0], b"January");
         assert_eq!(c.days[0], b"Sun");
         assert_eq!(short_day(&c.days[0]), b"Su");
-        let loc = std::ffi::CString::new("fr_FR.UTF-8").unwrap();
-        if unsafe { libc::setlocale(libc::LC_ALL, loc.as_ptr()) }.is_null() {
-            eprintln!("skipped: no locale fr_FR.UTF-8");
+        if !posix::locale::try_set("fr_FR.UTF-8") {
             return;
         }
         let fr = Names::locale();
@@ -629,7 +618,7 @@ mod tests {
         assert!(out.starts_with("     mars 2020\ndi lu ma me je ve sa\n"));
         /* two characters, not two bytes: e-acute is two bytes */
         assert_eq!(short_day("\u{e9}t\u{e9}".as_bytes()), "\u{e9}t".as_bytes());
-        unsafe { libc::setlocale(libc::LC_ALL, c"C".as_ptr()) };
+        posix::locale::set_c();
     }
 
     #[test]

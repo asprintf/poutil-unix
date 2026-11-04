@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /* tail - copy the last part of a file. */
 
+#![forbid(unsafe_code)]
+
 use posix::getopt::{Getopt, Opt};
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::os::unix::fs::FileTypeExt;
