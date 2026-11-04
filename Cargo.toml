@@ -237,3 +237,7 @@ lto = true
 panic = "abort"
 strip = true
 codegen-units = 1
+
+[[bin]]
+name = "ln"
+path = "ln/ln.rs"

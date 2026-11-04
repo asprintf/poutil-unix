@@ -1,0 +1,211 @@
+# the plain forms: a new name, an existing name, a directory as target
+f nf
+f g
+f d
+f d/
+f d//
+f d2
+f 'sp ace'
+'sp ace' x
+'sp ace' d
+f e d
+f g d
+f g d2
+f g nf
+f g e
+f g nosuch
+f g nosuch/
+f nf/
+f/x nf
+f nf/x
+f f.link
+f ./nf
+./f ./d/./nf
+d/x nf
+d/x d2
+d/x d
+d/../f nf
+# -f
+-f f g
+-f f d2
+-f f g d
+-f f e g
+-f f e d2
+-f e f
+-f f nf
+-f f f
+-f f ./f
+-f ./f f
+-f f d/../f
+-f ./f d/../f
+-f d/../f f
+-f f g f
+-f g f g
+-f sl f
+-f sl sl
+-f sl2 sl
+-f sl2 f
+-f sl g
+-f dang f
+-f dang g
+-f nosuch g
+-f nosuch d2
+-f d d2
+-f d dl
+-f d2 d
+-f f dl
+-f f dang
+-f f sl
+-f f d2/f
+-f d2/f f
+-f d2/f d2/f
+-f f f f
+-f -f f nf
+# the same file under a second name is fine
+f f2
+f2 f
+# -s
+-s f nl
+-s f g
+-s f d
+-s f d/
+-s f d2
+-s f d2 nosuch
+-s nosuch nl
+-s nosuch d
+-s '' nl
+-s '' d
+-s f e d
+-s f g d
+-s f g nl
+-s f g nosuch
+-s a/b/c nl
+-s a/b/c d
+-s a/b/c/ d
+-s /a/b/ d
+-s / d
+-s . nl
+-s .. nl
+-s .. d
+-s d nl
+-s d/x nl
+-s d nl/
+-s f nl/
+-s f nf
+-s -- -f nl
+-s -f nl
+-s f sl
+-s f dl
+-s f dang
+-s f d/x
+-sf f g
+-sf f g d
+-sf f sl
+-sf f dl
+-sf f dang
+-sf f d2
+-sf f f
+-sf f ./f
+-sf ./f f
+-sf g g
+-sf nowhere f
+-sf f e
+-sf sl sl
+-sf sl2 sl
+-sf dl dl
+-sf dl d
+-sf d d
+-sf e e d
+-sf e g d
+-fs f g
+-sff f g
+-ss f nl
+# -L and -P on links, ignored with -s
+sl nl
+-L sl nl
+-P sl nl
+-LP sl nl
+-PL sl nl
+-L -P sl nl
+-P -L sl nl
+-L sl2 nl
+-P sl2 nl
+sl sl2 d
+-P sl sl2 d
+-L dl nl
+-P dl nl
+dl nl
+-L dang nl
+-P dang nl
+dang nl
+-fL sl f
+-fP sl f
+-fP sl2 sl
+-fL sl2 sl
+-fP sl2 sl2
+-fP dang dang
+-fP dang e
+-fL dang e
+-sL f nl
+-sP f nl
+-sP sl nl
+-sL sl nl
+-sLP f nl
+-sPL f nl
+-sfL f g
+-sfP sl sl
+# directories as sources
+d nl
+-f d nl
+-f d g
+d d2
+d d2/
+-L d nl
+-P d nl
+dl dl2
+-s d nl
+-s d d2
+-s d2 d
+# usage and operands
+@
+f
+-f
+-s
+-sf
+-L
+-P
+-z f nl
+-fz f nl
+-- f nl
+-- -f nl
+-- f -- nl
+f -- nl
+f nl --
+-- -- nl
+'' nl
+f ''
+'' ''
+-s '' ''
+-f '' ''
+'' d
+-s '' d
+f d ''
+-s f 'sp ace'
+-sf f 'sp ace'
+-s 'sp ace' x
+f nl nl2
+f g nl nl2
+-s f e nl
+-f f g e nl
+-s f d d2
+f d d2
+d d d
+e e
+e e e
+-f e e
+-s e e
+-sf e e
+-s e d d2
+d/x d2/f d
+-f d/x d2/f d
+d/x d2/x d

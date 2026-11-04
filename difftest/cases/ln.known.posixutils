@@ -1,0 +1,28 @@
+# the default of -L and -P is implementation-defined: ours is -L everywhere (what the standard required
+# before -P existed), posixutils-rs makes a link to the symbolic link itself
+sl nl
+sl sl2 d
+-f sl g
+-fL dang e
+dang nl
+dl nl
+dl dl2
+-f dang f
+-f dang g
+-f sl f
+-f sl2 f
+-f sl2 sl
+# the destination is removed before the source is looked at (allowed: RATIONALE), and a directory source,
+# which cannot be linked, still costs the destination
+-f d g
+-f nosuch g
+# the creation of the destination is checked against the source differently
+-sf e e d
+-s -f nl
+-s '' nl
+# repeated options and an operand "--" after the first operand are errors there (clap); ours takes them
+-f -f f nf
+-sff f g
+-ss f nl
+f -- nl
+f nl --

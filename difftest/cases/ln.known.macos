@@ -1,0 +1,20 @@
+# macOS unlinks the destination first even when it is the only name of the file the link would be made
+# to (here the target of the link): the link then fails and the file is gone. Ours leaves it (RATIONALE:
+# "ln a a" with or without -f will not unlink a; the same holds for the target of a link that is followed).
+-f sl f
+-f sl2 f
+-fL sl f
+# step 1b: the destination names the same directory entry as the source_file: a diagnostic. macOS removes
+# the entry and makes a symbolic link to itself.
+-sf ./f f
+-sf f ./f
+-sf f f
+-sf e e
+-sf g g
+-sf sl sl
+-sfP sl sl
+# the destination was made by the run itself (e to d/e, twice): the spec leaves open an error or going on;
+# ours reports it, macOS replaces it
+-sf e e d
+# one operand: macOS (and GNU) make the link in the current directory, the synopsis wants two or more
+-s -f nl

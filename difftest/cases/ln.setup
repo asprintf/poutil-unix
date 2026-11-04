@@ -1,0 +1,4 @@
+echo F > f; echo G > g; : > e
+mkdir d d2; echo X > d/x; echo Y > d2/f
+ln -s f sl; ln -s d dl; ln -s nowhere dang; ln -s sl sl2
+echo S > 'sp ace'
