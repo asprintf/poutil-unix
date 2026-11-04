@@ -1,0 +1,30 @@
+# posixutils-rs quoting does not follow the DESCRIPTION: quote characters stay in the argument under -I, a
+# quote inside an argument starts no quote, an escaped newline vanishes, -E '' or -E z see other words
+in:quotes sh -c 'echo "$#:$*"' x
+in:quotes -E '' sh -c 'echo "$#:$*"' x
+in:quotes -E z sh -c 'echo "$#:$*"' x
+in:quotes -I {} echo '<{}>'
+in:quotes -L 1 sh -c 'echo "$#:$*"' x
+in:quotes -t printf '<%s>'
+in:nl_esc sh -c 'echo "$#:$*"' x
+in:ilines -I {} echo '<{}>'
+in:ilines -I {} echo pre{}post {}{}
+in:ilines -I {} sh -c 'echo "$#:$*"' x {}
+in:ilines -I % echo '<%>' '{}'
+in:ilines -I{} echo '[{}] [{}]'
+# -L: a trailing blank continues the line to the next non-empty line (DESCRIPTION); it does not
+in:cont -L 1 sh -c 'echo "$#:$*"' x
+in:cont -L 2 sh -c 'echo "$#:$*"' x
+in:lines -L 1 sh -c 'echo "$#:$*"' x
+in:lines -L 2 sh -c 'echo "$#:$*"' x
+# -I, -L and -n exclude each other and the spec leaves open which one counts: it takes the last one given
+in:lines -L 2 -n 1 sh -c 'echo "$#:$*"' x
+in:lines -n 1 -L 2 sh -c 'echo "$#:$*"' x
+in:three -I {} -L 1 echo '<{}>'
+in:three -n 1 -I {} echo '<{}>'
+# a number must be a positive decimal integer; 0 is accepted there, and a repeated option is an error
+in:plain -L 0 echo
+in:plain -n 0 echo
+in:plain -n 2 -n 3 sh -c 'echo "$#:$*"' x
+# an empty replacement string is a usage error for us (undefined by the spec)
+in:ilines -I '' echo x

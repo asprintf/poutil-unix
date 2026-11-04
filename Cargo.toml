@@ -249,3 +249,7 @@ path = "chmod/chmod.rs"
 [[bin]]
 name = "chown"
 path = "chown/chown.rs"
+
+[[bin]]
+name = "xargs"
+path = "xargs/xargs.rs"

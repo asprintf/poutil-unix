@@ -1,0 +1,34 @@
+# macOS does not run the utility when the input holds no argument; the DESCRIPTION says it is run one or
+# more times until end-of-file, and PCTS xargs 48 runs "xargs echo abc" on an empty input and wants "abc".
+in:empty echo abc
+in:empty sh -c 'echo "$#:$*"' x
+in:empty nosuchutility
+in:blanks sh -c 'echo "$#:$*"' x
+# -I on lines that hold no argument: macOS runs the utility with an empty replacement; for a line the spec
+# says the utility is run per logical line, so nothing without lines
+in:blanks -I {} echo '<{}>'
+# -I: macOS squeezes the blanks inside a line; the spec says arguments are separated only by newlines
+in:ilines -I {} echo '<{}>'
+in:ilines -I {} echo pre{}post {}{}
+in:ilines -I {} sh -c 'echo "$#:$*"' x {}
+in:ilines -I % echo '<%>' '{}'
+in:ilines -I{} echo '[{}] [{}]'
+# -E is compared with the argument after backslash processing (DESCRIPTION: the logical end-of-file string);
+# macOS compares it before, so "a\ b" is not "a b" there
+in:escapes -E 'a b' sh -c 'echo "$#:$*"' x
+# -x: the spec only says "terminate if a constructed command line will not fit"; with -n or -L that is the
+# line of n arguments or L lines, without them xargs makes the lines as large as fit and has nothing to
+# terminate over (GNU does the same); macOS terminates whenever it has to cut a line, and with -n 2 -x cuts
+# the 2 arguments apart
+in:plain -x -- echo
+in:sizes -x echo
+in:sizes -L 1 -s 40 -x echo
+in:sizes -n 2 -x echo
+in:plain -tx -n 2 echo
+# a backslash that ends the input escapes nothing: dropped (as GNU does); macOS reports an error
+in:bs_end sh -c 'echo "$#:$*"' x
+# NUL cannot be in an argument and the input is a text file; ours refuses it, macOS cuts the argument there
+in:nul sh -c 'echo "$#:$*"' x
+# -s larger than the system takes is not an error ("xargs shall use the largest value it supports");
+# macOS refuses a size above its limit
+in:many -s 10000000000000 sh -c 'echo "$#"' x

@@ -1,0 +1,131 @@
+# the default utility (echo), separators and quoting (spec: DESCRIPTION, the quoting paragraph)
+in:plain
+in:quotes sh -c 'echo "$#:$*"' x
+in:escapes sh -c 'echo "$#:$*"' x
+in:nl_esc sh -c 'echo "$#:$*"' x
+in:tab sh -c 'echo "$#:$*"' x
+in:crlf sh -c 'echo "$#:$*"' x
+in:noeol sh -c 'echo "$#:$*"' x
+in:utf8 sh -c 'echo "$#:$*"' x
+in:blanks sh -c 'echo "$#:$*"' x
+in:empty sh -c 'echo "$#:$*"' x
+in:empty echo abc
+in:dq_open sh -c 'echo "$#:$*"' x
+in:sq_open sh -c 'echo "$#:$*"' x
+in:bs_end sh -c 'echo "$#:$*"' x
+in:nul sh -c 'echo "$#:$*"' x
+# the utility and its arguments come first
+in:plain printf '<%s>'
+in:plain sh -c 'echo "$#:$*"' x pre
+in:plain -- sh -c 'echo "$#:$*"' x
+in:plain echo -n
+in:plain echo -E x
+# -E: logical end of file (after quote processing); no default string
+in:underscore sh -c 'echo "$#:$*"' x
+in:underscore -E _ sh -c 'echo "$#:$*"' x
+in:underscore -E '' sh -c 'echo "$#:$*"' x
+in:underscore -E_ -n 1 sh -c 'echo "$#:$*"' x
+in:underscore -E b sh -c 'echo "$#:$*"' x
+in:quotes -E z sh -c 'echo "$#:$*"' x
+in:quotes -E '' sh -c 'echo "$#:$*"' x
+in:escapes -E 'a b' sh -c 'echo "$#:$*"' x
+in:eofline -E EOF sh -c 'echo "$#:$*"' x
+in:eofline -E EOF -L 1 sh -c 'echo "$#:$*"' x
+in:eofline -I{} -E EOF sh -c 'echo "<{}>"' x
+# -n
+in:many -n 7 sh -c 'echo "$#:$*"' x
+in:many -n 50 sh -c 'echo "$#:$*"' x
+in:many -n 51 sh -c 'echo "$#:$*"' x
+in:many -n 1 sh -c 'echo "$#:$*"' x
+in:plain -n 2 sh -c 'echo "$#:$*"' x
+in:plain -n2 sh -c 'echo "$#:$*"' x
+in:plain -n 0 echo
+in:plain -n -1 echo
+in:plain -n x echo
+in:plain -n '' echo
+in:plain -n
+in:plain -n 2 -n 3 sh -c 'echo "$#:$*"' x
+# -L
+in:lines -L 1 sh -c 'echo "$#:$*"' x
+in:lines -L 2 sh -c 'echo "$#:$*"' x
+in:lines -L 3 sh -c 'echo "$#:$*"' x
+in:cont -L 1 sh -c 'echo "$#:$*"' x
+in:cont -L 2 sh -c 'echo "$#:$*"' x
+in:plain -L 1 sh -c 'echo "$#:$*"' x
+in:plain -L 0 echo
+in:plain -L x echo
+in:quotes -L 1 sh -c 'echo "$#:$*"' x
+# -n and -L override each other (the last wins)
+in:lines -n 1 -L 2 sh -c 'echo "$#:$*"' x
+in:lines -L 2 -n 1 sh -c 'echo "$#:$*"' x
+# -I
+in:ilines -I {} echo '<{}>'
+in:ilines -I {} sh -c 'echo "$#:$*"' x {}
+in:ilines -I{} echo '[{}] [{}]'
+in:ilines -I {} echo pre{}post {}{}
+in:ilines -I % echo '<%>' '{}'
+in:ilines -I '' echo x
+in:ilines -I
+in:empty -I {} echo '<{}>'
+in:blanks -I {} echo '<{}>'
+in:plain -I {} echo '<{}>'
+in:three -I {} echo
+in:three -I {} sh -c 'echo "<$0>"' {}
+in:three -I {} -n 1 echo '<{}>'
+in:three -n 1 -I {} echo '<{}>'
+in:three -I {} -L 1 echo '<{}>'
+in:quotes -I {} echo '<{}>'
+# -s and -x
+in:sizes -s 31 echo
+in:sizes -s 31 -n 1 echo
+in:sizes -n 1 -s 24 -x echo
+in:sizes -s 24 -n 1 -x echo
+in:sizes -n 1 -s 24 echo
+in:sizes -s 1000 echo
+in:sizes -s 30 echo
+in:sizes -s 0 echo
+in:sizes -s x echo
+in:sizes -x echo
+in:sizes -n 2 -x echo
+in:sizes -L 1 -s 40 -x echo
+in:three -s 20 sh -c 'echo "$#:$*"' x
+in:three -s 5 -x echo
+in:longarg -s 100 echo
+in:longarg -s 300 sh -c 'echo "$#"' x
+in:many -s 40 sh -c 'echo "$#"' x
+in:many -s 40 -n 5 sh -c 'echo "$#"' x
+in:many -s 10000000000000 sh -c 'echo "$#"' x
+# -t and -p (-p needs a terminal: only the refusal without one)
+in:three -t sh -c 'echo "$#:$*"' x
+in:three -t -n 1 echo
+in:plain -t
+in:three -t -I {} echo '<{}>'
+in:quotes -t printf '<%s>'
+# exit statuses
+in:three -n 1 sh -c 'exit 0'
+in:three -n 1 sh -c 'exit 1'
+in:three -n 1 sh -c 'exit 7'
+in:three -n 1 sh -c '[ "$1" = y ] && exit 1; echo "$1"' x
+in:three -n 1 sh -c 'echo "$1"; [ "$1" = y ] && exit 255; exit 0' x
+in:three -n 1 sh -c 'echo "$1"; [ "$1" = y ] && kill -9 $$; exit 0' x
+in:three nosuchutility
+in:three -n 1 nosuchutility
+in:three /nonexistent/dir/utility
+in:three ./
+in:three .
+in:three /bin
+in:three ''
+in:empty nosuchutility
+# options
+in:plain -z echo
+in:plain -t -z echo
+in:plain -tx -n 2 echo
+in:plain -nt 2 echo
+in:plain -n2t echo
+in:plain -E
+in:plain -I
+in:plain -L
+in:plain -s
+in:plain -- -n 2 echo
+in:plain --
+in:plain -x -- echo
