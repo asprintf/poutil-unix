@@ -18,6 +18,9 @@
 # output before it is compared, for what the spec leaves open: the padding of
 # wc, the order of tsort).
 #
+# A first word in:NAME on a case line means standard input from the file
+# cases/UTIL.in/NAME for that line only (xargs), the word is not an argument.
+#
 # A line "@" means no arguments. Case lines also listed in UTIL.known are
 # reported as "known" (judged acceptable) and not counted as differences.
 #
@@ -53,6 +56,7 @@ run() {
 	mkdir "$work"
 	in=/dev/null
 	[ -f "$here/cases/$util.stdin" ] && in=$here/cases/$util.stdin
+	[ -n "$case_in" ] && in=$here/cases/$util.in/$case_in
 	if [ -f "$here/cases/$util.setup" ]; then
 		(cd "$work" && sh "$here/cases/$util.setup") >/dev/null 2>&1
 	fi
@@ -80,7 +84,7 @@ for util in "$@"; do
 	cases=$here/cases/$util
 	[ -f "$cases" ] || { echo "$util: no case file" >&2; missing=$((missing + 1)); continue; }
 	refs=
-	for r in /usr/bin/$util /bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
+	for r in /usr/bin/$util /bin/$util /usr/sbin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
 		[ -x "$r" ] && refs="$refs $r"
 	done
 	[ -n "$RS" ] && [ -x "$RS/$util" ] && refs="$refs $RS/$util"
@@ -91,6 +95,9 @@ for util in "$@"; do
 		[ -z "$SHARD" ] || [ $((lineno % ${SHARD#*/})) -eq "${SHARD%/*}" ] || continue
 		for loc in $LOCALES; do
 			if [ "$line" = "@" ]; then set --; else eval "set -- $line"; fi
+			# a first word in:NAME: standard input from cases/UTIL.in/NAME for this line (xargs)
+			case_in=
+			case ${1-} in in:*) case_in=${1#in:}; shift ;; esac
 			run "$OURS/$util" "$loc" "$@"
 			cp "$tmp/r.out" "$tmp/o.out"
 			o_err=$([ -s "$tmp/r.err" ] && echo err || echo quiet)
