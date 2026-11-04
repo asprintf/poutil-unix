@@ -311,9 +311,17 @@ fn c_format(sp: &Spec, length: &str) -> std::ffi::CString {
     std::ffi::CString::new(f).unwrap_or_default()
 }
 
+/* ENOMEM instead of an abort when a field does not fit in memory (or in a 32-bit address space) */
+fn reserve(v: &mut Vec<u8>, extra: usize) -> io::Result<()> {
+    v.try_reserve(extra).map_err(|_| io::Error::from_raw_os_error(libc::ENOMEM))
+}
+
 /* Run snprintf with a buffer that grows until the result fits; its error (EOVERFLOW: more than INT_MAX bytes). */
 fn snprintf_into(sp: &Spec, call: impl Fn(&mut [u8]) -> i32) -> io::Result<Vec<u8>> {
-    let mut buf: Vec<u8> = vec![0; 64 + sp.width.max(sp.prec.unwrap_or(0))];
+    let mut buf: Vec<u8> = Vec::new();
+    let size = sp.width.max(sp.prec.unwrap_or(0)).saturating_add(64);
+    reserve(&mut buf, size)?;
+    buf.resize(size, 0);
     loop {
         let n = call(&mut buf);
         if n < 0 {
@@ -323,6 +331,8 @@ fn snprintf_into(sp: &Spec, call: impl Fn(&mut [u8]) -> i32) -> io::Result<Vec<u
             buf.truncate(n as usize);
             return Ok(buf);
         }
+        let extra = n as usize + 1 - buf.len();
+        reserve(&mut buf, extra)?;
         buf.resize(n as usize + 1, 0);
     }
 }
@@ -363,7 +373,7 @@ fn format_real(sp: &Spec, v: f64) -> io::Result<Vec<u8>> {
         }
         body.extend_from_slice(if sp.conv.is_ascii_uppercase() { b"NAN" } else { b"nan" });
         let mut out = Vec::new();
-        pad(&mut out, &body, &Spec { minus: sp.minus, width: sp.width, ..Spec::default() });
+        pad(&mut out, &body, &Spec { minus: sp.minus, width: sp.width, ..Spec::default() })?;
         return Ok(out);
     }
     let cf = c_format(sp, "");
@@ -407,8 +417,9 @@ fn real(arg: &[u8]) -> Real {
 }
 
 /* The bytes of a string conversion padded with blanks to the field width. */
-fn pad(out: &mut Vec<u8>, s: &[u8], sp: &Spec) {
+fn pad(out: &mut Vec<u8>, s: &[u8], sp: &Spec) -> io::Result<()> {
     let fill = sp.width.saturating_sub(s.len());
+    reserve(out, fill.saturating_add(s.len()))?;
     if sp.minus {
         out.extend_from_slice(s);
         out.resize(out.len() + fill, b' ');
@@ -416,6 +427,7 @@ fn pad(out: &mut Vec<u8>, s: &[u8], sp: &Spec) {
         out.resize(out.len() + fill, b' ');
         out.extend_from_slice(s);
     }
+    Ok(())
 }
 
 /*
@@ -527,16 +539,22 @@ fn printf<W: Write>(fmt: &[u8], args: &[Vec<u8>], w: &mut W, warn: &mut dyn FnMu
                                 }
                             }
                         }
-                        b'c' => pad(&mut out, &arg[..arg.len().min(1)], sp),
-                        b's' => {
-                            let cut = sp.prec.map_or(arg.len(), |p| p.min(arg.len()));
-                            pad(&mut out, &arg[..cut], sp);
-                        }
                         _ => {
                             let mut conv = Vec::new();
-                            let stop = expand_b(arg, &mut conv);
-                            let cut = sp.prec.map_or(conv.len(), |p| p.min(conv.len()));
-                            pad(&mut out, &conv[..cut], sp);
+                            let mut stop = false;
+                            let bytes: &[u8] = match sp.conv {
+                                b'c' => &arg[..arg.len().min(1)],
+                                b's' => arg,
+                                _ => {
+                                    stop = expand_b(arg, &mut conv);
+                                    &conv
+                                }
+                            };
+                            let cut = if sp.conv == b'c' { bytes.len() } else { sp.prec.map_or(bytes.len(), |p| p.min(bytes.len())) };
+                            if let Err(e) = pad(&mut out, &bytes[..cut], sp) {
+                                warn(&format!("{}: {}", String::from_utf8_lossy(arg), posix::strerror(&e)));
+                                status = 1;
+                            }
                             if stop {
                                 w.write_all(&out)?;
                                 return Ok(status);
@@ -1006,6 +1024,18 @@ mod tests {
         assert_eq!(r.status, 1);
         let r = run("%99999999999999999999999d", &["1"]);
         assert_eq!(r.status, 1);
+    }
+
+    #[test]
+    fn a_field_larger_than_memory_is_an_error_not_an_abort() {
+        /* more than isize::MAX bytes: what a width near {INT_MAX} is on a 32-bit system */
+        let sp = |conv| Spec { width: usize::MAX / 2 + 1, conv, ..Spec::default() };
+        assert!(format_int(&sp(b'd'), 1).is_err());
+        assert!(format_real(&sp(b'f'), 1.0).is_err());
+        assert!(format_real(&sp(b'f'), f64::NAN).is_err());
+        let mut out = Vec::new();
+        assert!(pad(&mut out, b"x", &sp(b's')).is_err());
+        assert!(out.is_empty());
     }
 
     #[test]
