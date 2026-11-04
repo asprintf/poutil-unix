@@ -737,6 +737,10 @@ eq "tty on /dev/null: status" 1 $?
 eq "tty on /dev/null: output" "not a tty" "$(cat out)"
 "$OURS/tty" -s < /dev/null 2> /dev/null
 eq "tty -s: not an option of the 2018 edition" 2 $?
+"$OURS/tty" < /dev/null >&- 2> /dev/null
+eq "tty with stdout closed: status 2, not 1 (not a terminal)" 2 $?
+(trap '' PIPE; { sleep 1; "$OURS/tty" < /dev/null 2> err; echo $? > st; } | true)
+eq "tty into a broken pipe, SIGPIPE ignored: status 2 and a diagnostic" "2 1" "$(cat st) $(wc -l < err | tr -d ' ')"
 
 #---------------------------------------------------------------------- uname
 # the system's own figures, from sysctl, are the reference
@@ -1134,7 +1138,9 @@ eq "expr -- -3 + 1" "0 -2" "$? $(cat out)"
 "$OURS/expr" -3 + 1 > out
 eq "expr -3 + 1 (a negative integer without --)" "0 -2" "$? $(cat out)"
 "$OURS/expr" 1 + 1 >&- 2> /dev/null
-eq "expr with stdout closed: status" 1 $?
+eq "expr with stdout closed: status 3 (1 and 2 mean something else)" 3 $?
+(trap '' PIPE; { sleep 1; "$OURS/expr" 1 + 1 2> err; echo $? > st; } | true)
+eq "expr into a broken pipe, SIGPIPE ignored: status 3 and a diagnostic" "3 1" "$(cat st) $(wc -l < err | tr -d ' ')"
 "$OURS/expr" 1 \| 1 / 0 > out
 eq "expr 1 | 1 / 0 leaves the right side alone" "0 1" "$? $(cat out)"
 

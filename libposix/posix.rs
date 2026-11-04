@@ -216,8 +216,14 @@ pub fn strerror(e: &std::io::Error) -> String {
  * Not std::io::stdout(), which treats a closed descriptor (EBADF) as success.
  */
 pub fn write_stdout(prog: &[u8], data: &[u8]) {
+    write_stdout_or(prog, data, 1)
+}
+
+/* The same, exiting with status instead (tty and expr give 1 a meaning of its own). */
+pub fn write_stdout_or(prog: &[u8], data: &[u8], status: i32) {
     if let Err(e) = borrow_fd(1).write_all(data) {
-        fail(prog, &format!("write error: {}", strerror(&e)));
+        warn(prog, &format!("write error: {}", strerror(&e)));
+        std::process::exit(status);
     }
 }
 

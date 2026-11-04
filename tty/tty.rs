@@ -13,7 +13,8 @@ fn main() {
         posix::usage(SYNOPSIS);
     }
     if !posix::sys::isatty(0) {
-        posix::write_stdout(&prog, b"not a tty\n");
+        /* status 1 means "not a terminal": a write error is 2 */
+        posix::write_stdout_or(&prog, b"not a tty\n", 2);
         std::process::exit(1);
     }
     let mut out = match posix::sys::ttyname(0) {
@@ -25,5 +26,5 @@ fn main() {
         }
     };
     out.push(b'\n');
-    posix::write_stdout(&prog, &out);
+    posix::write_stdout_or(&prog, &out, 2);
 }

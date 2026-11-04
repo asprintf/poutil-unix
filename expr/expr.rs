@@ -319,7 +319,8 @@ fn main() {
         Ok(mut v) => {
             let false_ = is_false(&v);
             v.push(b'\n');
-            posix::write_stdout(&prog, &v);
+            /* 1 and 2 are a null result and an invalid expression: a write error is 3 */
+            posix::write_stdout_or(&prog, &v, 3);
             std::process::exit(if false_ { 1 } else { 0 });
         }
         Err(e) => {
