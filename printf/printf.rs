@@ -133,7 +133,8 @@ fn digits(s: &[u8]) -> (usize, usize) {
     let mut v: usize = 0;
     let mut n = 0;
     while n < s.len() && s[n].is_ascii_digit() {
-        v = (v * 10 + usize::from(s[n] - b'0')).min(LIMIT + 1);
+        /* saturating: v * 10 would wrap a 32-bit usize */
+        v = v.saturating_mul(10).saturating_add(usize::from(s[n] - b'0')).min(LIMIT + 1);
         n += 1;
     }
     (v, n)
