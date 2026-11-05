@@ -1,0 +1,114 @@
+# -i answered no (or end of file): the file is skipped; the spec calls only errors non-zero and says
+# nothing about a declined file. macOS exits 1, ours 0 (the same lines are in cp.known.gnu).
+in:ans.blank -i -f a b
+in:ans.blank -i a b
+in:ans.emoji -i -f a b
+in:ans.emoji -i a b
+in:ans.eof -f -i a b c tg2
+in:ans.eof -i -f a b
+in:ans.eof -i -f a b c tg2
+in:ans.eof -i -p a b c tg2
+in:ans.eof -i a b
+in:ans.eof -i a b c tg2
+in:ans.eof -i a b c tg2/
+in:ans.eof -R -i d/. mg
+in:ans.n -f -i a b c tg2
+in:ans.n -i -f a b
+in:ans.n -i -f a b c tg2
+in:ans.n -i -p a b c tg2
+in:ans.n -i -p pa pb
+in:ans.n -i a b
+in:ans.n -i a b c tg2
+in:ans.n -i a b c tg2/
+in:ans.n -i a rof
+in:ans.n -if a rof
+in:ans.n -ii a b
+in:ans.n -R -i d/. mg
+in:ans.nn -f -i a b c tg2
+in:ans.nn -i -f a b c tg2
+in:ans.nn -i -p a b c tg2
+in:ans.nn -i a b c tg2
+in:ans.nn -i a b c tg2/
+in:ans.nn -R -i d/. mg
+in:ans.no -i -f a b
+in:ans.no -i a b
+in:ans.ny -f -i a b c tg2
+in:ans.ny -i -f a b c tg2
+in:ans.ny -i -p a b c tg2
+in:ans.ny -i a b c tg2
+in:ans.ny -i a b c tg2/
+in:ans.ny -R -i d/. mg
+in:ans.nyy -f -i a b c tg2
+in:ans.nyy -i -f a b c tg2
+in:ans.nyy -i -p a b c tg2
+in:ans.nyy -i a b c tg2
+in:ans.nyy -i a b c tg2/
+in:ans.nyy -R -i d/. mg
+in:ans.one -i -f a b
+in:ans.one -i a b
+in:ans.sp_y -i -f a b
+in:ans.sp_y -i a b
+in:ans.y -f -i a b c tg2
+in:ans.y -i -f a b c tg2
+in:ans.y -i -p a b c tg2
+in:ans.y -i a b c tg2
+in:ans.y -i a b c tg2/
+in:ans.y -R -i d/. mg
+in:ans.yn -f -i a b c tg2
+in:ans.yn -i -f a b c tg2
+in:ans.yn -i -p a b c tg2
+in:ans.yn -i a b c tg2
+in:ans.yn -i a b c tg2/
+in:ans.yn -R -i d/. mg
+in:ans.ynyn -f -i a b c tg2
+in:ans.ynyn -i -f a b c tg2
+in:ans.ynyn -i -p a b c tg2
+in:ans.ynyn -i a b c tg2
+in:ans.ynyn -i a b c tg2/
+in:ans.ynyn -R -i d/. mg
+in:ans.yy -f -i a b c tg2
+in:ans.yy -i -f a b c tg2
+in:ans.yy -i -p a b c tg2
+in:ans.yy -i a b c tg2
+in:ans.yy -i a b c tg2/
+in:ans.zero -i -f a b
+in:ans.zero -i a b
+# -P with a symbolic link source: macOS never asks and overwrites the destination whatever the answer;
+# -i says the copy shall not be made unless the answer is affirmative.
+in:ans.n -P -i la b
+in:ans.y -P -i la b
+in:ans.yn -P -i la b
+# -P la a, la -> a: macOS replaces a by a link to itself and the data is gone; ours refuses.
+-P la a
+# A directory that cannot be read: the copy is made with its mode (step g changes the mode of a created
+# directory, not conditional on step f); macOS leaves it at rwx------. Exit 1 and the message are the same.
+-R a unr tgt
+-R unr a b tgt
+-R unr mg
+-R unr tgt
+-R unr tgt/
+-R unr unr2
+-R unr x
+-R unr/ x
+-R unr/sub tgt
+-R unr/sub x
+-Rf unr x
+-RL unr x
+-Rp unr x
+-RP unr x
+# A trailing slash on a source: macOS copies the contents; the destination is target/last component.
+-R d/ dst
+-R d/sub/ tgt
+-R d/sub// tgt
+-R hi/ld/ tgt
+-R tg2/ mg
+-RH hi/ld/ tgt
+-RL ld/ tgt
+# d/sub/.. (not dot-dot found in a traversal, step b): the concatenation gives tgt/..; ours and GNU copy
+# into tgt as for ".", macOS fails with "tgt/..: File exists". A judgement call, the spec is not clear.
+-R d/sub/.. tgt
+# -f and a destination that is a symbolic link loop: step 3c removes it and retries; macOS keeps the link.
+-f a lo1
+# -p /dev/null: macOS fails to copy the ACL of a device ("Operation not supported"), the file is the same.
+-p /dev/null b
+-p /dev/null x

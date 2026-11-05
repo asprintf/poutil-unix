@@ -80,3 +80,23 @@ in:ans.n -ii a b
 # for the spec and ours says nothing. (Listings and status are the same.)
 a a b tgt
 -R ff640 ff640 tgt
+# GNU clones the file on APFS and never reads the source, so the source keeps its access time;
+# ours and macOS read it. The copy is the same (all of these equal ours with gcp --reflink=never).
+-p -- pa x
+-p -p pa x
+-p pa pa2
+-p pa tgt
+-p pa tgt/
+-p pa x
+-p pa x y tgt
+-pf pa d1
+-pf pa rof
+-pp pa x
+-pP pa x
+-Pp pa x
+-pR pa x
+-Rp pa tgt
+-Rp pa x
+pa pa2
+pa tgt
+pa x
