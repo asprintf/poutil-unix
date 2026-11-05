@@ -1,8 +1,2 @@
 . "$DIFFTEST_LIB/stat.sh"
-find . ! -name . | sort | while IFS= read -r f; do
-	if [ -L "$f" ]; then
-		echo "L $f -> $(readlink "$f") $(st_ids "$f")"
-	else
-		echo "F $f $(st_mode "$f") $(st_ids "$f")"
-	fi
-done
+st_tree chown nodot

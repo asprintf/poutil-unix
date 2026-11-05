@@ -1,21 +1,2 @@
 . "$DIFFTEST_LIB/stat.sh"
-now=$(date +%s)
-tag() {
-	d=$((now - ${1%%.*}))
-	if [ "$d" -ge -5 ] && [ "$d" -le 120 ]; then echo now; else echo "$1"; fi
-}
-find . | sort | while IFS= read -r f; do
-	if [ -L "$f" ]; then
-		set -- $(st_all "$f")
-		echo "$f -> $(readlink "$f") m=$(tag "$3")"
-		continue
-	fi
-	set -- $(st_all "$f")
-	m=$1 z=$2 mt=$3 at=$4
-	c=
-	if [ -f "$f" ]; then
-		set -- $(cksum < "$f" 2> /dev/null)
-		c=$1
-	fi
-	echo "$f $m size=$z m=$(tag "$mt") a=$(tag "$at") sum=$c"
-done
+st_tree cp

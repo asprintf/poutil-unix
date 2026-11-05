@@ -1,14 +1,2 @@
 . "$DIFFTEST_LIB/stat.sh"
-now=$(date +%s)
-tag() {
-	d=$((now - ${1%%.*}))
-	if [ "$d" -ge -5 ] && [ "$d" -le 120 ]; then echo now; else echo "$1"; fi
-}
-find . | sort | while IFS= read -r f; do
-	if [ -L "$f" ]; then
-		echo "$f -> $(readlink "$f")"
-		continue
-	fi
-	set -- $(st_mtime "$f") $(st_atime "$f") $(st_size "$f") $(st_mode "$f")
-	echo "$f m=$(tag "$1") a=$(tag "$2") size=$3 mode=$4"
-done
+st_tree touch
