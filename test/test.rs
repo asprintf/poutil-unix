@@ -76,12 +76,11 @@ fn unary(op: &[u8], arg: &[u8]) -> R {
         b"-r" => access(arg, libc::R_OK),
         b"-w" => access(arg, libc::W_OK),
         b"-x" => access(arg, libc::X_OK),
-        b"-t" => {
-            let Some(fd) = posix::parse_decimal(arg) else {
-                return Err(err("bad file descriptor number"));
-            };
-            fd <= libc::c_int::MAX as u64 && posix::sys::isatty(fd as libc::c_int)
-        }
+        /* "False if file_descriptor is not a valid file descriptor number": no error, no message */
+        b"-t" => match posix::parse_decimal(arg) {
+            Some(fd) => fd <= libc::c_int::MAX as u64 && posix::sys::isatty(fd as libc::c_int),
+            None => false,
+        },
         _ => return Err(err("unknown operator")),
     })
 }
@@ -471,9 +470,10 @@ mod tests {
     fn file_descriptors() {
         assert_eq!(t(&["-t", "999"]), Some(false));
         assert_eq!(t(&["-t", "99999999999999999999"]), Some(false));
-        assert_eq!(t(&["-t", "x"]), None);
-        assert_eq!(t(&["-t", "-1"]), None);
-        assert_eq!(t(&["-t", ""]), None);
+        /* not a valid file descriptor number: false, not an error */
+        for bad in ["x", "-1", "+1", "-0", "", " 1", "1.5", "0x1", "1 ", "٣"] {
+            assert_eq!(t(&["-t", bad]), Some(false), "{bad:?}");
+        }
     }
 
     #[test]
