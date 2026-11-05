@@ -1,5 +1,5 @@
 # The perm X after "-": "the execute/search portion ... if the file is a directory or ... the current
-# (unmodified) file mode bits have an execute bit"; "a-X" clears it there, macOS does nothing.
+# (unmodified) file mode bits have an execute bit"; "a-X" clears it there; macOS reads X after "-" as "+X" (it adds the bit).
 -- -X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 a-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 # A symbolic link named with -R: ours changes the file it leads to and walks into it when it is a
@@ -41,3 +41,67 @@ u+gu f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 u+rg f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 u+ro f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 u=ru f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# Options the spec does not have (-h, -L, -H, -P, and an unknown one after -R): ours is a usage error; macOS and GNU accept them (macOS reads -Rx as a symbolic mode).
+-h 600 l
+-L 600 l
+-RH 600 tree2link
+-RL 600 tree2link
+-RP 600 tree2link
+-Rx 600 f6
+# A permcopy (u, g, o) stands alone in an action; ours refuses it mixed with other perms, macOS accepts it.
+o+su f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+su f6
+u+rg f6
+u+ro f6
+u+ug f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+ug f6
+u+Xg f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+Xg f6
+u=ru f6
+# The perm X after "-": ours clears the execute bit where X applies (spec); macOS adds it, as for +X.
+-- -rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rwxXst,a-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# -R: a link operand or a link met is not followed here for macOS, a dangling one is no error there, and a directory that cannot be read is changed first and then fails; see above.
+-R 000 'dir 😀'
+-R 600 dang f6
+-R 600 tree2/dl
+-R 600 tree2/e
+-R 600 tree2/la
+-R 600 tree2link
+-R a-x tree2
+-R a= tree2/s tree2/a
+-R go= tree2link
+# The set-user-ID, set-group-ID and sticky bits where the spec leaves the result open (the "=" clearing them, t on a file, X and s on a directory); the results differ only in the s, S, t and T positions.
+g=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=u,o= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo-t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo+rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg

@@ -150,3 +150,18 @@ a=r,a+w,a+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 # GNU takes a number after an operator ("+644", "=644", "-1", "+1") as octal bits; the spec has octal only
 # alone and symbolic only with letters; ours refuses it
 -- -1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# Options the spec does not have (-h, -L, -H, -P, and an unknown one after -R): ours is a usage error; macOS and GNU accept them (macOS reads -Rx as a symbolic mode).
+-h 600 l
+-L 600 l
+-RH 600 tree2link
+-RL 600 tree2link
+-RP 600 tree2link
+# +644, =644 and +1 are no symbolic mode and no octal mode; GNU takes them for a mode, ours is an invalid mode (as macOS).
++1 f6
++644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
++644 f6
+=644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=644 f6
+# -R: a link operand or a link met is not followed here for macOS, a dangling one is no error there, and a directory that cannot be read is changed first and then fails; see above.
+-R 000 'dir 😀'
+-R a= tree2/s tree2/a
