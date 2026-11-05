@@ -32,3 +32,155 @@
 -L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
 -P "$(id -u):$(id -G | cut -d' ' -f2)" sl
 -P "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+# -h with -R -L or -R -H: the spec does not forbid it and says what each does; macOS refuses ("the -RL and -h options may not be specified together").
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" f
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+# -H, -L and -P belong to -R; alone they change nothing here (as GNU); macOS warns "only useful with -R", and for a dangling link it changes the link itself.
+-H "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-H "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-H "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-H "$(id -u):$(id -G | cut -d' ' -f2)" f
+-H "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-H "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-H "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-L "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-L "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-L "$(id -u):$(id -G | cut -d' ' -f2)" f
+-L "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-P "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-P "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-P "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-P "$(id -u):$(id -G | cut -d' ' -f2)" f
+-P "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-P "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-P "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+# Options the spec does not have: ours is a usage error; macOS accepts them.
+-f "$(id -u)" f
+-n "$(id -u)" f
+-Rx "$(id -u)" f
+-v "$(id -u)" f
+-x "$(id -u)" f
+# A dangling link (an operand, or met in a tree) that chown would follow: ours and GNU report the missing target; macOS changes the link itself and succeeds.
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RL "$(id -u)" t3
+-RL "$(id -u)" top3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+"$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+"$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+"$(id -u)" dang
+"$(id -u)" t3/dangling
