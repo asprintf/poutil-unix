@@ -42,3 +42,361 @@ in:big3000 -n 3 -x sh -c 'echo "$#"' x
 in:one_nl -n 1 -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
 # -n above INT_MAX: the spec only asks for a positive decimal integer; macOS refuses it ("too large"), ours and GNU take it
 in:ins_lines -n 2147483648 echo
+# No argument at all (empty or blank input, or -E ending the input at once): the utility is run once; macOS does not run it.
+errtext: in:empty_ws -t
+errtext: in:empty_ws -t echo x
+errtext: in:nl_only -t -n 1 echo x
+in:empty_ws
+in:empty_ws -L 1 sh -c 'echo "$#:$*"' x
+in:empty_ws -n 1 sh -c 'echo "$#:$*"' x
+in:empty_ws -n 2 echo abc
+in:empty_ws /etc/passwd
+in:empty_ws nosuchutility
+in:empty_ws sh -c 'echo "$#:$*"' x
+in:nl_only
+in:nl_only -L 1 echo abc
+in:nl_only -L 1 sh -c 'echo "$#:$*"' x
+in:nl_only -n 1 sh -c 'echo "$#:$*"' x
+in:nl_only nosuchutility
+in:nl_only sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' -L 1 sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' -n 2 sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' -L 1 sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' -n 2 sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' sh -c 'echo "$#:$*"' x
+in:eof_first -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_first -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_first -E _ echo abc
+in:eof_first -E _ sh -c 'echo "$#:$*"' x
+in:one_nl -E x nosuchutility
+# -x without -n: the synopsis has -x on its own; macOS accepts it only as [-n number [-x]] and prints a usage error.
+in:big3000 -x sh -c 'echo "$#"' x
+in:one_nl -I {} -x echo "$(head -c 3000 /dev/zero | tr '\0' x)" {}
+in:one_nl -x -L 1 echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:one_nl -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:s_abc -s 10 -x echo
+in:s_abc -s 11 -x echo
+in:s_abc -s 12 -x echo
+in:s_abc -s 13 -x echo
+in:s_abc -s 14 -x echo
+in:s_abc -s 15 -x echo
+in:s_abc -s 16 -x echo
+in:s_abc -s 20 -x echo
+in:s_abc -s 25 -x echo
+in:s_abc -s 30 -x echo
+in:s_abc -s 8 -x echo
+in:s_abc -s 9 -x echo
+in:s_long -s 10 -x echo
+in:s_long -s 11 -x echo
+in:s_long -s 12 -x echo
+in:s_long -s 13 -x echo
+in:s_long -s 14 -x echo
+in:s_long -s 15 -x echo
+in:s_long -s 16 -x echo
+in:s_long -s 20 -x echo
+in:s_long -s 25 -x echo
+in:s_long -s 30 -x echo
+in:s_long -s 8 -x echo
+in:s_long -s 9 -x echo
+in:s_three4 -s 11 -x echo
+in:s_three4 -s 12 -x echo
+in:s_three4 -s 13 -x echo
+in:s_three4 -s 14 -x echo
+in:s_three4 -s 15 -x echo
+in:s_three4 -s 16 -x echo
+in:s_three4 -s 20 -x echo
+in:s_three4 -s 25 -x echo
+in:s_three4 -s 30 -x echo
+in:s10 -s 20 -x echo
+in:s10 -s 25 -x echo
+in:s10 -s 30 -x echo
+in:s3l -s 11 -x echo
+in:s3l -s 12 -x echo
+in:s3l -s 13 -x echo
+in:s3l -s 14 -x echo
+in:s3l -s 15 -x echo
+in:s3l -s 16 -x echo
+in:s3l -s 20 -x echo
+in:s3l -s 25 -x echo
+in:s3l -s 30 -x echo
+in:s4 -s 11 -x echo
+in:s4 -s 12 -x echo
+in:s4 -s 13 -x echo
+in:s4 -s 14 -x echo
+in:s4 -s 15 -x echo
+in:s4 -s 16 -x echo
+in:s4 -s 17 -x echo
+in:s4 -s 18 -x echo
+in:s4 -s 19 -x echo
+in:s4 -s 20 -x echo
+in:s4 -s 21 -x echo
+in:s4 -s 22 -x echo
+in:s4 -s 23 -x echo
+in:s4 -s 24 -x echo
+in:s4 -s 25 -x echo
+in:s4 -s 26 -x echo
+in:s4 -s 27 -x echo
+in:s4 -s 28 -x echo
+in:s4 -s 29 -x echo
+in:s4 -s 30 -x echo
+in:s4 -s 31 -x echo
+in:s4 -s 32 -x echo
+in:s4 -s 33 -x echo
+in:s4 -s 34 -x echo
+in:s4 -s 35 -x echo
+in:s4 -s 36 -x echo
+in:s4 -s 37 -x echo
+in:s4 -s 38 -x echo
+in:s4 -s 39 -x echo
+in:s4 -s 40 -x echo
+in:s6 -s 10 -x echo
+in:s6 -s 11 -x echo
+in:s6 -s 12 -x echo
+in:s6 -s 13 -x echo
+in:s6 -s 14 -x echo
+in:s6 -s 15 -x echo
+in:s6 -s 16 -x echo
+in:s6 -s 20 -x echo
+in:s6 -s 25 -x echo
+in:s6 -s 30 -x echo
+in:s6 -s 8 -x echo
+in:s6 -s 9 -x echo
+# -s: the command line, counting the NUL of every string, must be less than size; macOS (and GNU) take a line of exactly size bytes.
+in:long_line -s 4096 sh -c 'echo "$#"' x
+in:s_abc -s 15 echo
+in:s_abc -s 9 echo
+in:s_three4 -s 10 echo
+in:s_three4 -s 15 echo
+in:s_three4 -s 20 echo
+in:s10 -s 16 echo
+in:s3l -s 10 -n 2 echo
+in:s3l -s 10 echo
+in:s3l -s 15 -n 2 echo
+in:s3l -s 15 echo
+in:s3l -s 20 echo
+in:s4 -s 10 -n 2 echo
+in:s4 -s 10 echo
+in:s4 -s 15 -n 2 echo
+in:s4 -s 15 echo
+in:s4 -s 20 echo
+in:s4 -s 25 echo
+in:s6 -s 11 echo
+in:s6 -s 13 echo
+in:s6 -s 15 echo
+in:s6 -s 9 -n 2 echo
+in:s6 -s 9 echo
+# -t: no format is given; ours writes what a shell reads back as the same arguments, macOS writes them as they are (and /bin/echo for the default utility).
+errtext: in:emoji -t -I {} echo '<{}>' {}
+errtext: in:emoji -t -L 1 true
+errtext: in:emoji -t -n 1 true
+errtext: in:emoji -t -n 2 true x
+errtext: in:emoji -t -s 30 true
+errtext: in:emoji -t true
+errtext: in:eof_a -t -E _
+errtext: in:escapes -t -I {} echo '<{}>' {}
+errtext: in:escapes -t -L 1 true
+errtext: in:escapes -t -n 1 true
+errtext: in:escapes -t -n 2 true x
+errtext: in:escapes -t -s 30 true
+errtext: in:escapes -t true
+errtext: in:one_nl -t -I {} echo '<{}>' {}
+errtext: in:one_nl -t echo '  '
+errtext: in:one_nl -t echo ' '
+errtext: in:one_nl -t echo '!'
+errtext: in:one_nl -t echo '?'
+errtext: in:one_nl -t echo ''
+errtext: in:one_nl -t echo ' '
+errtext: in:one_nl -t echo ''"'"''
+errtext: in:one_nl -t echo ''"'"''"'"''
+errtext: in:one_nl -t echo ''"'"'é'
+errtext: in:one_nl -t echo '"'
+errtext: in:one_nl -t echo '""'
+errtext: in:one_nl -t echo '(a)'
+errtext: in:one_nl -t echo '[x]'
+errtext: in:one_nl -t echo '{'
+errtext: in:one_nl -t echo '}'
+errtext: in:one_nl -t echo '*'
+errtext: in:one_nl -t echo '#x'
+errtext: in:one_nl -t echo '^'
+errtext: in:one_nl -t echo '<a>'
+errtext: in:one_nl -t echo '~'
+errtext: in:one_nl -t echo '$HOME'
+errtext: in:one_nl -t echo 'a  b'
+errtext: in:one_nl -t echo 'a b'
+errtext: in:one_nl -t echo 'a;b'
+errtext: in:one_nl -t echo 'a'"'"'b"c'
+errtext: in:one_nl -t echo 'a\b'
+errtext: in:one_nl -t echo 'a`b'
+errtext: in:one_nl -t echo 'a　b'
+errtext: in:one_nl -t echo 'é'
+errtext: in:one_nl -t echo 'é'
+errtext: in:one_nl -t echo 'it'"'"'s *'
+errtext: in:one_nl -t echo 'it'"'"'s x'
+errtext: in:one_nl -t echo 'it'"'"'s'
+errtext: in:one_nl -t echo "$(printf '\001\047')"
+errtext: in:one_nl -t echo "$(printf '\033[31m')"
+errtext: in:one_nl -t echo "$(printf '\177')"
+errtext: in:one_nl -t echo "$(printf 'a\011b')"
+errtext: in:one_nl -t echo "$(printf 'a\012b')"
+errtext: in:one_nl -t echo "$(printf 'x\001y')"
+errtext: in:one_nl -t echo a=b
+errtext: in:plain -t
+errtext: in:plain -t -E c
+errtext: in:plain -t -I {} echo '<{}>' {}
+errtext: in:quotes -t -I {} echo '<{}>' {}
+errtext: in:quotes -t -L 1 true
+errtext: in:quotes -t -n 1 true
+errtext: in:quotes -t -n 2 true x
+errtext: in:quotes -t -s 30 true
+errtext: in:quotes -t true
+errtext: in:s6 -t -n 2 sh -c 'exit 1'
+errtext: in:trace_bytes -t -I {} echo '<{}>' {}
+errtext: in:trace_bytes -t -L 1 true
+errtext: in:trace_bytes -t -n 1 true
+errtext: in:trace_bytes -t -n 2 true x
+errtext: in:trace_bytes -t -s 30 true
+errtext: in:trace_bytes -t true
+errtext: in:trace_ctrl -t -I {} echo '<{}>' {}
+errtext: in:trace_ctrl -t -L 1 true
+errtext: in:trace_ctrl -t -n 1 true
+errtext: in:trace_ctrl -t -n 2 true x
+errtext: in:trace_ctrl -t -s 30 true
+errtext: in:trace_ctrl -t true
+errtext: in:trace_lines -t -L 1 true
+errtext: in:trace_lines -t -n 1 true
+errtext: in:trace_lines -t -n 2 true x
+errtext: in:trace_lines -t -s 30 true
+errtext: in:trace_lines -t true
+errtext: in:trace_quotes -t -I {} echo '<{}>' {}
+errtext: in:trace_quotes -t -L 1 true
+errtext: in:trace_quotes -t -n 1 true
+errtext: in:trace_quotes -t -n 2 true x
+errtext: in:trace_quotes -t -s 30 true
+errtext: in:trace_quotes -t true
+errtext: in:trace_special -t -I {} echo '<{}>' {}
+errtext: in:trace_special -t -L 1 true
+errtext: in:trace_special -t -n 1 true
+errtext: in:trace_special -t -n 2 true x
+errtext: in:trace_special -t -s 30 true
+errtext: in:trace_special -t true
+errtext: in:trace_utf8 -t -I {} echo '<{}>' {}
+errtext: in:trace_utf8 -t -L 1 true
+errtext: in:trace_utf8 -t -n 1 true
+errtext: in:trace_utf8 -t -n 2 true x
+errtext: in:trace_utf8 -t -s 30 true
+errtext: in:trace_utf8 -t true
+errtext: in:utf8 -t -I {} echo '<{}>' {}
+errtext: in:utf8 -t -L 1 true
+errtext: in:utf8 -t -n 1 true
+errtext: in:utf8 -t -n 2 true x
+errtext: in:utf8 -t -s 30 true
+errtext: in:utf8 -t true
+# -x with -n: macOS runs the arguments one at a time as with -n 1; ours packs n to a line and ends with an error when n do not fit in -s.
+errtext: in:emoji -t -x -n 2 true
+errtext: in:escapes -t -x -n 2 true
+errtext: in:plain -t -x -n 2 true
+errtext: in:quotes -t -x -n 2 true
+errtext: in:trace_bytes -t -x -n 2 true
+errtext: in:trace_ctrl -t -x -n 2 true
+errtext: in:trace_lines -t -x -n 2 true
+errtext: in:trace_quotes -t -x -n 2 true
+errtext: in:trace_special -t -x -n 2 true
+errtext: in:trace_utf8 -t -x -n 2 true
+errtext: in:utf8 -t -x -n 2 true
+in:line60 -n 100 -x sh -c 'echo "$#"' x
+in:s3l -s 11 -n 2 -x echo
+in:s3l -s 12 -n 2 -x echo
+in:s3l -s 13 -n 2 -x echo
+in:s3l -s 14 -n 2 -x echo
+in:s3l -s 15 -n 2 -x echo
+in:s3l -s 16 -n 2 -x echo
+in:s3l -s 20 -n 2 -x echo
+in:s3l -s 25 -n 2 -x echo
+in:s3l -s 30 -n 2 -x echo
+in:s4 -s 11 -n 2 -x echo
+in:s4 -s 12 -n 2 -x echo
+in:s4 -s 13 -n 2 -x echo
+in:s4 -s 14 -n 2 -x echo
+in:s4 -s 15 -n 2 -x echo
+in:s4 -s 16 -n 2 -x echo
+in:s4 -s 17 -n 2 -x echo
+in:s4 -s 18 -n 2 -x echo
+in:s4 -s 19 -n 2 -x echo
+in:s4 -s 20 -n 2 -x echo
+in:s4 -s 21 -n 2 -x echo
+in:s4 -s 22 -n 2 -x echo
+in:s4 -s 23 -n 2 -x echo
+in:s4 -s 24 -n 2 -x echo
+in:s4 -s 25 -n 2 -x echo
+in:s4 -s 26 -n 2 -x echo
+in:s4 -s 27 -n 2 -x echo
+in:s4 -s 28 -n 2 -x echo
+in:s4 -s 29 -n 2 -x echo
+in:s4 -s 30 -n 2 -x echo
+in:s4 -s 31 -n 2 -x echo
+in:s4 -s 32 -n 2 -x echo
+in:s4 -s 33 -n 2 -x echo
+in:s4 -s 34 -n 2 -x echo
+in:s4 -s 35 -n 2 -x echo
+in:s4 -s 36 -n 2 -x echo
+in:s4 -s 37 -n 2 -x echo
+in:s4 -s 38 -n 2 -x echo
+in:s4 -s 39 -n 2 -x echo
+in:s4 -s 40 -n 2 -x echo
+in:s6 -s 10 -n 2 -x echo
+in:s6 -s 11 -n 2 -x echo
+in:s6 -s 12 -n 2 -x echo
+in:s6 -s 13 -n 2 -x echo
+in:s6 -s 14 -n 2 -x echo
+in:s6 -s 15 -n 2 -x echo
+in:s6 -s 16 -n 2 -x echo
+in:s6 -s 20 -n 2 -x echo
+in:s6 -s 25 -n 2 -x echo
+in:s6 -s 30 -n 2 -x echo
+in:s6 -s 8 -n 2 -x echo
+in:s6 -s 9 -n 2 -x echo
+# -I: the spec ignores only blanks at the start of a line; macOS also strips trailing blanks, squeezes the ones inside, runs the utility on a
+# blank line, stops -E at a word inside a line, and refuses a line it cannot fit in its own limits (255 bytes, -s) that ours accepts.
+errtext: in:ins_two -t -I {} echo x{}y {}{}
+errtext: in:ins_two -t -I {} sh -c 'echo "$1"' x {}
+errtext: in:trace_lines -t -I {} echo '<{}>' {}
+in:big3000 -I {} echo '<{}>'
+in:cjk -E '世界' -I {} echo '<{}>'
+in:empty_str -I {} echo '<{}>'
+in:empty_ws -I {} echo '<{}>'
+in:empty_ws -I {} echo x
+in:ins_empty -I {} echo '<{}>'
+in:ins_lines -I {} echo '<{}>'
+in:ins_quoted -I {} echo '<{}>'
+in:ins_two -I {} echo '<{}>'
+in:ins_two -I {} echo {}{}{}
+in:ins_two -I abc echo abc
+in:line60 -I {} echo '<{}>'
+in:long_line -I {} echo '<{}>'
+in:long_line -I {} sh -c 'echo "${#1}"' x {}
+in:mixed_ws -E d -I {} echo '<{}>'
+in:mixed_ws -I {} echo '<{}>'
+in:s3l -s 11 -I {} echo '{}'
+in:s3l -s 12 -I {} echo '{}'
+in:s3l -s 13 -I {} echo '{}'
+in:s4 -s 26 -I {} echo '{}'
+in:s4 -s 27 -I {} echo '{}'
+in:s4 -s 28 -I {} echo '{}'
+in:t_blank2 -I {} echo '<{}>'
+in:t_empty -I {} echo '<{}>'
+in:t_eof -I {} echo '<{}>'
+in:t_line -I {} echo '<{}>'
+in:t_line2 -I {} echo '<{}>'
+in:t_tab -I {} echo '<{}>'
+# A backslash at the end of the input escapes nothing: ours drops it (as GNU does); macOS reports "backslash at EOF" and exits 1.
+in:bs_eof_nl -I {} echo '<{}>'
+in:bs_eof_nl -L 1 sh -c 'echo "$#:$*"' x
+in:bs_eof_nl -n 1 sh -c 'echo "$#:$*"' x
+in:bs_eof_nl sh -c 'echo "$#:$*"' x
+# -n without -s: the size it implies is {LINE_MAX}; macOS only stops at {ARG_MAX}.
+in:line60 -n 100 sh -c 'echo "$#"' x
+in:long_line -n 1000 sh -c 'echo "$#"' x
+# -L: a trailing unescaped blank continues the line to the next non-empty line (spec); macOS ignores that rule.
+in:ins_lines -L 1 sh -c 'echo "$#:$*"' x
+in:t_tab -L 1 sh -c 'echo "$#:$*"' x
