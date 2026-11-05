@@ -1,7 +1,8 @@
 #!/bin/sh
 # difftest.sh - compare our utilities with reference implementations.
 #
-# Usage: sh difftest/difftest.sh [-v] util...
+# Usage: sh difftest/difftest.sh [-v] [-j N] util...   (-j N: N shards at once, at most 3; progress and the
+# time of each utility go to standard error)
 #
 # For each case line in difftest/cases/UTIL (shell words, # comments allowed) the
 # utility is run in a fresh directory, prepared by difftest/cases/UTIL.setup if
@@ -21,6 +22,7 @@
 # First words on a case line that are no arguments (any number, in any order):
 #   in:NAME    standard input from the file cases/UTIL.in/NAME for that line only (xargs)
 #   umask:MASK the utility runs with that umask (cp, chmod: what the mode of a new file is)
+#   path:DIRS  PATH for the utility is DIRS followed by /usr/bin:/bin (relative to the case directory; xargs: the search for the utility)
 #   errtext:   the text of standard error is compared too, without the lines that start
 #              with the name of the program ("xargs: ..." and "/usr/bin/xargs: ..." differ
 #              and the standard leaves diagnostics open); for what the standard writes
@@ -41,6 +43,8 @@
 #
 # UTIL.known applies to every reference; UTIL.known.gnu and UTIL.known.macos to one of them.
 #
+# ONLY_LINES=FILE runs only the case lines that appear in FILE (whole lines, as in the case file):
+# one case, or the lines of a .known file, without the rest of the utility.
 # Environment: DIFFTEST_TIMEOUT (seconds a case may run, default 60; needs timeout or gtimeout), OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
 # LLVM_PROFILE_FILE (passed on to ours, for difftest/coverage.sh),
 # SHARD=K/N (run only every
@@ -50,9 +54,48 @@
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
 LOCALES=${LOCALES:-"C en_US.UTF-8"}
-verbose=0
-[ "$1" = "-v" ] && { verbose=1; shift; }
-[ $# -ge 1 ] || { echo "usage: sh $0 [-v] util..." >&2; exit 2; }
+verbose=0 jobs=1
+while :; do
+	case ${1-} in
+	-v) verbose=1; shift ;;
+	-j) jobs=${2-}; shift 2 ;;
+	-j*) jobs=${1#-j}; shift ;;
+	*) break ;;
+	esac
+done
+case $jobs in '' | *[!0-9]* | 0) jobs=1 ;; esac
+[ $# -ge 1 ] || { echo "usage: sh $0 [-v] [-j N] util..." >&2; exit 2; }
+
+# -j N: N copies of this script with SHARD=K/N for each utility in turn, their output joined (N is at most 3)
+if [ "$jobs" -gt 1 ] && [ -z "${SHARD:-}" ]; then
+	[ "$jobs" -le 3 ] || jobs=3
+	vflag=
+	[ $verbose -eq 0 ] || vflag=-v
+	pdir=$(mktemp -d "${TMPDIR:-/tmp}/difftest.j.XXXXXX") || exit 1
+	pids=
+	trap 'kill $pids 2>/dev/null; rm -rf "$pdir"' EXIT
+	trap 'exit 130' INT TERM
+	total=0 bad=0 rc=0
+	for u in "$@"; do
+		pids=
+		k=0
+		while [ $k -lt $jobs ]; do
+			SHARD=$k/$jobs sh "$here/difftest.sh" $vflag "$u" >"$pdir/out.$k" &
+			pids="$pids $!"
+			k=$((k + 1))
+		done
+		for p in $pids; do wait "$p" || rc=1; done
+		pids=
+		k=0
+		while [ $k -lt $jobs ]; do
+			grep -v '^difftest: [0-9]* comparisons' "$pdir/out.$k"
+			k=$((k + 1))
+		done
+		eval "$(cat "$pdir"/out.* | awk -v t="$total" -v b="$bad" '/^difftest: [0-9]+ comparisons/ { t += $2; b += $4 } END { print "total=" t " bad=" b }')"
+	done
+	echo "difftest: $total comparisons, $bad differences"
+	exit $rc
+fi
 
 # A case that does not end (cp -p on a FIFO nobody writes to is a read that waits for ever, an endless
 # recursion) is killed after DIFFTEST_TIMEOUT seconds (default 60) if timeout(1) or gtimeout is there; the
@@ -83,11 +126,11 @@ run() {
 		(cd "$work" && LC_ALL=C CORPUS=$here/cases/$util.in DIFFTEST_LIB=$here/lib sh "$here/cases/$util.setup") >/dev/null 2>&1
 	fi
 	if [ -n "$case_mask" ]; then
-		(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
+		(cd "$work" && env -i PATH="${case_path:+$case_path:}/usr/bin:/bin" PWD="$work" LC_ALL="$loc" \
 			POSIXLY_CORRECT=1 ${LLVM_PROFILE_FILE:+LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE"} \
 			sh -c 'umask "$1" && shift && exec "$@"' sh "$case_mask" $lim "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
 	else
-		(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
+		(cd "$work" && env -i PATH="${case_path:+$case_path:}/usr/bin:/bin" PWD="$work" LC_ALL="$loc" \
 			POSIXLY_CORRECT=1 ${LLVM_PROFILE_FILE:+LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE"} $lim "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
 	fi
 	echo $? >"$tmp/r.st"
@@ -157,18 +200,23 @@ for util in "$@"; do
 		esac
 	done <"$cases" >"$expanded"
 	lineno=0
+	nlines=$(grep -v -e '^$' -e '^#' "$expanded" | wc -l | tr -d ' ')
+	ustart=$(date +%s)
 	while IFS= read -r line; do
 		case $line in '' | '#'*) continue ;; esac
 		lineno=$((lineno + 1))
+		[ $((lineno % 50)) -ne 0 ] || echo "difftest: $util [${SHARD:-all}] case line $lineno of $nlines, $(($(date +%s) - ustart)) s, $bad differences so far" >&2
 		[ -z "$SHARD" ] || [ $((lineno % ${SHARD#*/})) -eq "${SHARD%/*}" ] || continue
+		[ -z "${ONLY_LINES:-}" ] || grep -qxF -- "$line" "$ONLY_LINES" || continue
 		for loc in $LOCALES; do
 			if [ "$line" = "@" ]; then set --; else eval "set -- $line"; fi
 			# first words that are no arguments: in:NAME (standard input from cases/UTIL.in/NAME), umask:MASK, errtext:
-			case_in= case_mask= case_et=0
+			case_in= case_mask= case_path= case_et=0
 			while :; do
 				case ${1-} in
 				in:*) case_in=${1#in:}; shift ;;
 				umask:*) case_mask=${1#umask:}; shift ;;
+				path:*) case_path=${1#path:}; shift ;;
 				errtext:) case_et=1; shift ;;
 				*) break ;;
 				esac
@@ -210,6 +258,7 @@ for util in "$@"; do
 			done
 		done
 	done <"$expanded"
+	echo "difftest: $util [${SHARD:-all}] done in $(($(date +%s) - ustart)) s" >&2
 done
 echo "difftest: $total comparisons, $bad differences"
 [ "$missing" -eq 0 ] || echo "difftest: $missing without a case file" >&2
