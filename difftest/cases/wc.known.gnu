@@ -200,3 +200,12 @@ in:space.2029 -lwm
 -w long.emoji.sp
 -lwc long.emoji.sp
 -lwm long.emoji.sp
+# Invalid UTF-8 for -m: undefined by the spec; GNU counts differently from us (f8 and values above U+10FFFF), see above.
+-lwm invalid.f8
+-lwm invalid.toobig
+-m invalid.f8
+-m invalid.toobig
+in:invalid.f8 -lwm
+in:invalid.f8 -m
+in:invalid.toobig -lwm
+in:invalid.toobig -m
