@@ -228,6 +228,8 @@ struct Limits {
     room: usize,
     /* -n without -s: {LINE_MAX} cuts the arguments short */
     line_max: Option<usize>,
+    /* without -n and -s: "at least {LINE_MAX}", whatever {LINE_MAX} is here */
+    default_size: usize,
 }
 
 impl Limits {
@@ -235,7 +237,7 @@ impl Limits {
     fn fits(&self, total: usize, count: usize) -> bool {
         let user = match self.size {
             Some(s) => total < s,
-            None => total <= DEFAULT_SIZE,
+            None => total <= self.default_size,
         };
         user && total.saturating_add(PTR.saturating_mul(count + 1)) <= self.room
     }
@@ -310,6 +312,10 @@ impl Core<'_> {
         if !matches!(self.mode, Mode::I(_)) && !self.lim.fits(fixed_size, self.fixed.len()) {
             return self.stop("argument list too long", 1);
         }
+        /* -x: "terminate if a constructed command line will not fit in the implied size"; the utility and its own arguments are part of every line */
+        if self.exit_if_too_big && self.lim.line_max.is_some_and(|l| fixed_size > l) {
+            return self.stop("argument list too long", 1);
+        }
         let mut batch: Vec<Vec<u8>> = Vec::new();
         let mut size = fixed_size;
         let (mut lines, mut line_args) = (0usize, 0usize);
@@ -364,7 +370,7 @@ impl Core<'_> {
             }
             let cost = a.len() + 1;
             let over = !self.lim.fits(size + cost, self.fixed.len() + batch.len() + 1)
-                || self.lim.line_max.is_some_and(|l| !batch.is_empty() && size + cost > l);
+                || self.lim.line_max.is_some_and(|l| (!batch.is_empty() || self.exit_if_too_big) && size + cost > l);
             if over {
                 if batch.is_empty() {
                     return self.stop("argument too long", 1);
@@ -412,6 +418,85 @@ impl Core<'_> {
 
 /* ---- the real thing ---- */
 
+/*
+ * An argument as -t shows it: "the utility and its constructed argument list ... as it will be invoked".
+ * Plain when nothing in it needs quoting, otherwise written so that a shell reads it back as the same
+ * argument and the arguments stay apart ('a b' is one, a b is two): single quotes (a quote as '\''),
+ * double quotes when only quotes and blanks are in it, and $'..' for what cannot be seen (control bytes,
+ * bytes that are no printable character of the locale). The same text as GNU xargs 4.9.
+ */
+fn trace_quote(arg: &[u8]) -> Vec<u8> {
+    if arg.is_empty() {
+        return b"''".to_vec();
+    }
+    /* (bytes, printable) for each character */
+    let mut items: Vec<(&[u8], bool)> = Vec::new();
+    let mut i = 0;
+    while i < arg.len() {
+        let b = arg[i];
+        let (n, print) = if b < 0x80 {
+            (1, (0x20..0x7f).contains(&b))
+        } else {
+            match posix::mb::char_at(&arg[i..]) {
+                (n, Some(wc)) => (n, posix::mb::is_print(wc)),
+                (n, None) => (n, false),
+            }
+        };
+        items.push((&arg[i..i + n], print));
+        i += n;
+    }
+    let special = |c: u8| b" !\"$&()*;<=>?[^`|\\'".contains(&c);
+    let lead = matches!(arg[0], b'#' | b'~');
+    let brace = arg == b"{" || arg == b"}";
+    let all_print = items.iter().all(|it| it.1);
+    let other = lead || brace || arg.iter().any(|&c| c != b'\'' && c != b' ' && special(c));
+    if all_print && !lead && !brace && !arg.iter().any(|&c| special(c)) {
+        return arg.to_vec();
+    }
+    if all_print && !other && arg.contains(&b'\'') {
+        /* only quotes and blanks: double quotes hold them all */
+        let mut o = vec![b'"'];
+        o.extend_from_slice(arg);
+        o.push(b'"');
+        return o;
+    }
+    let mut o = vec![b'\''];
+    let mut esc = false;
+    for (bytes, print) in items {
+        if print {
+            if bytes == b"'" {
+                o.extend_from_slice(b"'\\''");
+                esc = false;
+            } else {
+                if esc {
+                    o.extend_from_slice(b"''");
+                    esc = false;
+                }
+                o.extend_from_slice(bytes);
+            }
+        } else {
+            if !esc {
+                o.extend_from_slice(b"'$'");
+                esc = true;
+            }
+            for &c in bytes {
+                match c {
+                    7 => o.extend_from_slice(b"\\a"),
+                    8 => o.extend_from_slice(b"\\b"),
+                    9 => o.extend_from_slice(b"\\t"),
+                    10 => o.extend_from_slice(b"\\n"),
+                    11 => o.extend_from_slice(b"\\v"),
+                    12 => o.extend_from_slice(b"\\f"),
+                    13 => o.extend_from_slice(b"\\r"),
+                    _ => o.extend_from_slice(format!("\\{:03o}", c).as_bytes()),
+                }
+            }
+        }
+    }
+    o.push(b'\'');
+    o
+}
+
 struct Real {
     prog: Vec<u8>,
     trace: bool,
@@ -423,7 +508,7 @@ struct Real {
 impl Real {
     fn exec(&mut self, argv: &[Vec<u8>]) -> Outcome {
         if self.trace {
-            let mut line = argv.join(&b' ');
+            let mut line = argv.iter().map(|a| trace_quote(a)).collect::<Vec<_>>().join(&b' ');
             if self.tty.is_none() {
                 line.push(b'\n');
             }
@@ -525,7 +610,7 @@ fn main() {
     let arg_max = posix::sys::arg_max().unwrap_or(DEFAULT_SIZE);
     let room = arg_max.saturating_sub(RESERVE + env_bytes + PTR * (envc + 1));
     let line_max = (size.is_none() && matches!(mode, Mode::N(_))).then(posix::sys::line_max);
-    let lim = Limits { size, room, line_max };
+    let lim = Limits { size, room, line_max, default_size: DEFAULT_SIZE.max(posix::sys::line_max()) };
 
     let insert = matches!(mode, Mode::I(_));
     let exit_if_too_big = insert || (x && !matches!(mode, Mode::Default));
@@ -552,6 +637,66 @@ mod tests {
                 Ok(Tok::Eof) => return Ok(v),
                 Ok(t) => v.push(t),
                 Err(e) => return Err(e.to_string()),
+            }
+        }
+    }
+
+    /* a reader that gives at most n bytes a call and fails with Interrupted before every other one */
+    struct Dribble<'a> {
+        data: &'a [u8],
+        n: usize,
+        flip: bool,
+    }
+
+    impl Read for Dribble<'_> {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            self.flip = !self.flip;
+            if self.flip {
+                return Err(io::Error::from(io::ErrorKind::Interrupted));
+            }
+            let k = self.n.min(buf.len()).min(self.data.len());
+            buf[..k].copy_from_slice(&self.data[..k]);
+            self.data = &self.data[k..];
+            Ok(k)
+        }
+    }
+
+    #[test]
+    fn the_tokens_do_not_depend_on_how_the_input_arrives() {
+        /* quotes, escapes, blanks, newlines, continuation lines and multibyte characters cut at every place */
+        let inputs: [&[u8]; 16] = [
+            b"a b\tc\n d  e \n\n f\n",
+            b"\"a b\" 'c d' \"e'f\" 'g\"h'\n",
+            b"a\"b c\"d'e f'g\n",
+            b"a\\ b c\\\"d \\'e \\\\f \\x\n",
+            b"a\\\nb\n",
+            b"a \nb\n  \nc d \n\ne\n",
+            b"a\\ \nb\n",
+            b"\"\" '' x\n",
+            b"\"a\nb\"\n",
+            b"'a\nb'\n",
+            b"\xc3\xa9 \xf0\x9f\x98\x80 \xe4\xbd\xa0\xe5\xa5\xbd\n\xf0\x9f\x91\xa8\xe2\x80\x8d\xf0\x9f\x91\xa9 x\n",
+            b"\xff \xc3 \xe4\xbd x\n",
+            b"a\\",
+            b"\"a",
+            b"'a b",
+            b"x",
+        ];
+        for input in inputs {
+            for insert in [false, true] {
+                let whole = lex_with(input, insert);
+                for n in [1, 2, 3, 5, 7] {
+                    let mut lx = Lexer::new(Dribble { data: input, n, flip: false }, insert, 1 << 20);
+                    let mut v = Vec::new();
+                    let got = loop {
+                        match lx.next() {
+                            Ok(Tok::Eof) => break Ok(v),
+                            Ok(t) => v.push(t),
+                            Err(e) => break Err(e.to_string()),
+                        }
+                    };
+                    assert_eq!(got, whole, "input {:?}, insert {insert}, {n} bytes a read", String::from_utf8_lossy(input));
+                }
             }
         }
     }
@@ -697,7 +842,7 @@ mod tests {
                 mode,
                 eof: eof.map(|e| e.as_bytes().to_vec()),
                 fixed: fixed.iter().map(|s| s.as_bytes().to_vec()).collect(),
-                lim: Limits { size, room: 1 << 20, line_max },
+                lim: Limits { size, room: 1 << 20, line_max, default_size: DEFAULT_SIZE },
                 exit_if_too_big,
                 exec: &mut exec,
                 complain: &mut complain,
@@ -812,9 +957,58 @@ mod tests {
         /* -s lifts it, and the first argument is never refused for it */
         let r = go(&input, Mode::N(100), None, &["u"], Some(100_000), false, &[]);
         assert_eq!(r.batches.len(), 1);
+        /* without -x an argument that is over {LINE_MAX} alone has nothing to be cut: it runs */
         let big = format!("{}\n", "b".repeat(3000));
         let r = go(&big, Mode::N(2), None, &["u"], None, false, &[]);
         assert_eq!(r.batches.len(), 1);
+        /* with -x it does not fit the implied size: terminate, as for a line of several arguments */
+        let r = go(&big, Mode::N(1), None, &["u"], None, true, &[]);
+        assert!(r.batches.is_empty());
+        assert_eq!((r.status, r.msgs), (1, vec!["argument too long".to_string()]));
+        /* the utility and its own arguments over {LINE_MAX} under -x -n: nothing is run */
+        let long = "c".repeat(3000);
+        let r = go("a\n", Mode::N(1), None, &["u", &long], None, true, &[]);
+        assert!(r.batches.is_empty());
+        assert_eq!(r.status, 1);
+        /* -x without -n has no implied size: lines are cut as usual */
+        let r = go(&big, Mode::Default, None, &["u"], None, true, &[]);
+        assert_eq!(r.batches.len(), 1);
+    }
+
+    #[test]
+    fn trace_shows_arguments_so_that_a_shell_reads_them_back() {
+        let q = |s: &str| String::from_utf8(trace_quote(s.as_bytes())).unwrap();
+        /* nothing to quote */
+        for s in ["a", "-n", "--", "{}", "a,b", "a:b", "a/b", "a.b", "a+b", "%", "@", "]", "_", "a#b", "a~b", "a{b", "a}b"] {
+            assert_eq!(q(s), s);
+        }
+        /* quoted: the empty string, blanks, characters the shell reads */
+        assert_eq!(q(""), "''");
+        assert_eq!(q("a b"), "'a b'");
+        assert_eq!(q(" "), "' '");
+        for s in ["$HOME", "*", "?", "[x]", "a=b", "^", "!", "a\\b", "a\"b", "a`b", "a;b", "a&b", "a|b", "(a)", "<a>", "#x", "~", "{", "}"] {
+            assert_eq!(q(s), format!("'{s}'"), "{s}");
+        }
+        /* a quote: double quotes if only quotes and blanks need it, else '\'' */
+        assert_eq!(q("it's"), "\"it's\"");
+        assert_eq!(q("it's x"), "\"it's x\"");
+        assert_eq!(q("'"), "\"'\"");
+        assert_eq!(q("it's *"), "'it'\\''s *'");
+        assert_eq!(q("it's $x"), "'it'\\''s $x'");
+        assert_eq!(q("a'b\"c"), "'a'\\''b\"c'");
+        /* what cannot be seen */
+        assert_eq!(q("a\nb"), "'a'$'\\n''b'");
+        assert_eq!(q("a\tb"), "'a'$'\\t''b'");
+        assert_eq!(q("x\x01y"), "'x'$'\\001''y'");
+        assert_eq!(q("\x7f"), "''$'\\177'");
+        assert_eq!(q("a\x1bb"), "'a'$'\\033''b'");
+        assert_eq!(q("a\x07b\x08\x0c\x0b\r"), "'a'$'\\a''b'$'\\b\\f\\v\\r'");
+        assert_eq!(q("\x01'"), "''$'\\001'\\'''");
+        assert_eq!(q("it's\nx"), "'it'\\''s'$'\\n''x'");
+        /* bytes that are no character: the C locale, as the tests run, has no printable byte above 0x7f */
+        assert_eq!(trace_quote(b"\xff"), b"''$'\\377'");
+        assert_eq!(trace_quote(b"a b\xff"), b"'a b'$'\\377'");
+        assert_eq!(trace_quote(b"\xc3\xa9 x"), b"''$'\\303\\251'' x'");
     }
 
     #[test]
@@ -891,15 +1085,18 @@ mod tests {
 
     #[test]
     fn limits() {
-        let l = Limits { size: Some(10), room: 1000, line_max: None };
+        let l = Limits { size: Some(10), room: 1000, line_max: None, default_size: DEFAULT_SIZE };
         assert!(l.fits(9, 1));
         assert!(!l.fits(10, 1));
-        let l = Limits { size: None, room: 1000, line_max: None };
+        let l = Limits { size: None, room: 1000, line_max: None, default_size: DEFAULT_SIZE };
         assert!(l.fits(900, 1));
         assert!(!l.fits(985, 2), "pointers count against the room");
-        let l = Limits { size: None, room: usize::MAX, line_max: None };
+        let l = Limits { size: None, room: usize::MAX, line_max: None, default_size: DEFAULT_SIZE };
         assert!(l.fits(DEFAULT_SIZE, 1));
         assert!(!l.fits(DEFAULT_SIZE + 1, 1));
+        /* "at least {LINE_MAX}": a larger {LINE_MAX} raises the default */
+        let l = Limits { size: None, room: usize::MAX, line_max: None, default_size: 1 << 20 };
+        assert!(l.fits(1 << 20, 1));
     }
 
     #[test]
