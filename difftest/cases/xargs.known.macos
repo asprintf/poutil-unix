@@ -40,3 +40,5 @@ in:big3000 -n 1 -x sh -c 'echo "$#"' x
 in:big3000 -n 2 -x sh -c 'echo "$#"' x
 in:big3000 -n 3 -x sh -c 'echo "$#"' x
 in:one_nl -n 1 -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+# -n above INT_MAX: the spec only asks for a positive decimal integer; macOS refuses it ("too large"), ours and GNU take it
+in:ins_lines -n 2147483648 echo

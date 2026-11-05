@@ -1,1 +1,7 @@
-:
+mkdir d1 d2 dir dir/sub
+printf '#!/bin/sh\necho first "$@"\n' > d1/prog; chmod 644 d1/prog
+printf '#!/bin/sh\necho second "$@"\n' > d2/prog; chmod 755 d2/prog
+printf '#!/bin/sh\necho in-cwd "$@"\n' > cmd; chmod 755 cmd
+cp cmd dir/cmd
+ln -s "" emptysymlink
+p=$(awk 'BEGIN { for (i = 0; i < 100; i++) printf "abcdefghi/" }'); mkdir -p "$p"; cp cmd "${p}cmd"

@@ -1240,3 +1240,24 @@ in:one_nl -n 1 echo "$(head -c 3000 /dev/zero | tr '\0' x)"
 in:one_nl -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
 in:one_nl -x -L 1 echo "$(head -c 3000 /dev/zero | tr '\0' x)"
 in:one_nl -I {} -x echo "$(head -c 3000 /dev/zero | tr '\0' x)" {}
+
+# The utility is searched in PATH (path:); a file without execute permission is skipped when a later directory has it
+path:d1:d2 in:one prog
+path:d2:d1 in:one prog
+path:d1 in:one prog
+path:d3 in:one prog
+# The utility named by a path: here, a directory, dot, dot-dot, an empty symbolic link, 1003 bytes and more than PATH_MAX
+in:one ./cmd
+in:one dir/cmd
+in:one dir/./cmd
+in:one dir/../dir/cmd
+in:one dir/sub/../cmd
+in:one emptysymlink/cmd
+in:one "$(awk 'BEGIN { for (i = 0; i < 100; i++) printf "abcdefghi/" }')cmd"
+in:one "$(awk 'BEGIN { for (i = 0; i < 120; i++) printf "abcdefghi/" }')cmd"
+# -n at the top of the range; -L and -s together
+in:ins_lines -n 2147483647 echo
+in:ins_lines -n 2147483648 echo
+in:l4 -L 2 -s 200 echo mark
+in:l4 -L 2 -s 20 echo mark
+in:l4 -s 200 -L 2 echo mark
