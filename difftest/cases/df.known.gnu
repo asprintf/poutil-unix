@@ -61,3 +61,36 @@ d
 -kt -k
 -kP --
 -P -k --
+# The same, for more spellings of the operand: GNU names the system volume / (and its device) for a file in the Data volume, ours /System/Volumes/Data; the rest of the output equals ours.
+-kP ./d d/sub f
+-kP 'dir 😀' d f p
+-kP 'l😀' lnd lnf
+-P -- 'dir with space'
+-P . .. / ./d
+-P ..
+-P ../
+-P ./d
+-P 'dir 😀'
+-P 'dir 😀' 'dir with space' 'f 😀'
+-P 'dir with space/'
+-P 'f 😀'
+-P 'l😀'
+-P / d/sub f p lnd lnf
+-P / lnd d f
+-P d d d d d d
+-P d/
+-P d/..
+-P d/../f
+-P d/./sub
+-P d//sub
+-P d/sub/..
+-P d/up
+-P deep/a/b/c
+-P deep/a/b/c/..
+-P f f f
+-P f nosuch d
+-P lnd/
+-P lnd/sub
+-P lnd2
+-P nosuch f
+-PkPk .

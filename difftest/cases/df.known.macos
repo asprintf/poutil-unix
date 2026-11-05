@@ -20,3 +20,9 @@
 / -- /
 / -k
 d
+# More without -P (-k, -t repeated): unspecified; macOS adds the inode columns, ours is the -P line.
+-kk
+-kt -k
+-ktk
+-t -k -t
+-tt
