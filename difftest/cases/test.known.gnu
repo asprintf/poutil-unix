@@ -3,3 +3,5 @@
 # "'--': unary operator expected" (exit 2), although "a -a b" works. Checked: x -a -- , -- -a x, x -o -- also fail.
 -- -a --
 -- -o ''
+# Nested parentheses around one operand: ( ( ... x ... ) ) is allowed by the spec; GNU gives "binary operator expected".
+$(yes '(' | head -100) x $(yes ')' | head -100)

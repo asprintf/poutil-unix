@@ -1,0 +1,5 @@
+# The same four as in test.known.macos, with the closing ].
+-t 99999999999999999999 ']'
+a = a -a ']'
+$(yes '!' | head -30000) x ']'
+$(yes '(' | head -5000) x $(yes ')' | head -5000) ']'

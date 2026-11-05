@@ -1,0 +1,8 @@
+# -t with a number that is no file descriptor: "false if file_descriptor is not a valid file descriptor number", no error; macOS says "out of range" and exits 2.
+-t 99999999999999999999
+# Four operands that match no form of the spec: unspecified; ours and GNU report an error, macOS gives false.
+a = a -a
+# 30000 nested !: macOS crashes (status 139).
+$(yes '!' | head -30000) x
+# Parentheses nest at least 32 deep; ours stops at 200 ("a deeper nesting costs stack"), macOS has no such limit.
+$(yes '(' | head -5000) x $(yes ')' | head -5000)
