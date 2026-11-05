@@ -4,3 +4,9 @@ mkfifo p
 ln -s d lnd
 ln -s f lnf
 ln -s nosuch dangling
+mkdir 'dir 😀' 'dir with space'
+: > 'f 😀'
+ln -s 'dir 😀' 'l😀'
+mkdir -p deep/a/b/c
+ln -s lnd lnd2
+ln -s ../f d/up

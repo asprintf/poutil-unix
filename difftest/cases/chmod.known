@@ -1,0 +1,4 @@
+# Extensions: the spec has -R only. GNU and macOS add -f (silent) and -v (verbose); we refuse them on purpose
+-v 600 f6
+-f 600 nosuch
+-f 600 f6

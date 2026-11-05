@@ -1,0 +1,45 @@
+# Extensions: the spec lets an implementation add primaries, we do not.
+# -k -O (more unary primaries), -nt -ef == < (more binary primaries)
+-k file ']'
+-O file ']'
+a -nt b ']'
+file -nt file ']'
+file -ef file ']'
+a == a ']'
+a '<' b ']'
+# Integers are digits with an optional sign, nothing else around them; macOS
+# and GNU skip blanks. macOS fails on a number that does not fit in 64 bits,
+# we compare any length.
+' 1' -eq 1 ']'
+1 -eq ' 1' ']'
+99999999999999999999999 -gt 99999999999999999999998 ']'
+# -t: "False if file_descriptor is not a valid file descriptor number", so a bad operand is a quiet
+# false for us (exit 1), as for posixutils-rs. GNU (and macOS, by the old note) stop with exit 2 and a
+# message when the operand is no integer.
+-t x ']'
+-t '' ']'
+-t 1.5 ']'
+# Three arguments with a binary primary in the middle: the spec says the test
+# is binary, so -a joins two strings ("-n" and "-n" are both not null). GNU
+# and macOS read -n as a unary primary here and fail.
+-n -a -n ']'
+# Where the arguments are more than four the spec is not detailed: = and !=
+# bind tighter than a unary primary ('!' = '!' is a comparison), -d after -a
+# is a string. GNU stops with a syntax error.
+-n a -a -n ']'
+'!' = '!' -a x ']'
+x -a -d ']'
+# macOS does not print a diagnostic for a missing operand after -a
+a -a ']'
+a = b -a ']'
+# the same for -t inside a longer expression: GNU stops at an operand that is no integer
+-t 0x1 ']'
+-t 1e0 ']'
+-t '٣' ']'
+-t '😀' ']'
+'!' -t x ']'
+'!' -t '' ']'
+-t x -o a ']'
+-t x -a a ']'
+'(' -t x ')' ']'
+'!' '(' -t x ')' ']'

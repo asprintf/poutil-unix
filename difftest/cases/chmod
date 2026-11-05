@@ -237,3 +237,81 @@ a+r l f6
 'u+x,' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 '	' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 'u+x	g+w' f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+
+# ---- the Rust unit tests of chmod.rs, moved here; the corpus is chmod.in (each: lines)
+# every mode the grammar allows (who op perm, chains, clauses, octal) on every kind of file
+each:modes_valid @@ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+each:modes_valid_dash -- @@ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# everything that is no mode
+each:modes_bad @@ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+each:modes_bad_dash -- @@ f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+each:modes_bad @@ f6
+# modes that shut a directory do not keep the walk out of it; a closed directory is opened first
+-R a-x tree2
+-R a= tree2
+-R u-rwx tree2
+-R 000 tree2
+-R u+rwx tree2
+-R 700 tree2
+-R go= tree2
+-R a+rX tree2
+-R 600 tree2/e
+-R u+rwx tree2/e
+-R a= tree2/s tree2/a
+-R 755 tree2/e/c
+# links inside a hierarchy are left alone, a link named as an operand is followed
+-R go-rwx tree2
+-R go= tree2link
+-R 600 tree2link
+-R 600 tree2/la
+-R 600 tree2/dl
+600 tree2/la tree2/lo
+600 tree2/dl
+-RH 600 tree2link
+-RL 600 tree2link
+-RP 600 tree2link
+-R u=rwx,go= tree2link tree2
+# the file that was mode 000, the one with no read permission at all, is still changed
+600 f0
+u+r f0
+a+X f0 f6 f7 d0 d7
+-R a+X e1 e2
+# a missing file is an error and the rest are done, in order
+600 f6 nosuch f7
+600 nosuch f6
+600 dang
+-R 600 dang f6
+600 f6 dang f7
+-R 600 nosuch1 nosuch2 f6
+# one mode, several operands of every kind
+640 f0 f4 f6 d0 d7 l ld
+g+r,o-r f6 f7
++rw f0
+a+X f0 f6 f7 f77 d0 d7
+# the grammar of the spec's examples
+u=rwx,g=u,o= f0
+u=rwx,g=u,o= f0 f6
+a=r+w-x f0
+o+s f7 d7
+# names that are not plain ASCII
+640 'ü ñ 😀.txt'
+a+x 'ü ñ 😀.txt' 'dir 😀'
+-R go-rwx 'dir 😀'
+-R 000 'dir 😀'
+-R u+rwx 'dir 😀'
+# options
+-R -- 600 f6
+-- 600 f6
+-R
+-R 600
+600
+''
+-x 600 f6
+-Rx 600 f6
+-RR 600 f6
+-R -R 600 f6
+-h 600 l
+-L 600 l
+-v 600 f6
+-f 600 nosuch
+-f 600 f6

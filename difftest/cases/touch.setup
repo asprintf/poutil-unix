@@ -6,3 +6,18 @@ echo ref > ref
 /usr/bin/touch -a -t 199501011111 ref
 /usr/bin/touch -m -t 199001010101 ref
 /usr/bin/touch -t 200001010000 f g h d
+
+# the moved Rust unit tests and the corpus: more files of every kind
+echo data > fresh
+echo data > 'a b'
+echo data > 'ü ñ 😀.txt'
+echo ref > ref2
+/usr/bin/touch -t 199912312359.59 ref2
+echo data > ro
+chmod 444 ro
+mkdir rod
+chmod 555 rod
+mkdir tree tree/sub
+echo data > tree/sub/x
+ln -s tree tl
+ln -s f lf2

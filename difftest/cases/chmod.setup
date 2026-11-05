@@ -12,3 +12,20 @@ touch tree/a tree/s/b tree/e/c
 ln -s ../f6 tree/lo; ln -s a tree/la; ln -s nowhere tree/dl; ln -s .. tree/s/up
 ln -s tree treelink
 chmod 644 tree/a tree/s/b tree/e/c f6
+
+# the moved Rust unit tests: a hierarchy with a directory that cannot be entered, links
+# inside it, and a link to a directory as an operand
+mkdir -p tree2/e tree2/s tree2/s/deep
+touch tree2/a tree2/s/b tree2/e/c tree2/s/deep/z
+chmod 644 tree2/a tree2/s/b tree2/e/c tree2/s/deep/z
+ln -s ../f6 tree2/lo; ln -s a tree2/la; ln -s nowhere tree2/dl; ln -s .. tree2/s/up
+ln -s tree2 tree2link
+chmod 000 tree2/e
+mkdir e1 e2
+touch e1/x e1/y e2/x
+chmod 700 e1
+printf 'x\n' > 'ü ñ 😀.txt'
+chmod 640 'ü ñ 😀.txt'
+mkdir 'dir 😀'
+touch 'dir 😀/in'
+chmod 710 'dir 😀'

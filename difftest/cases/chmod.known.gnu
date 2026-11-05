@@ -63,3 +63,90 @@ g=,a+X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 # "-1" and "+1": GNU takes them for a mode; they are an option and an invalid mode here.
 -1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
 +1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# The set-id and sticky bits where the spec leaves the result open (vetted: in every line below the
+# results differ only in the s, S, t and T positions of the mode): for a directory it is
+# implementation-defined whether a request to set or clear set-user-ID or set-group-ID is honored; the perm
+# symbol t is unspecified with who u, g or o and with any file that is no directory (GNU sets it, we
+# leave it); X reads the "current (unmodified)" mode, which we take as the mode before the whole
+# command (so a later a-X after a=rwxXst ignores X) and GNU as the mode so far.
+= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+g=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o+rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o-rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=s f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=rwxXst f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+o=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=rwx f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=u f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=g f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ugo=o f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=r+w-x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=u,o= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+ug=rw,o=r f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u+s,o+t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u-s,g-s,o-t f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rwxXst,a-X f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=,g=,o= f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+=rwx,u-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+u=rwx,g=rx,o=rx,a-w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=rx,u+w f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+a=r,a+w,a+x f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+00 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+7 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+07 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+77 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+077 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+1777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+4777 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0644 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+600 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+400 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+200 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+100 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+2 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+4 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+1000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+4000 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+0755 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+== f0 f4 f6 f7 f77 fs fg d0 d7 dt dg
+# GNU takes a number after an operator ("+644", "=644", "-1", "+1") as octal bits; the spec has octal only
+# alone and symbolic only with letters; ours refuses it
+-- -1 f0 f4 f6 f7 f77 fs fg d0 d7 dt dg

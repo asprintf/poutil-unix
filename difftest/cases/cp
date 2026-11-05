@@ -185,3 +185,995 @@ d tgt
 -- - x
 -- a -p
 -p a b
+
+# ---- the unit tests of cp.rs, moved here; fixtures in cp.setup, standard input and name lists in cp.in
+
+# the last component of a source names the copy in a directory: trailing slashes, "." and ".."
+a tgt/
+a b tgt//
+d/x tgt
+d/x tgt/
+d/sub/y tgt
+-R d/sub tgt
+-R d/sub/ tgt
+-R d/sub// tgt
+-R d/. tgt
+-R d/./ tgt
+-R d/sub/. tgt
+-R tgt/. d
+-R d/.. x
+-R d/sub/.. x
+-R d/sub/.. tgt
+a d/sub/../x
+a ./tgt/./new
+a tgt/../tgt/new
+a tgt//new
+a ///tmp/definitely/not/here
+
+# the forms: one to a name, several into a directory, several onto a file is an error
+a b
+a b c
+a b c d
+a b c d tgt
+a b c nosuch
+a d/x
+a b d
+a b d/x
+a b a
+a tgt tgt/x
+d/x a b tgt
+a a b tgt
+a b tgt tgt
+a b tgt a
+tgt tgt2
+-R tgt tgt2 d2
+
+# the mode of the copy: the source less the umask, the set-id bits dropped, an existing file keeps its mode
+each:modes @@ x
+each:modes @@ tgt
+each:modes -p @@ x
+each:modes -f @@ x
+each:modes -R @@ x
+each:modes -Rp @@ x
+each:modes -i @@ x
+h751 x
+sid x
+-p sid x
+-pf sid x
+old640 newc
+newc old640
+-p newc old640
+h751 old640
+mode.000 x
+mode.000 old640
+-f mode.000 x
+-p mode.000 x
+
+# file contents: empty, one byte, around the copy block of 128 KiB, every byte value, sparse
+each:sizes @@ x
+each:sizes @@ tgt
+each:sizes -p @@ x
+each:sizes -R @@ x
+each:sizes @@ old640
+each:sizes @@ n1
+each:sizes @@ ro/x
+n0 n1
+n1 n0
+nbig n131073
+all256 all256x
+all256 x
+n131072 n131071
+sp sp2
+sp x
+-p sp x
+sp d/x
+a all256
+sp n0
+
+# the same file: a hard link and a symbolic link to it, another spelling of the path
+hs hs2
+hs2 hs
+hs hs
+-f hs hs2
+-f hs2 hs
+-i hs hs2
+-p hs hs2
+a ./a
+./a a
+a ././a
+a d/../a
+d/../a a
+a ./d/../a
+la la
+la ./la
+a la
+la a
+-f la a
+-f a la
+-P la a
+-P la la
+-P a la
+-R a a
+-R a la
+-R d d/
+-R d d/.
+-R d ./d
+-R d d/../d
+-R ld d
+-R d ld
+-RL ld d
+-RL d ld
+a tgt/../a
+
+# a source that cannot be read is an error before the destination is touched, and the next operand is done
+nosrc b
+-f nosrc b
+nosrc tgt
+nosrc rof
+a nosrc tgt
+nosrc a tgt
+a nosrc b c tgt
+-p nosrc x
+-R nosrc x
+nosuch tgt
+nosuch x
+a nosuch tgt
+nosuch a tgt
+a nosuch b c tgt
+a b nosuch c tgt
+nosuch d/x
+nosuch nosuch2 tgt
+nosuch nosuch
+-R nosuch x
+-R nosuch tgt a
+-i nosuch tgt
+-f nosuch tgt
+
+# -i: asks only about an existing destination; yes is an answer that starts with y or Y (standard input per line)
+in:ans.y -i a b
+in:ans.y -i a x
+in:ans.y -i -f a b
+in:ans.n -i a b
+in:ans.n -i a x
+in:ans.n -i -f a b
+in:ans.Y -i a b
+in:ans.Y -i a x
+in:ans.Y -i -f a b
+in:ans.yes -i a b
+in:ans.yes -i a x
+in:ans.yes -i -f a b
+in:ans.Yes -i a b
+in:ans.Yes -i a x
+in:ans.Yes -i -f a b
+in:ans.ye -i a b
+in:ans.ye -i a x
+in:ans.ye -i -f a b
+in:ans.yep -i a b
+in:ans.yep -i a x
+in:ans.yep -i -f a b
+in:ans.no -i a b
+in:ans.no -i a x
+in:ans.no -i -f a b
+in:ans.sp_y -i a b
+in:ans.sp_y -i a x
+in:ans.sp_y -i -f a b
+in:ans.blank -i a b
+in:ans.blank -i a x
+in:ans.blank -i -f a b
+in:ans.eof -i a b
+in:ans.eof -i a x
+in:ans.eof -i -f a b
+in:ans.y_noeol -i a b
+in:ans.y_noeol -i a x
+in:ans.y_noeol -i -f a b
+in:ans.crlf -i a b
+in:ans.crlf -i a x
+in:ans.crlf -i -f a b
+in:ans.emoji -i a b
+in:ans.emoji -i a x
+in:ans.emoji -i -f a b
+in:ans.one -i a b
+in:ans.one -i a x
+in:ans.one -i -f a b
+in:ans.zero -i a b
+in:ans.zero -i a x
+in:ans.zero -i -f a b
+in:ans.yy_long -i a b
+in:ans.yy_long -i a x
+in:ans.yy_long -i -f a b
+in:ans.yn -i a b c tg2
+in:ans.yn -i a b c tg2/
+in:ans.yn -i -p a b c tg2
+in:ans.yn -R -i d/. mg
+in:ans.yn -R -i d mg
+in:ans.yn -i -R pd tg2
+in:ans.yn -i a b c nosuch tg2
+in:ans.yn -f -i a b c tg2
+in:ans.yn -i -f a b c tg2
+in:ans.ny -i a b c tg2
+in:ans.ny -i a b c tg2/
+in:ans.ny -i -p a b c tg2
+in:ans.ny -R -i d/. mg
+in:ans.ny -R -i d mg
+in:ans.ny -i -R pd tg2
+in:ans.ny -i a b c nosuch tg2
+in:ans.ny -f -i a b c tg2
+in:ans.ny -i -f a b c tg2
+in:ans.yy -i a b c tg2
+in:ans.yy -i a b c tg2/
+in:ans.yy -i -p a b c tg2
+in:ans.yy -R -i d/. mg
+in:ans.yy -R -i d mg
+in:ans.yy -i -R pd tg2
+in:ans.yy -i a b c nosuch tg2
+in:ans.yy -f -i a b c tg2
+in:ans.yy -i -f a b c tg2
+in:ans.nn -i a b c tg2
+in:ans.nn -i a b c tg2/
+in:ans.nn -i -p a b c tg2
+in:ans.nn -R -i d/. mg
+in:ans.nn -R -i d mg
+in:ans.nn -i -R pd tg2
+in:ans.nn -i a b c nosuch tg2
+in:ans.nn -f -i a b c tg2
+in:ans.nn -i -f a b c tg2
+in:ans.ynyn -i a b c tg2
+in:ans.ynyn -i a b c tg2/
+in:ans.ynyn -i -p a b c tg2
+in:ans.ynyn -R -i d/. mg
+in:ans.ynyn -R -i d mg
+in:ans.ynyn -i -R pd tg2
+in:ans.ynyn -i a b c nosuch tg2
+in:ans.ynyn -f -i a b c tg2
+in:ans.ynyn -i -f a b c tg2
+in:ans.nyy -i a b c tg2
+in:ans.nyy -i a b c tg2/
+in:ans.nyy -i -p a b c tg2
+in:ans.nyy -R -i d/. mg
+in:ans.nyy -R -i d mg
+in:ans.nyy -i -R pd tg2
+in:ans.nyy -i a b c nosuch tg2
+in:ans.nyy -f -i a b c tg2
+in:ans.nyy -i -f a b c tg2
+in:ans.y -i a b c tg2
+in:ans.y -i a b c tg2/
+in:ans.y -i -p a b c tg2
+in:ans.y -R -i d/. mg
+in:ans.y -R -i d mg
+in:ans.y -i -R pd tg2
+in:ans.y -i a b c nosuch tg2
+in:ans.y -f -i a b c tg2
+in:ans.y -i -f a b c tg2
+in:ans.n -i a b c tg2
+in:ans.n -i a b c tg2/
+in:ans.n -i -p a b c tg2
+in:ans.n -R -i d/. mg
+in:ans.n -R -i d mg
+in:ans.n -i -R pd tg2
+in:ans.n -i a b c nosuch tg2
+in:ans.n -f -i a b c tg2
+in:ans.n -i -f a b c tg2
+in:ans.eof -i a b c tg2
+in:ans.eof -i a b c tg2/
+in:ans.eof -i -p a b c tg2
+in:ans.eof -R -i d/. mg
+in:ans.eof -R -i d mg
+in:ans.eof -i -R pd tg2
+in:ans.eof -i a b c nosuch tg2
+in:ans.eof -f -i a b c tg2
+in:ans.eof -i -f a b c tg2
+in:ans.y -P -i la b
+in:ans.y -P -i la la2
+in:ans.y -i a dang
+in:ans.y -i a rof
+in:ans.y -if a rof
+in:ans.y -R -i ff x
+in:ans.y -i -p pa pb
+in:ans.y -i d1 d2
+in:ans.y -i a la
+in:ans.y -i hs hs2
+in:ans.y -Ri d tg2
+in:ans.y -R -i d x
+in:ans.y -ii a b
+in:ans.n -P -i la b
+in:ans.n -P -i la la2
+in:ans.n -i a dang
+in:ans.n -i a rof
+in:ans.n -if a rof
+in:ans.n -R -i ff x
+in:ans.n -i -p pa pb
+in:ans.n -i d1 d2
+in:ans.n -i a la
+in:ans.n -i hs hs2
+in:ans.n -Ri d tg2
+in:ans.n -R -i d x
+in:ans.n -ii a b
+in:ans.yn -P -i la b
+in:ans.yn -P -i la la2
+in:ans.yn -i a dang
+in:ans.yn -i a rof
+in:ans.yn -if a rof
+in:ans.yn -R -i ff x
+in:ans.yn -i -p pa pb
+in:ans.yn -i d1 d2
+in:ans.yn -i a la
+in:ans.yn -i hs hs2
+in:ans.yn -Ri d tg2
+in:ans.yn -R -i d x
+in:ans.yn -ii a b
+
+# an unwritable destination is an error; -f removes it and makes a new file, hard links stay as they were
+a rof
+-f a rof
+-fp a rof
+-f -i a rof
+rof a
+rof b
+-f rof b
+a ro/b
+-f a ro/b
+a ro/a
+a d1
+-f a d1
+-f a d2
+a d1 d2 tgt
+-f newc d1
+-f d1 d2
+-f hs hs2 tgt
+h751 d1
+-f h751 d1
+-pf pa d1
+-p pa d1
+h751 rof
+-f h751 rof
+a rof tgt
+
+# a directory needs -R
+d e
+d tgt/
+d d2 d3
+a d e
+dp x
+many x
+many tgt
+d/sub x
+d/. x
+d/ x
+tgt/ x
+d d d
+a d
+
+# -R: to a new name, into an existing directory, over an existing hierarchy (merge, overwrite)
+-R d x
+-R d tgt
+-R d/. mg
+-R d mg
+-R d/. dst
+-R d dst
+-R d/ dst
+-R d/. tgt/
+-R many x
+-R many tgt
+-R deep x
+-R deep tgt
+-R deep/1/2 x
+-R many deep x
+-R many deep tgt
+-R pd x
+-R pd pd2
+-R pd/s tgt
+-R mg x
+-R mg tg2
+-R tg2 mg
+-R tg2 mg/sub
+-R tg2/ mg
+-R -- d x
+-R d x/
+-R d x//
+-R d ./x
+-R ./d x
+-R d/ x/
+-Rf d tgt
+-Rf d mg
+-Rf d/. mg
+
+# the modes of directories follow the source, less the umask; the owner can always write
+-R dp x
+-R dp tgt
+-Rp dp x
+-Rp dp tgt
+-R dp/ro x
+-R dp/ro tgt
+-Rp dp/ro x
+-R dp/ro/f x
+-R dp/ro/f dp/ro
+-R d ro
+-R dp ro
+-Rp dp ro
+
+# a directory over a file, a file over a directory, a directory below itself
+-R d a
+-R d b
+-R d rof
+-R d la
+-R d dang
+-R d lf
+-R d/. a
+-R d/sub a
+-R tgt a
+-R d/. dst
+-R d/sub dst
+-R d dst/sub
+-R d dst/sub/
+-R dst x
+-R dst tgt
+-R a d
+-R a tgt
+-R a/ x
+a d/x
+a d/sub
+a d/empty
+a d/sub/
+a dst/sub
+a dst/sub/
+-R d tgt/d
+-R d/sub d
+-R d/sub d/sub
+-R d/sub d/new
+-R d/sub d/sub/new
+-R d/sub d/sub/y
+-R d d/sub
+-R d d/empty
+-R d d/x
+-R d d/sub/y
+-R d d/inner
+-R d d/sublink
+-R d d/sub/deeper/er
+-R d d/sub/new/er
+-R d/sub/ d/new/
+-R d d2/d
+
+# -L and a cycle of symbolic links: reported once, no nested copies; without -L the link is a link
+-RL cy x
+-RL cy tgt
+-RL cy/ x
+-RL cy/sub x
+-RLp cy x
+-RH cy x
+-RP cy x
+-R cy x
+-R cy tgt
+-RLP cy x
+-RPL cy x
+-RHL cy x
+-RLH cy x
+-RL lp x
+-R lp x
+-RH lp x
+-RP lp x
+-RL lp tgt
+-RL cy/sub/up x
+-RL cy/sub/up tgt
+-RL cy cy2
+-RL cy cy/sub/deep/new
+-RL cy/sub/up/sub x
+-RH cy/sub/up x
+-RP cy/sub/up x
+-R cy/sub/up x
+-RLf cy x
+-RLi cy x
+
+# symbolic links as operands, with and without -R, -H, -L, -P (the last of them decides)
+la x
+-P la x
+-R la x
+-RH la x
+-RL la x
+-RP la x
+-R -H la x
+-R -L la x
+-R -P la x
+-R -P -L la x
+-R -L -P la x
+-RPL la x
+-RLP la x
+-RHP la x
+-RPH la x
+-H -R la x
+-L -R la x
+-P -R la x
+-P -L la x
+-L -P la x
+-HP la x
+-LP la x
+-PH la x
+-PL la x
+la tgt
+-P la tgt
+-R la tgt
+-RL la tgt
+la la2
+-P la la2
+la -- x
+ldx x
+-P ldx x
+-R ldx x
+-RL ldx x
+-RH ldx x
+-RP ldx x
+ld/ x
+-R ld/ x
+-RP ld/ x
+-RL ld/ x
+-RL ld/ tgt
+ld tgt
+ld tgt/
+dang tgt
+-P dang tgt
+-R dang tgt
+-RL dang tgt
+dang dang2
+-P dang dang2
+la la
+la ld
+la dang
+-P la dang
+-R la dang
+-R la ld
+-RL la ld
+lf3 x
+-P lf3 x
+ld3 x
+-RP ld3 x
+-RL ld3 x
+-RH ld3 x
+l😀 x
+-P l😀 x
+-R l😀 x
+lf2 x
+
+# symbolic links inside a hierarchy: -P -H and the default keep them, -L reads through them (a dangling one is an error)
+-R hi x
+-RP hi x
+-RH hi x
+-RL hi x
+-RLp hi x
+-RHp hi x
+-Rp hi x
+-RL hi tgt
+-R hi tgt
+-RH hi tgt
+-RP hi tgt
+-RL hi/ x
+-RL hi/lf x
+-RL hi/ld x
+-R hi/ld x
+-RL hi/dang x
+-R hi/dang x
+-RL hi hi2
+-RL hi hi/new
+-RL hi odir
+-RP hi odir
+-R hi/lf x
+-RP hi/lf x
+-RH hi/lf x
+-RL hi/lf x
+-R hi/ld tgt
+-RH hi/ld tgt
+-RL hi/ld tgt
+-RP hi/ld tgt
+-RH hi/ld/ tgt
+-R hi/ld/ tgt
+-R d x
+-RL d x
+-RL d tgt
+-RLp d x
+-RL d d2
+-R hi odir x
+-RL hi odir tgt
+
+# a link loop is an error, not a hang
+lo1 x
+lo2 x
+-P lo1 x
+-P lo2 x
+-R lo1 x
+-RL lo1 x
+-RH lo1 x
+-RP lo1 x
+lo1 lo2
+a lo1
+a lo2
+-f a lo1
+-i a lo1
+-p a lo1
+lo1 lo1
+-P lo1 lo1
+lo1 tgt
+-P lo1 tgt
+-P -R lo1 tgt
+lo1 a b c tgt
+
+# a link that leads nowhere as the destination is written through
+a dang
+-f a dang
+-p a dang
+-pf pa dang
+h751 dang
+all256 dang
+n0 dang
+sp dang
+a dang tgt
+a b dang
+a ldx
+-f a ldx
+a ld/x
+a ld/new
+a ld/
+a ld
+a dang/
+a dang/x
+a lo1
+a ro/dang
+a lf2
+a la
+a l😀
+newc lf3
+a lf3
+-P a lf3
+-P la lf3
+-P la dang
+
+# -P: a link is copied over an existing destination, not over a directory
+-P la b
+-P la a
+-P la rof
+-P la d1
+-P la tgt
+-P la ro
+-P la d
+-P la ld
+-P la x
+-Pp la x
+-Pp pl x
+-Pp pl x2
+-P pl x
+-P pl tgt
+-P pl a
+-Pf la rof
+-Pf pl rof
+-Pf pl ro/x
+-P dang b
+-P dang dang
+-P dang ldx
+-P ld ld2
+-P ld b
+-P ldx b
+-P ldx x
+-P lo1 b
+-P lf2 b
+-P lf2 lf3
+-P pl lf3
+-P pl hs
+
+# fifos are made again with -R, with the mode of the source less the umask; also inside a hierarchy
+-R ff640 x
+-R ff640 tgt
+-Rp ff640 x
+-R fd x
+-R fd tgt
+-Rp fd x
+-R fd/ff x
+-R fd/ff tgt
+-R ff x
+-R ff640 a
+-R ff640 b
+-R ff640 ff
+-R ff640 ff640
+-R ff640 fd
+-Rf ff640 x
+-R ff640 ro/x
+-R ff640 tgt/
+-R d fd
+-R fd d
+-R fd ff640
+-R fd/ x
+-R fd/. tgt
+-R ff640 ff640 tgt
+-R ff ff640 tgt
+-R a ff640 tgt
+
+# /dev/null is read as data without -R and written to as a destination
+/dev/null x
+/dev/null b
+/dev/null tgt
+/dev/null a b tgt
+/dev/null d/x
+/dev/null rof
+-f /dev/null rof
+-p /dev/null x
+-p /dev/null b
+a /dev/null
+a b /dev/null
+b /dev/null
+all256 /dev/null
+sp /dev/null
+-i /dev/null b
+a /dev/null tgt
+/dev/null /dev/null
+-f a /dev/null
+-p a /dev/null
+/dev/null nosuch/x
+/dev/null d
+/dev/null ld
+
+# -p: the access and modification times and the permissions, with the set-user-ID bit when the owner is ours
+-p pa x
+-p pa pb
+-p pa tgt
+-p pa tgt/
+-p pa x y tgt
+-p pa a
+-p pa b
+-p pb pa
+-p pa rof
+-pf pa rof
+-p pa d1
+pa x
+pa pb
+pa tgt
+-pi pa pb
+-pP pa x
+-Pp pa x
+-pR pa x
+-Rp pa x
+-Rp pa pb
+-Rp pa tgt
+-p -p pa x
+-pp pa x
+-p pa dang
+-p pa la
+-p pa ro/x
+-p -- pa x
+-p a x
+-p b x
+-p c x
+-p empty x
+-p a x
+-Rp ff x
+-p rof x
+-p d1 x
+-p pa x -p
+-p pb x
+-p pa pa2
+-p pa2 pa
+-p pa pa
+-p all256 x
+-p n131073 x
+-p sp x
+-p h751 x
+-p h751 old640
+-p old640 h751
+-p mode.000 x
+-p mode.644 x
+pa pa2
+
+# -p on directories: the times are set after the contents are in
+-Rp pd x
+-Rp pd tgt
+-Rp pd pd2
+-Rp pd/ x
+-Rp pd/. x
+-Rp pd/. tgt
+-Rp pd/s x
+-Rp pd/s/deep x
+-Rp pd/e x
+-Rp pd mg
+-Rp pd/. mg
+-Rp pd/s tg2
+-R pd x
+-R pd/. tgt
+-Rp d x
+-Rp d tgt
+-Rp many x
+-Rp deep x
+-RpL cy x
+-RpP cy x
+-RpH cy x
+-RpL hi x
+-RpH hi x
+-RpP hi x
+-pR pd x
+-p -R pd x
+-R -p pd x
+-p pd x
+-rp pd x
+-Rpf pd x
+-Rpi pd x
+
+# -p on a symbolic link: its own times
+-Pp pl l2
+-Pp pl tgt
+-Pp pl l2 tgt
+-Pp -R pl l2
+-RPp pl l2
+-RPp pl tgt
+-RPp pl tgt/
+-pP pl l2
+-pPR pl l2
+-RHp pl l2
+-RLp pl l2
+-RLp pl tgt
+-Rp pl l2
+-Rp pl tgt
+-p pl l2
+-p pl tgt
+-Pp la x
+-Rp la x
+-RPp la x
+-Pp dang x
+-RPp dang x
+-RPp dang tgt
+-RPp ld x
+-Pp ld x
+
+# a source directory that cannot be read is reported and the rest is copied
+-R unr x
+-R unr tgt
+-Rp unr x
+-R unr/ x
+-R unr/sub x
+-R unr/sub tgt
+-R unr/a x
+-R unr unr2
+-R unr x y
+-R unr mg
+-R unr/. mg
+-Rf unr x
+-RL unr x
+-RP unr x
+-R unr a b tgt
+-R a unr tgt
+-R unr unr
+-R unr unr/new
+-R unr tgt/
+
+# names that are too long and a trailing slash after a file; the next operands are done
+a "$(printf '%0255d' 0)"
+a "$(printf '%0256d' 0)"
+a "$(printf '%0300d' 0)"
+a "tgt/$(printf '%0300d' 0)"
+a b "$(printf '%0300d' 0)" tgt
+a "$(printf '%0300d' 0)" b c tgt
+"$(printf '%0300d' 0)" x
+"$(printf '%0300d' 0)" tgt
+-R d "$(printf '%0300d' 0)"
+-R d "$(printf '%0255d' 0)"
+-R d/. "$(printf '%0256d' 0)"
+a "$(printf '%0255d' 0)" tgt
+a "$(printf '%0256d' 0)" "$(printf '%0255d' 0)" tgt
+-R deep "$(printf '%0300d' 0)"
+a "$(printf '%0300d' 0)"/x
+a "$(printf '%0300d' 0)"/
+a b/
+a a/
+a rof/
+a la/
+a dang/
+a empty/
+-f a b/
+-p a b/
+-R a b/
+-R d b/
+-R d a/
+-P la b/
+-P la la2/
+a b/ c
+a b/ tgt
+a b c/ tgt
+a x/
+a x//
+a x/.
+a x/..
+a b/.
+a b/..
+a ./b/
+b/ x
+b/ tgt
+la/ x
+-R b/ x
+-R a/ tgt
+a/ b
+a/ b/
+a nosuch/
+a nosuch/x
+a nosuch/x/
+a d/x/
+a d/x/y
+a a/x
+a b/x
+a b/x/y
+a la/x
+
+# names: spaces, a leading dash after --, non-ASCII characters, emoji, a newline
+'a b' x
+'a b' tgt
+a 'a b'
+a 'a b2'
+'a b' 'a b'
+'a b' 'c d'
+-- -dash x
+-- -dash tgt
+-- a -dash2
+a -- -dash2
+./-dash x
+-- ./-dash x
+-- -dash -dash
+-R -- -dash x
+-- -dash -- x
+-p -- -dash x
+'ü ñ 😀.txt' x
+'ü ñ 😀.txt' tgt
+a 'ü ñ 😀.txt'
+a 'ü ñ 😀.txt2'
+a '😀'
+a '👨‍👩‍👧‍👦'
+a 'é'
+a 'é'
+'ü ñ 😀.txt' 'ü ñ 😀.txt'
+-R 'dir 😀' x
+-R 'dir 😀' tgt
+-R 'dir 😀' '😀 dir'
+-R 'dir 😀/' x
+-Rp 'dir 😀' x
+-R 'dir 😀' 'dir 😀'
+-R 'dir 😀' 'dir 😀/sub'
+'dir 😀/é' x
+'dir 😀/é' tgt
+-R 'dir 😀/.' tgt
+-P 'l😀' x
+'ü ñ 😀.txt' 'dir 😀'
+a 'dir 😀'
+a b 'dir 😀'
+"$(printf 'nl\nname')" x
+"$(printf 'nl\nname')" tgt
+a "$(printf 'new\nline')"
+"$(printf 'nl\nname')" "$(printf 'nl\nname')"
+-R d "$(printf 'new\nline')"
+a "$(printf 'tab\there')"
+a "$(printf 'cr\rhere')"
+a "$(printf 'bell\a')"
+a "$(printf '\377\376')"
+a '*'
+a '?'
+a '[a]'
+a '\\'
+a '\"'
+a "'"
+a '$HOME'
+a '~'
+a '-'
+a ' '
+a '. '
+a ' .'
+a '..x'
+a '.x'
+a '...'
+
+# many files, a deep hierarchy
+-R many x
+-R many tgt
+-Rp many x
+-R many/ x
+-R many/. tgt
+-R deep x
+-Rp deep x
+-R deep tgt
+-R deep/ x
+-R deep/1 x
+-R deep/1/2/3/4/5/6/7/8/9/10 x
+deep/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/f x
+deep/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/f tgt
+-RL deep x
+-RP deep x
+-RH deep x

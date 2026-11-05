@@ -50,3 +50,14 @@ d
 -P f d p
 # a repeated -P is a full listing: GNU leaves out file systems in it
 -P -P
+# the same, other spellings of the options: no operand is a full listing (GNU leaves out file systems in it), -t is a file system type filter there
+-kk
+-PP
+-kkPP
+-kPkP
+-tt
+-ktk
+-t -k -t
+-kt -k
+-kP --
+-P -k --

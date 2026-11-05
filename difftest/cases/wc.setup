@@ -11,3 +11,59 @@ printf '\v\f\r x\n' > odd
 mkdir d
 printf 'dash\n' > ./-f
 printf 'sp\n' > 'a b'
+
+# the corpus in wc.in: emoji, ZWJ and tag sequences, every Unicode space,
+# bytes that are not UTF-8, all 256 byte values (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+
+# the moved Rust unit tests: counts, white space bytes, NUL and high bytes
+printf 'hello world\nfoo\n' > basic
+printf 'a b' > noeol
+printf 'a b\tc\nd\013e\014f\rg' > ws7
+printf ' \t\n\013\014\r' > ws_only
+printf 'a\0b \377\200 \0' > nulhigh
+printf '\303\251\342\202\254' > e5
+printf 'a\342\200\203b' > emsp2
+printf 'a\377b \303 \342\202' > badtail
+printf 'ab' > w1
+printf 'ab cd gh\n' > w2
+printf 'one two\nthree\n' > pair1
+printf '\360\237\230\200 two\n' > pair2
+
+# a file name that is not plain ASCII, and one with a blank in it
+printf 'x y\n' > '😀 emoji.txt'
+printf 'x y\n' > 'ü ñ.txt'
+printf 'x y\n' > '日本語.txt'
+
+# a character, a word, a line that straddle the 64 KiB read block of ours: the
+# emoji starts 1, 2 or 3 bytes before the edge (and 1 byte before 128 KiB)
+for k in 1 2 3; do
+	{
+		head -c $((65536 - k)) /dev/zero | tr '\0' a
+		printf '\360\237\230\200\360\237\230\200\360\237\230\200\n'
+	} > straddle.65536.$k
+done
+{
+	head -c $((131072 - 1)) /dev/zero | tr '\0' a
+	printf '\360\237\230\200\360\237\230\200\n'
+} > straddle.131072.1
+{
+	head -c 65535 /dev/zero | tr '\0' a
+	printf 'b c\n'
+} > word.65536
+{
+	head -c 65535 /dev/zero | tr '\0' a
+	printf '\303x\n'
+} > invalid.65536
+{
+	head -c 65535 /dev/zero | tr '\0' a
+	printf ' \342\202\254\n'
+} > euro.65536
+
+# long lines of emoji, without and with blanks; 100000 lines like the Rust test
+yes '😀😀😀😀😀😀😀😀😀😀' | head -n 2000 | tr -d '\n' > long.emoji
+yes '😀 😃' | head -n 30000 > long.emoji.sp
+yes 'word another' | head -n 100000 > big
+
+# a sparse file: -c reads the size, nothing else may read 5 GB
+dd if=/dev/null of=sparse bs=1 seek=5000000000 2>/dev/null

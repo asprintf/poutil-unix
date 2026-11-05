@@ -1,0 +1,66 @@
+
+-1
++1
++0
+-0
+ 1
+1 
+1 :2
+1: 2
+1:2 
+:
+:0
+:1
+:root
+0:
+root:
+1:
+nobody:
+.
+.0
+0.
+0.0
+root.root
+root.0
+0.root
+:::
+1::
+user name
+user:group name
+１２
+٣
+root;id
+root&&id
+$(id)
+`id`
+root|id
+*
+?
+[0]
+~
+~root
+1e
+--1
+-- 1
+root:-1
+root:+1
+-1:root
++1:root
+root:1.5
+1.5:root
+😀
+1:😀
+😀:1
+é
+é:é
+root:é
+日本語
+root:日本語
+\0
+\
+'
+"
+"1"
+'1'
+1\:2
+1:\2

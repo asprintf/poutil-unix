@@ -32,3 +32,11 @@ in:nul sh -c 'echo "$#:$*"' x
 # -s larger than the system takes is not an error ("xargs shall use the largest value it supports");
 # macOS refuses a size above its limit
 in:many -s 10000000000000 sh -c 'echo "$#"' x
+# -n without -s: the size it implies is {LINE_MAX} (2048), and -x terminates "if a constructed command line will not fit in the
+# implied or specified size", also when it is the first argument alone, or the utility's own, that is over it. Ours stops with
+# an error before running anything; GNU takes only the real limit of the system. (Without -x the argument is run: there is
+# nothing to cut.)
+in:big3000 -n 1 -x sh -c 'echo "$#"' x
+in:big3000 -n 2 -x sh -c 'echo "$#"' x
+in:big3000 -n 3 -x sh -c 'echo "$#"' x
+in:one_nl -n 1 -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"

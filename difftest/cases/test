@@ -198,3 +198,81 @@ file -ef file
 '!' '!' '!' a
 '!' '!' '!' ''
 '!' '!' '!' '!' a
+# moved from the Rust unit tests of test.rs
+-d /
+-d /nonexistent-poutil
+-q x
+-a = -a
+'!' -d /
+a = a -a
+a = b -a b = b
+'(' '(' '(' a = a ')' ')' ')' -a '(' b ')'
+-e /nonexistent-poutil
+-f /
+-f /etc/hosts
+-c /
+-p /dev/null
+-S /dev/null
+-s /etc/hosts
+-s /dev/null
+-s /nonexistent-poutil
+-r /
+-x /
+-w /nonexistent-poutil
+-u /
+-g /
+-h /
+-L /nonexistent-poutil
+-t 999
+# moved from the Rust unit tests: deep nesting must be an answer, not a crash
+'(' x ')'
+$(yes '(' | head -100) x $(yes ')' | head -100)
+$(yes '(' | head -5000) x $(yes ')' | head -5000)
+$(yes '!' | head -30000) x
+x $(awk 'BEGIN { for (i = 0; i < 20000; i++) print "-a y" }')
+x $(awk 'BEGIN { for (i = 0; i < 20000; i++) print "-o y" }')
+# operands are bytes, not characters: a lone 0xff is a fine string
+"$(printf '\377')" = "$(printf '\377')"
+"$(printf '\377')" = "$(printf '\376')"
+"$(printf '\303')" '!=' "$(printf '\303\251')"
+-n "$(printf '\377')"
+-z "$(printf '\377')"
+# a file name that is not a character in UTF-8
+-e "$(printf '\377')"
+-f "$(printf 'a\377b')"
+# -t: a descriptor number that is not valid is false, never an error (spec: "False if file_descriptor is not a valid file descriptor number")
+-t +1
+-t ' 1'
+-t '1 '
+-t -0
+-t 0x1
+-t 1e0
+-t 007
+-t 2147483647
+-t 2147483648
+-t 4294967296
+-t '٣'
+-t '😀'
+-t 1 -a -t 2
+'!' -t x
+'!' -t -1
+'!' -t ''
+-t x -o a
+-t x -a a
+-t -1 -o -t -2
+'(' -t x ')'
+'!' '(' -t x ')'
+# "--" is no option for test (OPTIONS): it is a string like any other, alone and as an operand
+--
+-- --
+'!' --
+-n --
+-z --
+-- = --
+-- != x
+x = --
+-- -a --
+-- -o ''
+'(' -- ')'
+--help
+--version

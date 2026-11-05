@@ -13,3 +13,29 @@
 -R d d
 -R d d/new
 -R d d/sub/new
+# The same class, found by the corpus: the destination is the directory itself spelled another way
+# (d/., d/../d), a directory below it (d/sub), a link to it (ld), or the current directory is the source
+# (d/.. into x). With -L through a link that leads back (hi/ld -> ../odir, copied into odir) GNU does not
+# stop at all but goes down hi/ld/hi/ld/... until the name is too long; ours stops at the first return.
+# Every line was looked at: both exit 1, and what differs is only what GNU has below the destination.
+-R d d/.
+-R d d/../d
+-R d d/sub
+-R d/sub d/sub
+-R d/sub d/sub/new
+-R d/.. x
+-RL d ld
+-RL hi odir
+-RL hi hi/new
+-RL cy cy/sub/deep/new
+-R unr unr
+-R 'dir 😀' 'dir 😀'
+-R d d/
+-R d ./d
+-RL ld d
+-R d d/empty
+-R d d/sublink
+-RL lp x
+-RL lp tgt
+-R unr unr/new
+-R 'dir 😀' 'dir 😀/sub'

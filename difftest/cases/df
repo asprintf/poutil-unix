@@ -92,3 +92,66 @@ d
 -P --version
 --version
 --help
+# ---- operands spelled in other ways: relative paths, "..", chains of links, a trailing slash, blanks, emoji
+-P ./d
+-P d/..
+-P d/../f
+-P d/sub/..
+-P d/./sub
+-P d/
+-P d//sub
+-P d/up
+-P lnd2
+-P lnd/sub
+-P lnd/
+-P lnf/
+-P f/
+-P f/.
+-P deep/a/b/c
+-P deep/a/b/c/..
+-P ..
+-P ../
+-P /..
+-P /.
+-P /./
+-P ///
+-P /dev/..
+-P 'dir 😀'
+-P 'f 😀'
+-P 'l😀'
+-P -- 'dir with space'
+-P 'dir with space/'
+-kP 'dir 😀' d f p
+-kP 'l😀' lnd lnf
+-P d d d d d d
+-P f f f
+-P . .. / ./d
+-P / lnd d f
+-P / d/sub f p lnd lnf
+-P 'dir 😀' 'dir with space' 'f 😀'
+-P f nosuch d
+-P nosuch f
+-P nosuch nosuch2 nosuch3
+# ---- the options, in every order and repetition
+-kk
+-PP
+-kkPP
+-kPkP
+-Pk /
+-kP -- /
+-k -k -P /
+-P -k -P /
+-P -k / -k
+-tt
+-ktk
+-t -k -t
+-kt -k
+-P -- -- /
+-P -- -P
+-k -P -- -k
+-kP --
+-P -k --
+-- -k -P
+-P -k -k -k /
+-PkPk .
+-kP ./d d/sub f

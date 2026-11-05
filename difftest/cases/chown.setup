@@ -9,3 +9,18 @@ ln -s ../out tree/lo; ln -s a tree/la; ln -s nowhere tree/dl; ln -s .. tree/s/up
 ln -s tree treelink
 ln -s f lf2
 chmod 000 tree/e
+
+# the moved Rust unit tests: links of every kind to a file, a directory and nothing, a tree to walk
+printf 'x\n' > 'ü ñ 😀.txt'
+mkdir 'dir 😀'
+touch 'dir 😀/in'
+ln -s f lf3
+ln -s d ld3
+ln -s 'ü ñ 😀.txt' 'l😀'
+mkdir -p t3/d t3/out
+touch t3/a t3/d/b t3/out/o
+ln -s ../out t3/tolink
+ln -s a t3/tofile
+ln -s nowhere t3/dangling
+ln -s t3 top3
+ln -s top3 toptop3

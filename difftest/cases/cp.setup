@@ -10,3 +10,79 @@ mkfifo ff
 chmod 640 a; chmod 755 b; chmod 444 rof; chmod 000 nosrc; chmod 750 d/sub
 /usr/bin/touch -t 200001010000 a b c empty d d/sub d/empty d/x d/sub/y tgt ro rof nosrc ff
 chmod 555 ro
+
+# ---- fixtures for the unit tests moved from cp.rs, and the cases added with them
+# sizes around the copy block (128 KiB) and every byte value
+cp "$CORPUS/all256" all256
+awk 'BEGIN { for (i = 0; i < 70000; i++) print i }' > nums
+: > n0
+head -c 1 nums > n1
+head -c 131071 nums > n131071
+head -c 131072 nums > n131072
+head -c 131073 nums > n131073
+head -c 262144 nums > n262144
+head -c 393233 nums > n393233
+cp nums nbig
+rm nums
+# a sparse file: 4 MiB with a few bytes at the end
+dd if=/dev/null of=sp bs=1 seek=4194304 2>/dev/null
+printf 'end' >> sp
+# modes of the source: copied less the umask, set-id bits dropped without -p
+for m in 000 200 400 600 640 644 700 751 755 777 1755 2755 4755 6755 7777; do
+	echo "$m" > mode.$m
+	chmod $m mode.$m
+done
+printf 'hello' > h751; chmod 751 h751
+printf 'old contents that are longer' > old640; chmod 640 old640
+printf new > newc
+# an existing destination with a hard link, and a read-only one
+echo shared > d1; ln d1 d2; chmod 444 d1
+echo shared > hs; ln hs hs2
+# -p: access time 1000 and modification time 2000, set-user-ID, an existing destination
+echo x > pa; chmod 4751 pa
+TZ=UTC touch -a -t 197001010016.40 pa
+TZ=UTC touch -m -t 197001010033.20 pa
+echo y > pb; chmod 600 pb
+# -p on directories: the time is set after the contents are in (all of them 3000, then 4000)
+mkdir -p pd/s/deep pd/e
+echo A > pd/a; echo B > pd/s/b; echo C > pd/s/deep/c
+TZ=UTC touch -m -t 197001010106.40 pd/s/deep pd/s pd/e pd
+# -p on a symbolic link: its own times
+ln -s target pl
+TZ=UTC touch -h -m -t 197001010140.00 pl 2>/dev/null
+# a hierarchy whose directories have different modes
+mkdir -p dp/ro
+echo x > dp/ro/f
+chmod 555 dp/ro
+chmod 750 dp
+# a directory that cannot be read inside a hierarchy
+mkdir -p unr/sub
+echo A > unr/a; echo B > unr/sub/b
+chmod 000 unr/sub
+# destinations that exist: a directory with a file where the source has a directory, one to merge into, one for -i
+mkdir dst; echo 'i am a file' > dst/sub
+mkdir -p mg/sub; echo old > mg/x; echo keep > mg/extra; echo old > mg/sub/y; echo zz > mg/sub/zz
+mkdir tg2; echo old > tg2/a; echo old > tg2/b; echo old > tg2/c
+# links in a hierarchy: a link to a file and one to a directory outside it, one that leads nowhere, a cycle
+mkdir hi odir
+echo OUT > outside; echo X > odir/x
+ln -s ../outside hi/lf; ln -s ../odir hi/ld; ln -s nowhere hi/dang
+mkdir -p cy/sub/deep cy/empty
+echo A > cy/a; echo B > cy/sub/b; echo C > cy/sub/deep/c
+ln -s .. cy/sub/up
+# loops of links
+mkdir lp
+ln -s l2 lp/l1; ln -s l1 lp/l2; ln -s .. lp/up
+ln -s lo2 lo1; ln -s lo1 lo2
+# fifos
+mkfifo -m 640 ff640
+mkdir fd; mkfifo fd/ff
+# names: spaces, non-ASCII characters, emoji, a newline, a leading dash
+printf 'x\n' > 'ü ñ 😀.txt'
+mkdir 'dir 😀'; echo in > 'dir 😀/in'; echo 'é' > 'dir 😀/é'
+printf 'n\n' > "$(printf 'nl\nname')"
+echo sp > 'a b'
+echo dash > ./-dash
+# a tree: many files, and a deep one
+mkdir many; i=0; while [ $i -lt 12 ]; do echo "$i" > many/f$i; i=$((i + 1)); done
+mkdir -p deep/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20; echo bottom > deep/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/f

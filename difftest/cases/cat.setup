@@ -6,3 +6,29 @@ printf 'a\0b\377\200c\r\n\tz' > bin
 printf 'dash file\n' > ./-f
 printf 'spaced\n' > 'a b'
 mkdir d
+
+# the corpus in cat.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+
+# the moved Rust unit tests: block boundaries of the 64 KiB copy buffer (the
+# bytes are 0xa5, never newline, never NUL), and an input of every byte value
+for n in 1 65535 65536 65537 131071 131072 131073; do
+	head -c $n /dev/zero | tr '\0' '\245' > b$n
+done
+# 256 bytes doubled 10 times: 262144 bytes, 0 to 255 over and over
+cp all256 cycle
+for i in 1 2 3 4 5 6 7 8 9 10; do cat cycle cycle > cycle.t && mv cycle.t cycle; done
+# 200000 bytes, the size the Rust test used
+head -c 200000 cycle > cycle200k
+# a long line without a newline, and a file of newlines only
+head -c 70000 /dev/zero | tr '\0' x > longline
+yes '' | head -n 70000 > newlines
+# symbolic links: to a file, dangling, a loop, to a directory
+ln -s f1 slink
+ln -s nowhere dangling
+ln -s loop loop
+ln -s d dlink
+# no permission to read (root reads it anyway)
+printf 'secret\n' > noperm
+chmod 000 noperm
+printf 'x\n' > 'ü ñ 😀.txt'

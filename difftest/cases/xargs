@@ -129,3 +129,1114 @@ in:plain -s
 in:plain -- -n 2 echo
 in:plain --
 in:plain -x -- echo
+
+# ---- the Rust unit tests of xargs.rs, moved here; the corpus is xargs.in
+# every input through the lexer, with the default, one argument at a time, and the line modes
+in:big3000 sh -c 'echo "$#:$*"' x
+in:big3000 -n 1 sh -c 'echo "$#:$*"' x
+in:big3000 -L 1 sh -c 'echo "$#:$*"' x
+in:big3000 -I {} echo '<{}>'
+in:bs_eof_nl sh -c 'echo "$#:$*"' x
+in:bs_eof_nl -n 1 sh -c 'echo "$#:$*"' x
+in:bs_eof_nl -L 1 sh -c 'echo "$#:$*"' x
+in:bs_eof_nl -I {} echo '<{}>'
+in:bs_forms sh -c 'echo "$#:$*"' x
+in:bs_forms -n 1 sh -c 'echo "$#:$*"' x
+in:bs_forms -L 1 sh -c 'echo "$#:$*"' x
+in:bs_forms -I {} echo '<{}>'
+in:bs_in_quotes sh -c 'echo "$#:$*"' x
+in:bs_in_quotes -n 1 sh -c 'echo "$#:$*"' x
+in:bs_in_quotes -L 1 sh -c 'echo "$#:$*"' x
+in:bs_in_quotes -I {} echo '<{}>'
+in:bs_nl2 sh -c 'echo "$#:$*"' x
+in:bs_nl2 -n 1 sh -c 'echo "$#:$*"' x
+in:bs_nl2 -L 1 sh -c 'echo "$#:$*"' x
+in:bs_nl2 -I {} echo '<{}>'
+in:bs_space sh -c 'echo "$#:$*"' x
+in:bs_space -n 1 sh -c 'echo "$#:$*"' x
+in:bs_space -L 1 sh -c 'echo "$#:$*"' x
+in:bs_space -I {} echo '<{}>'
+in:cjk sh -c 'echo "$#:$*"' x
+in:cjk -n 1 sh -c 'echo "$#:$*"' x
+in:cjk -L 1 sh -c 'echo "$#:$*"' x
+in:cjk -I {} echo '<{}>'
+in:dash_args sh -c 'echo "$#:$*"' x
+in:dash_args -n 1 sh -c 'echo "$#:$*"' x
+in:dash_args -L 1 sh -c 'echo "$#:$*"' x
+in:dash_args -I {} echo '<{}>'
+in:dq_nl sh -c 'echo "$#:$*"' x
+in:dq_nl -n 1 sh -c 'echo "$#:$*"' x
+in:dq_nl -L 1 sh -c 'echo "$#:$*"' x
+in:dq_nl -I {} echo '<{}>'
+in:emoji sh -c 'echo "$#:$*"' x
+in:emoji -n 1 sh -c 'echo "$#:$*"' x
+in:emoji -L 1 sh -c 'echo "$#:$*"' x
+in:emoji -I {} echo '<{}>'
+in:emoji_lines sh -c 'echo "$#:$*"' x
+in:emoji_lines -n 1 sh -c 'echo "$#:$*"' x
+in:emoji_lines -L 1 sh -c 'echo "$#:$*"' x
+in:emoji_lines -I {} echo '<{}>'
+in:emoji_q sh -c 'echo "$#:$*"' x
+in:emoji_q -n 1 sh -c 'echo "$#:$*"' x
+in:emoji_q -L 1 sh -c 'echo "$#:$*"' x
+in:emoji_q -I {} echo '<{}>'
+in:empty_str sh -c 'echo "$#:$*"' x
+in:empty_str -n 1 sh -c 'echo "$#:$*"' x
+in:empty_str -L 1 sh -c 'echo "$#:$*"' x
+in:empty_str -I {} echo '<{}>'
+in:empty_ws sh -c 'echo "$#:$*"' x
+in:empty_ws -n 1 sh -c 'echo "$#:$*"' x
+in:empty_ws -L 1 sh -c 'echo "$#:$*"' x
+in:empty_ws -I {} echo '<{}>'
+in:eof_a sh -c 'echo "$#:$*"' x
+in:eof_a -n 1 sh -c 'echo "$#:$*"' x
+in:eof_a -L 1 sh -c 'echo "$#:$*"' x
+in:eof_a -I {} echo '<{}>'
+in:eof_e sh -c 'echo "$#:$*"' x
+in:eof_e -n 1 sh -c 'echo "$#:$*"' x
+in:eof_e -L 1 sh -c 'echo "$#:$*"' x
+in:eof_e -I {} echo '<{}>'
+in:eof_first sh -c 'echo "$#:$*"' x
+in:eof_first -n 1 sh -c 'echo "$#:$*"' x
+in:eof_first -L 1 sh -c 'echo "$#:$*"' x
+in:eof_first -I {} echo '<{}>'
+in:eof_i sh -c 'echo "$#:$*"' x
+in:eof_i -n 1 sh -c 'echo "$#:$*"' x
+in:eof_i -L 1 sh -c 'echo "$#:$*"' x
+in:eof_i -I {} echo '<{}>'
+in:eof_n sh -c 'echo "$#:$*"' x
+in:eof_n -n 1 sh -c 'echo "$#:$*"' x
+in:eof_n -L 1 sh -c 'echo "$#:$*"' x
+in:eof_n -I {} echo '<{}>'
+in:eof_p sh -c 'echo "$#:$*"' x
+in:eof_p -n 1 sh -c 'echo "$#:$*"' x
+in:eof_p -L 1 sh -c 'echo "$#:$*"' x
+in:eof_p -I {} echo '<{}>'
+in:eof_q sh -c 'echo "$#:$*"' x
+in:eof_q -n 1 sh -c 'echo "$#:$*"' x
+in:eof_q -L 1 sh -c 'echo "$#:$*"' x
+in:eof_q -I {} echo '<{}>'
+in:ins_empty sh -c 'echo "$#:$*"' x
+in:ins_empty -n 1 sh -c 'echo "$#:$*"' x
+in:ins_empty -L 1 sh -c 'echo "$#:$*"' x
+in:ins_empty -I {} echo '<{}>'
+in:ins_lead sh -c 'echo "$#:$*"' x
+in:ins_lead -n 1 sh -c 'echo "$#:$*"' x
+in:ins_lead -L 1 sh -c 'echo "$#:$*"' x
+in:ins_lead -I {} echo '<{}>'
+in:ins_lines sh -c 'echo "$#:$*"' x
+in:ins_lines -n 1 sh -c 'echo "$#:$*"' x
+in:ins_lines -L 1 sh -c 'echo "$#:$*"' x
+in:ins_lines -I {} echo '<{}>'
+in:ins_quoted sh -c 'echo "$#:$*"' x
+in:ins_quoted -n 1 sh -c 'echo "$#:$*"' x
+in:ins_quoted -L 1 sh -c 'echo "$#:$*"' x
+in:ins_quoted -I {} echo '<{}>'
+in:ins_two sh -c 'echo "$#:$*"' x
+in:ins_two -n 1 sh -c 'echo "$#:$*"' x
+in:ins_two -L 1 sh -c 'echo "$#:$*"' x
+in:ins_two -I {} echo '<{}>'
+in:line60 sh -c 'echo "$#:$*"' x
+in:line60 -n 1 sh -c 'echo "$#:$*"' x
+in:line60 -L 1 sh -c 'echo "$#:$*"' x
+in:line60 -I {} echo '<{}>'
+in:long_line sh -c 'echo "$#:$*"' x
+in:long_line -n 1 sh -c 'echo "$#:$*"' x
+in:long_line -L 1 sh -c 'echo "$#:$*"' x
+in:long_line -I {} echo '<{}>'
+in:mixed_ws sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 1 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 1 sh -c 'echo "$#:$*"' x
+in:mixed_ws -I {} echo '<{}>'
+in:nbsp sh -c 'echo "$#:$*"' x
+in:nbsp -n 1 sh -c 'echo "$#:$*"' x
+in:nbsp -L 1 sh -c 'echo "$#:$*"' x
+in:nbsp -I {} echo '<{}>'
+in:nl_only sh -c 'echo "$#:$*"' x
+in:nl_only -n 1 sh -c 'echo "$#:$*"' x
+in:nl_only -L 1 sh -c 'echo "$#:$*"' x
+in:nl_only -I {} echo '<{}>'
+in:one sh -c 'echo "$#:$*"' x
+in:one -n 1 sh -c 'echo "$#:$*"' x
+in:one -L 1 sh -c 'echo "$#:$*"' x
+in:one -I {} echo '<{}>'
+in:one_nl sh -c 'echo "$#:$*"' x
+in:one_nl -n 1 sh -c 'echo "$#:$*"' x
+in:one_nl -L 1 sh -c 'echo "$#:$*"' x
+in:one_nl -I {} echo '<{}>'
+in:only_bs sh -c 'echo "$#:$*"' x
+in:only_bs -n 1 sh -c 'echo "$#:$*"' x
+in:only_bs -L 1 sh -c 'echo "$#:$*"' x
+in:only_bs -I {} echo '<{}>'
+in:only_q sh -c 'echo "$#:$*"' x
+in:only_q -n 1 sh -c 'echo "$#:$*"' x
+in:only_q -L 1 sh -c 'echo "$#:$*"' x
+in:only_q -I {} echo '<{}>'
+in:opt_like sh -c 'echo "$#:$*"' x
+in:opt_like -n 1 sh -c 'echo "$#:$*"' x
+in:opt_like -L 1 sh -c 'echo "$#:$*"' x
+in:opt_like -I {} echo '<{}>'
+in:other_ws sh -c 'echo "$#:$*"' x
+in:other_ws -n 1 sh -c 'echo "$#:$*"' x
+in:other_ws -L 1 sh -c 'echo "$#:$*"' x
+in:other_ws -I {} echo '<{}>'
+in:quote_join sh -c 'echo "$#:$*"' x
+in:quote_join -n 1 sh -c 'echo "$#:$*"' x
+in:quote_join -L 1 sh -c 'echo "$#:$*"' x
+in:quote_join -I {} echo '<{}>'
+in:quote_mix sh -c 'echo "$#:$*"' x
+in:quote_mix -n 1 sh -c 'echo "$#:$*"' x
+in:quote_mix -L 1 sh -c 'echo "$#:$*"' x
+in:quote_mix -I {} echo '<{}>'
+in:s10 sh -c 'echo "$#:$*"' x
+in:s10 -n 1 sh -c 'echo "$#:$*"' x
+in:s10 -L 1 sh -c 'echo "$#:$*"' x
+in:s10 -I {} echo '<{}>'
+in:s3l sh -c 'echo "$#:$*"' x
+in:s3l -n 1 sh -c 'echo "$#:$*"' x
+in:s3l -L 1 sh -c 'echo "$#:$*"' x
+in:s3l -I {} echo '<{}>'
+in:s4 sh -c 'echo "$#:$*"' x
+in:s4 -n 1 sh -c 'echo "$#:$*"' x
+in:s4 -L 1 sh -c 'echo "$#:$*"' x
+in:s4 -I {} echo '<{}>'
+in:s6 sh -c 'echo "$#:$*"' x
+in:s6 -n 1 sh -c 'echo "$#:$*"' x
+in:s6 -L 1 sh -c 'echo "$#:$*"' x
+in:s6 -I {} echo '<{}>'
+in:s_abc sh -c 'echo "$#:$*"' x
+in:s_abc -n 1 sh -c 'echo "$#:$*"' x
+in:s_abc -L 1 sh -c 'echo "$#:$*"' x
+in:s_abc -I {} echo '<{}>'
+in:s_long sh -c 'echo "$#:$*"' x
+in:s_long -n 1 sh -c 'echo "$#:$*"' x
+in:s_long -L 1 sh -c 'echo "$#:$*"' x
+in:s_long -I {} echo '<{}>'
+in:s_three4 sh -c 'echo "$#:$*"' x
+in:s_three4 -n 1 sh -c 'echo "$#:$*"' x
+in:s_three4 -L 1 sh -c 'echo "$#:$*"' x
+in:s_three4 -I {} echo '<{}>'
+in:sq_nl sh -c 'echo "$#:$*"' x
+in:sq_nl -n 1 sh -c 'echo "$#:$*"' x
+in:sq_nl -L 1 sh -c 'echo "$#:$*"' x
+in:sq_nl -I {} echo '<{}>'
+in:t_blank sh -c 'echo "$#:$*"' x
+in:t_blank -n 1 sh -c 'echo "$#:$*"' x
+in:t_blank -L 1 sh -c 'echo "$#:$*"' x
+in:t_blank -I {} echo '<{}>'
+in:t_blank2 sh -c 'echo "$#:$*"' x
+in:t_blank2 -n 1 sh -c 'echo "$#:$*"' x
+in:t_blank2 -L 1 sh -c 'echo "$#:$*"' x
+in:t_blank2 -I {} echo '<{}>'
+in:t_empty sh -c 'echo "$#:$*"' x
+in:t_empty -n 1 sh -c 'echo "$#:$*"' x
+in:t_empty -L 1 sh -c 'echo "$#:$*"' x
+in:t_empty -I {} echo '<{}>'
+in:t_eof sh -c 'echo "$#:$*"' x
+in:t_eof -n 1 sh -c 'echo "$#:$*"' x
+in:t_eof -L 1 sh -c 'echo "$#:$*"' x
+in:t_eof -I {} echo '<{}>'
+in:t_esc sh -c 'echo "$#:$*"' x
+in:t_esc -n 1 sh -c 'echo "$#:$*"' x
+in:t_esc -L 1 sh -c 'echo "$#:$*"' x
+in:t_esc -I {} echo '<{}>'
+in:t_line sh -c 'echo "$#:$*"' x
+in:t_line -n 1 sh -c 'echo "$#:$*"' x
+in:t_line -L 1 sh -c 'echo "$#:$*"' x
+in:t_line -I {} echo '<{}>'
+in:t_line2 sh -c 'echo "$#:$*"' x
+in:t_line2 -n 1 sh -c 'echo "$#:$*"' x
+in:t_line2 -L 1 sh -c 'echo "$#:$*"' x
+in:t_line2 -I {} echo '<{}>'
+in:t_quoted sh -c 'echo "$#:$*"' x
+in:t_quoted -n 1 sh -c 'echo "$#:$*"' x
+in:t_quoted -L 1 sh -c 'echo "$#:$*"' x
+in:t_quoted -I {} echo '<{}>'
+in:t_tab sh -c 'echo "$#:$*"' x
+in:t_tab -n 1 sh -c 'echo "$#:$*"' x
+in:t_tab -L 1 sh -c 'echo "$#:$*"' x
+in:t_tab -I {} echo '<{}>'
+# -E: the logical end of file, after quote processing
+in:eof_a -E _ sh -c 'echo "$#:$*"' x
+in:eof_a -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_a -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_a -E _ -I {} echo '<{}>'
+in:eof_q -E _ sh -c 'echo "$#:$*"' x
+in:eof_q -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_q -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_q -E _ -I {} echo '<{}>'
+in:eof_e -E _ sh -c 'echo "$#:$*"' x
+in:eof_e -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_e -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_e -E _ -I {} echo '<{}>'
+in:eof_p -E _ sh -c 'echo "$#:$*"' x
+in:eof_p -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_p -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_p -E _ -I {} echo '<{}>'
+in:eof_n -E _ sh -c 'echo "$#:$*"' x
+in:eof_n -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_n -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_n -E _ -I {} echo '<{}>'
+in:eof_first -E _ sh -c 'echo "$#:$*"' x
+in:eof_first -E _ -n 2 sh -c 'echo "$#:$*"' x
+in:eof_first -E _ -L 1 sh -c 'echo "$#:$*"' x
+in:eof_first -E _ -I {} echo '<{}>'
+in:eof_i -E EOF sh -c 'echo "$#:$*"' x
+in:eof_i -E EOF -n 2 sh -c 'echo "$#:$*"' x
+in:eof_i -E EOF -L 1 sh -c 'echo "$#:$*"' x
+in:eof_i -E EOF -I {} echo '<{}>'
+in:t_blank -E c sh -c 'echo "$#:$*"' x
+in:t_blank -E c -n 2 sh -c 'echo "$#:$*"' x
+in:t_blank -E c -L 1 sh -c 'echo "$#:$*"' x
+in:t_blank -E c -I {} echo '<{}>'
+in:emoji -E '😀' sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' -n 2 sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' -L 1 sh -c 'echo "$#:$*"' x
+in:emoji -E '😀' -I {} echo '<{}>'
+in:emoji_lines -E '😀' sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' -n 2 sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' -L 1 sh -c 'echo "$#:$*"' x
+in:emoji_lines -E '😀' -I {} echo '<{}>'
+in:cjk -E '世界' sh -c 'echo "$#:$*"' x
+in:cjk -E '世界' -n 2 sh -c 'echo "$#:$*"' x
+in:cjk -E '世界' -L 1 sh -c 'echo "$#:$*"' x
+in:cjk -E '世界' -I {} echo '<{}>'
+in:mixed_ws -E d sh -c 'echo "$#:$*"' x
+in:mixed_ws -E d -n 2 sh -c 'echo "$#:$*"' x
+in:mixed_ws -E d -L 1 sh -c 'echo "$#:$*"' x
+in:mixed_ws -E d -I {} echo '<{}>'
+# -n and -L sweeps over inputs with more arguments than the number
+in:s6 -n 1 sh -c 'echo "$#:$*"' x
+in:s6 -L 1 sh -c 'echo "$#:$*"' x
+in:s6 -n 2 sh -c 'echo "$#:$*"' x
+in:s6 -L 2 sh -c 'echo "$#:$*"' x
+in:s6 -n 3 sh -c 'echo "$#:$*"' x
+in:s6 -L 3 sh -c 'echo "$#:$*"' x
+in:s6 -n 4 sh -c 'echo "$#:$*"' x
+in:s6 -L 4 sh -c 'echo "$#:$*"' x
+in:s6 -n 5 sh -c 'echo "$#:$*"' x
+in:s6 -L 5 sh -c 'echo "$#:$*"' x
+in:s6 -n 6 sh -c 'echo "$#:$*"' x
+in:s6 -L 6 sh -c 'echo "$#:$*"' x
+in:s6 -n 7 sh -c 'echo "$#:$*"' x
+in:s6 -L 7 sh -c 'echo "$#:$*"' x
+in:s6 -n 8 sh -c 'echo "$#:$*"' x
+in:s6 -L 8 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 1 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 1 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 2 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 2 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 3 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 3 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 4 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 4 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 5 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 5 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 6 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 6 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 7 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 7 sh -c 'echo "$#:$*"' x
+in:mixed_ws -n 8 sh -c 'echo "$#:$*"' x
+in:mixed_ws -L 8 sh -c 'echo "$#:$*"' x
+in:plain -n 1 sh -c 'echo "$#:$*"' x
+in:plain -L 1 sh -c 'echo "$#:$*"' x
+in:plain -n 2 sh -c 'echo "$#:$*"' x
+in:plain -L 2 sh -c 'echo "$#:$*"' x
+in:plain -n 3 sh -c 'echo "$#:$*"' x
+in:plain -L 3 sh -c 'echo "$#:$*"' x
+in:plain -n 4 sh -c 'echo "$#:$*"' x
+in:plain -L 4 sh -c 'echo "$#:$*"' x
+in:plain -n 5 sh -c 'echo "$#:$*"' x
+in:plain -L 5 sh -c 'echo "$#:$*"' x
+in:plain -n 6 sh -c 'echo "$#:$*"' x
+in:plain -L 6 sh -c 'echo "$#:$*"' x
+in:plain -n 7 sh -c 'echo "$#:$*"' x
+in:plain -L 7 sh -c 'echo "$#:$*"' x
+in:plain -n 8 sh -c 'echo "$#:$*"' x
+in:plain -L 8 sh -c 'echo "$#:$*"' x
+in:many -n 1 sh -c 'echo "$#:$*"' x
+in:many -L 1 sh -c 'echo "$#:$*"' x
+in:many -n 2 sh -c 'echo "$#:$*"' x
+in:many -L 2 sh -c 'echo "$#:$*"' x
+in:many -n 3 sh -c 'echo "$#:$*"' x
+in:many -L 3 sh -c 'echo "$#:$*"' x
+in:many -n 4 sh -c 'echo "$#:$*"' x
+in:many -L 4 sh -c 'echo "$#:$*"' x
+in:many -n 5 sh -c 'echo "$#:$*"' x
+in:many -L 5 sh -c 'echo "$#:$*"' x
+in:many -n 6 sh -c 'echo "$#:$*"' x
+in:many -L 6 sh -c 'echo "$#:$*"' x
+in:many -n 7 sh -c 'echo "$#:$*"' x
+in:many -L 7 sh -c 'echo "$#:$*"' x
+in:many -n 8 sh -c 'echo "$#:$*"' x
+in:many -L 8 sh -c 'echo "$#:$*"' x
+in:t_empty -n 1 sh -c 'echo "$#:$*"' x
+in:t_empty -L 1 sh -c 'echo "$#:$*"' x
+in:t_empty -n 2 sh -c 'echo "$#:$*"' x
+in:t_empty -L 2 sh -c 'echo "$#:$*"' x
+in:t_empty -n 3 sh -c 'echo "$#:$*"' x
+in:t_empty -L 3 sh -c 'echo "$#:$*"' x
+in:t_empty -n 4 sh -c 'echo "$#:$*"' x
+in:t_empty -L 4 sh -c 'echo "$#:$*"' x
+in:t_empty -n 5 sh -c 'echo "$#:$*"' x
+in:t_empty -L 5 sh -c 'echo "$#:$*"' x
+in:t_empty -n 6 sh -c 'echo "$#:$*"' x
+in:t_empty -L 6 sh -c 'echo "$#:$*"' x
+in:t_empty -n 7 sh -c 'echo "$#:$*"' x
+in:t_empty -L 7 sh -c 'echo "$#:$*"' x
+in:t_empty -n 8 sh -c 'echo "$#:$*"' x
+in:t_empty -L 8 sh -c 'echo "$#:$*"' x
+in:cont -n 1 sh -c 'echo "$#:$*"' x
+in:cont -L 1 sh -c 'echo "$#:$*"' x
+in:cont -n 2 sh -c 'echo "$#:$*"' x
+in:cont -L 2 sh -c 'echo "$#:$*"' x
+in:cont -n 3 sh -c 'echo "$#:$*"' x
+in:cont -L 3 sh -c 'echo "$#:$*"' x
+in:cont -n 4 sh -c 'echo "$#:$*"' x
+in:cont -L 4 sh -c 'echo "$#:$*"' x
+in:cont -n 5 sh -c 'echo "$#:$*"' x
+in:cont -L 5 sh -c 'echo "$#:$*"' x
+in:cont -n 6 sh -c 'echo "$#:$*"' x
+in:cont -L 6 sh -c 'echo "$#:$*"' x
+in:cont -n 7 sh -c 'echo "$#:$*"' x
+in:cont -L 7 sh -c 'echo "$#:$*"' x
+in:cont -n 8 sh -c 'echo "$#:$*"' x
+in:cont -L 8 sh -c 'echo "$#:$*"' x
+in:lines -n 1 sh -c 'echo "$#:$*"' x
+in:lines -L 1 sh -c 'echo "$#:$*"' x
+in:lines -n 2 sh -c 'echo "$#:$*"' x
+in:lines -L 2 sh -c 'echo "$#:$*"' x
+in:lines -n 3 sh -c 'echo "$#:$*"' x
+in:lines -L 3 sh -c 'echo "$#:$*"' x
+in:lines -n 4 sh -c 'echo "$#:$*"' x
+in:lines -L 4 sh -c 'echo "$#:$*"' x
+in:lines -n 5 sh -c 'echo "$#:$*"' x
+in:lines -L 5 sh -c 'echo "$#:$*"' x
+in:lines -n 6 sh -c 'echo "$#:$*"' x
+in:lines -L 6 sh -c 'echo "$#:$*"' x
+in:lines -n 7 sh -c 'echo "$#:$*"' x
+in:lines -L 7 sh -c 'echo "$#:$*"' x
+in:lines -n 8 sh -c 'echo "$#:$*"' x
+in:lines -L 8 sh -c 'echo "$#:$*"' x
+in:emoji -n 1 sh -c 'echo "$#:$*"' x
+in:emoji -L 1 sh -c 'echo "$#:$*"' x
+in:emoji -n 2 sh -c 'echo "$#:$*"' x
+in:emoji -L 2 sh -c 'echo "$#:$*"' x
+in:emoji -n 3 sh -c 'echo "$#:$*"' x
+in:emoji -L 3 sh -c 'echo "$#:$*"' x
+in:emoji -n 4 sh -c 'echo "$#:$*"' x
+in:emoji -L 4 sh -c 'echo "$#:$*"' x
+in:emoji -n 5 sh -c 'echo "$#:$*"' x
+in:emoji -L 5 sh -c 'echo "$#:$*"' x
+in:emoji -n 6 sh -c 'echo "$#:$*"' x
+in:emoji -L 6 sh -c 'echo "$#:$*"' x
+in:emoji -n 7 sh -c 'echo "$#:$*"' x
+in:emoji -L 7 sh -c 'echo "$#:$*"' x
+in:emoji -n 8 sh -c 'echo "$#:$*"' x
+in:emoji -L 8 sh -c 'echo "$#:$*"' x
+in:cjk -n 1 sh -c 'echo "$#:$*"' x
+in:cjk -L 1 sh -c 'echo "$#:$*"' x
+in:cjk -n 2 sh -c 'echo "$#:$*"' x
+in:cjk -L 2 sh -c 'echo "$#:$*"' x
+in:cjk -n 3 sh -c 'echo "$#:$*"' x
+in:cjk -L 3 sh -c 'echo "$#:$*"' x
+in:cjk -n 4 sh -c 'echo "$#:$*"' x
+in:cjk -L 4 sh -c 'echo "$#:$*"' x
+in:cjk -n 5 sh -c 'echo "$#:$*"' x
+in:cjk -L 5 sh -c 'echo "$#:$*"' x
+in:cjk -n 6 sh -c 'echo "$#:$*"' x
+in:cjk -L 6 sh -c 'echo "$#:$*"' x
+in:cjk -n 7 sh -c 'echo "$#:$*"' x
+in:cjk -L 7 sh -c 'echo "$#:$*"' x
+in:cjk -n 8 sh -c 'echo "$#:$*"' x
+in:cjk -L 8 sh -c 'echo "$#:$*"' x
+# -s sweeps: the size counts the utility, every argument and the NUL byte after each
+in:s4 -s 1 echo
+in:s4 -s 1 -x echo
+in:s4 -s 1 -n 2 echo
+in:s4 -s 1 -n 2 -x echo
+in:s4 -s 1 -I {} echo '{}'
+in:s4 -s 2 echo
+in:s4 -s 2 -x echo
+in:s4 -s 2 -n 2 echo
+in:s4 -s 2 -n 2 -x echo
+in:s4 -s 2 -I {} echo '{}'
+in:s4 -s 3 echo
+in:s4 -s 3 -x echo
+in:s4 -s 3 -n 2 echo
+in:s4 -s 3 -n 2 -x echo
+in:s4 -s 3 -I {} echo '{}'
+in:s4 -s 4 echo
+in:s4 -s 4 -x echo
+in:s4 -s 4 -n 2 echo
+in:s4 -s 4 -n 2 -x echo
+in:s4 -s 4 -I {} echo '{}'
+in:s4 -s 5 echo
+in:s4 -s 5 -x echo
+in:s4 -s 5 -n 2 echo
+in:s4 -s 5 -n 2 -x echo
+in:s4 -s 5 -I {} echo '{}'
+in:s4 -s 6 echo
+in:s4 -s 6 -x echo
+in:s4 -s 6 -n 2 echo
+in:s4 -s 6 -n 2 -x echo
+in:s4 -s 6 -I {} echo '{}'
+in:s4 -s 7 echo
+in:s4 -s 7 -x echo
+in:s4 -s 7 -n 2 echo
+in:s4 -s 7 -n 2 -x echo
+in:s4 -s 7 -I {} echo '{}'
+in:s4 -s 8 echo
+in:s4 -s 8 -x echo
+in:s4 -s 8 -n 2 echo
+in:s4 -s 8 -n 2 -x echo
+in:s4 -s 8 -I {} echo '{}'
+in:s4 -s 9 echo
+in:s4 -s 9 -x echo
+in:s4 -s 9 -n 2 echo
+in:s4 -s 9 -n 2 -x echo
+in:s4 -s 9 -I {} echo '{}'
+in:s4 -s 10 echo
+in:s4 -s 10 -x echo
+in:s4 -s 10 -n 2 echo
+in:s4 -s 10 -n 2 -x echo
+in:s4 -s 10 -I {} echo '{}'
+in:s4 -s 11 echo
+in:s4 -s 11 -x echo
+in:s4 -s 11 -n 2 echo
+in:s4 -s 11 -n 2 -x echo
+in:s4 -s 11 -I {} echo '{}'
+in:s4 -s 12 echo
+in:s4 -s 12 -x echo
+in:s4 -s 12 -n 2 echo
+in:s4 -s 12 -n 2 -x echo
+in:s4 -s 12 -I {} echo '{}'
+in:s4 -s 13 echo
+in:s4 -s 13 -x echo
+in:s4 -s 13 -n 2 echo
+in:s4 -s 13 -n 2 -x echo
+in:s4 -s 13 -I {} echo '{}'
+in:s4 -s 14 echo
+in:s4 -s 14 -x echo
+in:s4 -s 14 -n 2 echo
+in:s4 -s 14 -n 2 -x echo
+in:s4 -s 14 -I {} echo '{}'
+in:s4 -s 15 echo
+in:s4 -s 15 -x echo
+in:s4 -s 15 -n 2 echo
+in:s4 -s 15 -n 2 -x echo
+in:s4 -s 15 -I {} echo '{}'
+in:s4 -s 16 echo
+in:s4 -s 16 -x echo
+in:s4 -s 16 -n 2 echo
+in:s4 -s 16 -n 2 -x echo
+in:s4 -s 16 -I {} echo '{}'
+in:s4 -s 17 echo
+in:s4 -s 17 -x echo
+in:s4 -s 17 -n 2 echo
+in:s4 -s 17 -n 2 -x echo
+in:s4 -s 17 -I {} echo '{}'
+in:s4 -s 18 echo
+in:s4 -s 18 -x echo
+in:s4 -s 18 -n 2 echo
+in:s4 -s 18 -n 2 -x echo
+in:s4 -s 18 -I {} echo '{}'
+in:s4 -s 19 echo
+in:s4 -s 19 -x echo
+in:s4 -s 19 -n 2 echo
+in:s4 -s 19 -n 2 -x echo
+in:s4 -s 19 -I {} echo '{}'
+in:s4 -s 20 echo
+in:s4 -s 20 -x echo
+in:s4 -s 20 -n 2 echo
+in:s4 -s 20 -n 2 -x echo
+in:s4 -s 20 -I {} echo '{}'
+in:s4 -s 21 echo
+in:s4 -s 21 -x echo
+in:s4 -s 21 -n 2 echo
+in:s4 -s 21 -n 2 -x echo
+in:s4 -s 21 -I {} echo '{}'
+in:s4 -s 22 echo
+in:s4 -s 22 -x echo
+in:s4 -s 22 -n 2 echo
+in:s4 -s 22 -n 2 -x echo
+in:s4 -s 22 -I {} echo '{}'
+in:s4 -s 23 echo
+in:s4 -s 23 -x echo
+in:s4 -s 23 -n 2 echo
+in:s4 -s 23 -n 2 -x echo
+in:s4 -s 23 -I {} echo '{}'
+in:s4 -s 24 echo
+in:s4 -s 24 -x echo
+in:s4 -s 24 -n 2 echo
+in:s4 -s 24 -n 2 -x echo
+in:s4 -s 24 -I {} echo '{}'
+in:s4 -s 25 echo
+in:s4 -s 25 -x echo
+in:s4 -s 25 -n 2 echo
+in:s4 -s 25 -n 2 -x echo
+in:s4 -s 25 -I {} echo '{}'
+in:s4 -s 26 echo
+in:s4 -s 26 -x echo
+in:s4 -s 26 -n 2 echo
+in:s4 -s 26 -n 2 -x echo
+in:s4 -s 26 -I {} echo '{}'
+in:s4 -s 27 echo
+in:s4 -s 27 -x echo
+in:s4 -s 27 -n 2 echo
+in:s4 -s 27 -n 2 -x echo
+in:s4 -s 27 -I {} echo '{}'
+in:s4 -s 28 echo
+in:s4 -s 28 -x echo
+in:s4 -s 28 -n 2 echo
+in:s4 -s 28 -n 2 -x echo
+in:s4 -s 28 -I {} echo '{}'
+in:s4 -s 29 echo
+in:s4 -s 29 -x echo
+in:s4 -s 29 -n 2 echo
+in:s4 -s 29 -n 2 -x echo
+in:s4 -s 29 -I {} echo '{}'
+in:s4 -s 30 echo
+in:s4 -s 30 -x echo
+in:s4 -s 30 -n 2 echo
+in:s4 -s 30 -n 2 -x echo
+in:s4 -s 30 -I {} echo '{}'
+in:s4 -s 31 echo
+in:s4 -s 31 -x echo
+in:s4 -s 31 -n 2 echo
+in:s4 -s 31 -n 2 -x echo
+in:s4 -s 31 -I {} echo '{}'
+in:s4 -s 32 echo
+in:s4 -s 32 -x echo
+in:s4 -s 32 -n 2 echo
+in:s4 -s 32 -n 2 -x echo
+in:s4 -s 32 -I {} echo '{}'
+in:s4 -s 33 echo
+in:s4 -s 33 -x echo
+in:s4 -s 33 -n 2 echo
+in:s4 -s 33 -n 2 -x echo
+in:s4 -s 33 -I {} echo '{}'
+in:s4 -s 34 echo
+in:s4 -s 34 -x echo
+in:s4 -s 34 -n 2 echo
+in:s4 -s 34 -n 2 -x echo
+in:s4 -s 34 -I {} echo '{}'
+in:s4 -s 35 echo
+in:s4 -s 35 -x echo
+in:s4 -s 35 -n 2 echo
+in:s4 -s 35 -n 2 -x echo
+in:s4 -s 35 -I {} echo '{}'
+in:s4 -s 36 echo
+in:s4 -s 36 -x echo
+in:s4 -s 36 -n 2 echo
+in:s4 -s 36 -n 2 -x echo
+in:s4 -s 36 -I {} echo '{}'
+in:s4 -s 37 echo
+in:s4 -s 37 -x echo
+in:s4 -s 37 -n 2 echo
+in:s4 -s 37 -n 2 -x echo
+in:s4 -s 37 -I {} echo '{}'
+in:s4 -s 38 echo
+in:s4 -s 38 -x echo
+in:s4 -s 38 -n 2 echo
+in:s4 -s 38 -n 2 -x echo
+in:s4 -s 38 -I {} echo '{}'
+in:s4 -s 39 echo
+in:s4 -s 39 -x echo
+in:s4 -s 39 -n 2 echo
+in:s4 -s 39 -n 2 -x echo
+in:s4 -s 39 -I {} echo '{}'
+in:s4 -s 40 echo
+in:s4 -s 40 -x echo
+in:s4 -s 40 -n 2 echo
+in:s4 -s 40 -n 2 -x echo
+in:s4 -s 40 -I {} echo '{}'
+in:s6 -s 5 echo
+in:s6 -s 5 -x echo
+in:s6 -s 5 -n 2 echo
+in:s6 -s 5 -n 2 -x echo
+in:s6 -s 8 echo
+in:s6 -s 8 -x echo
+in:s6 -s 8 -n 2 echo
+in:s6 -s 8 -n 2 -x echo
+in:s6 -s 9 echo
+in:s6 -s 9 -x echo
+in:s6 -s 9 -n 2 echo
+in:s6 -s 9 -n 2 -x echo
+in:s6 -s 10 echo
+in:s6 -s 10 -x echo
+in:s6 -s 10 -n 2 echo
+in:s6 -s 10 -n 2 -x echo
+in:s6 -s 11 echo
+in:s6 -s 11 -x echo
+in:s6 -s 11 -n 2 echo
+in:s6 -s 11 -n 2 -x echo
+in:s6 -s 12 echo
+in:s6 -s 12 -x echo
+in:s6 -s 12 -n 2 echo
+in:s6 -s 12 -n 2 -x echo
+in:s6 -s 13 echo
+in:s6 -s 13 -x echo
+in:s6 -s 13 -n 2 echo
+in:s6 -s 13 -n 2 -x echo
+in:s6 -s 14 echo
+in:s6 -s 14 -x echo
+in:s6 -s 14 -n 2 echo
+in:s6 -s 14 -n 2 -x echo
+in:s6 -s 15 echo
+in:s6 -s 15 -x echo
+in:s6 -s 15 -n 2 echo
+in:s6 -s 15 -n 2 -x echo
+in:s6 -s 16 echo
+in:s6 -s 16 -x echo
+in:s6 -s 16 -n 2 echo
+in:s6 -s 16 -n 2 -x echo
+in:s6 -s 20 echo
+in:s6 -s 20 -x echo
+in:s6 -s 20 -n 2 echo
+in:s6 -s 20 -n 2 -x echo
+in:s6 -s 25 echo
+in:s6 -s 25 -x echo
+in:s6 -s 25 -n 2 echo
+in:s6 -s 25 -n 2 -x echo
+in:s6 -s 30 echo
+in:s6 -s 30 -x echo
+in:s6 -s 30 -n 2 echo
+in:s6 -s 30 -n 2 -x echo
+in:s3l -s 5 echo
+in:s3l -s 5 -x echo
+in:s3l -s 5 -n 2 echo
+in:s3l -s 5 -n 2 -x echo
+in:s3l -s 5 -I {} echo '{}'
+in:s3l -s 8 echo
+in:s3l -s 8 -x echo
+in:s3l -s 8 -n 2 echo
+in:s3l -s 8 -n 2 -x echo
+in:s3l -s 8 -I {} echo '{}'
+in:s3l -s 9 echo
+in:s3l -s 9 -x echo
+in:s3l -s 9 -n 2 echo
+in:s3l -s 9 -n 2 -x echo
+in:s3l -s 9 -I {} echo '{}'
+in:s3l -s 10 echo
+in:s3l -s 10 -x echo
+in:s3l -s 10 -n 2 echo
+in:s3l -s 10 -n 2 -x echo
+in:s3l -s 10 -I {} echo '{}'
+in:s3l -s 11 echo
+in:s3l -s 11 -x echo
+in:s3l -s 11 -n 2 echo
+in:s3l -s 11 -n 2 -x echo
+in:s3l -s 11 -I {} echo '{}'
+in:s3l -s 12 echo
+in:s3l -s 12 -x echo
+in:s3l -s 12 -n 2 echo
+in:s3l -s 12 -n 2 -x echo
+in:s3l -s 12 -I {} echo '{}'
+in:s3l -s 13 echo
+in:s3l -s 13 -x echo
+in:s3l -s 13 -n 2 echo
+in:s3l -s 13 -n 2 -x echo
+in:s3l -s 13 -I {} echo '{}'
+in:s3l -s 14 echo
+in:s3l -s 14 -x echo
+in:s3l -s 14 -n 2 echo
+in:s3l -s 14 -n 2 -x echo
+in:s3l -s 14 -I {} echo '{}'
+in:s3l -s 15 echo
+in:s3l -s 15 -x echo
+in:s3l -s 15 -n 2 echo
+in:s3l -s 15 -n 2 -x echo
+in:s3l -s 15 -I {} echo '{}'
+in:s3l -s 16 echo
+in:s3l -s 16 -x echo
+in:s3l -s 16 -n 2 echo
+in:s3l -s 16 -n 2 -x echo
+in:s3l -s 16 -I {} echo '{}'
+in:s3l -s 20 echo
+in:s3l -s 20 -x echo
+in:s3l -s 20 -n 2 echo
+in:s3l -s 20 -n 2 -x echo
+in:s3l -s 20 -I {} echo '{}'
+in:s3l -s 25 echo
+in:s3l -s 25 -x echo
+in:s3l -s 25 -n 2 echo
+in:s3l -s 25 -n 2 -x echo
+in:s3l -s 25 -I {} echo '{}'
+in:s3l -s 30 echo
+in:s3l -s 30 -x echo
+in:s3l -s 30 -n 2 echo
+in:s3l -s 30 -n 2 -x echo
+in:s3l -s 30 -I {} echo '{}'
+in:s_abc -s 5 echo
+in:s_abc -s 5 -x echo
+in:s_abc -s 8 echo
+in:s_abc -s 8 -x echo
+in:s_abc -s 9 echo
+in:s_abc -s 9 -x echo
+in:s_abc -s 10 echo
+in:s_abc -s 10 -x echo
+in:s_abc -s 11 echo
+in:s_abc -s 11 -x echo
+in:s_abc -s 12 echo
+in:s_abc -s 12 -x echo
+in:s_abc -s 13 echo
+in:s_abc -s 13 -x echo
+in:s_abc -s 14 echo
+in:s_abc -s 14 -x echo
+in:s_abc -s 15 echo
+in:s_abc -s 15 -x echo
+in:s_abc -s 16 echo
+in:s_abc -s 16 -x echo
+in:s_abc -s 20 echo
+in:s_abc -s 20 -x echo
+in:s_abc -s 25 echo
+in:s_abc -s 25 -x echo
+in:s_abc -s 30 echo
+in:s_abc -s 30 -x echo
+in:s10 -s 5 echo
+in:s10 -s 5 -x echo
+in:s10 -s 5 -I {} echo '{}'
+in:s10 -s 8 echo
+in:s10 -s 8 -x echo
+in:s10 -s 8 -I {} echo '{}'
+in:s10 -s 9 echo
+in:s10 -s 9 -x echo
+in:s10 -s 9 -I {} echo '{}'
+in:s10 -s 10 echo
+in:s10 -s 10 -x echo
+in:s10 -s 10 -I {} echo '{}'
+in:s10 -s 11 echo
+in:s10 -s 11 -x echo
+in:s10 -s 11 -I {} echo '{}'
+in:s10 -s 12 echo
+in:s10 -s 12 -x echo
+in:s10 -s 12 -I {} echo '{}'
+in:s10 -s 13 echo
+in:s10 -s 13 -x echo
+in:s10 -s 13 -I {} echo '{}'
+in:s10 -s 14 echo
+in:s10 -s 14 -x echo
+in:s10 -s 14 -I {} echo '{}'
+in:s10 -s 15 echo
+in:s10 -s 15 -x echo
+in:s10 -s 15 -I {} echo '{}'
+in:s10 -s 16 echo
+in:s10 -s 16 -x echo
+in:s10 -s 16 -I {} echo '{}'
+in:s10 -s 20 echo
+in:s10 -s 20 -x echo
+in:s10 -s 20 -I {} echo '{}'
+in:s10 -s 25 echo
+in:s10 -s 25 -x echo
+in:s10 -s 25 -I {} echo '{}'
+in:s10 -s 30 echo
+in:s10 -s 30 -x echo
+in:s10 -s 30 -I {} echo '{}'
+in:s_three4 -s 5 echo
+in:s_three4 -s 5 -x echo
+in:s_three4 -s 8 echo
+in:s_three4 -s 8 -x echo
+in:s_three4 -s 9 echo
+in:s_three4 -s 9 -x echo
+in:s_three4 -s 10 echo
+in:s_three4 -s 10 -x echo
+in:s_three4 -s 11 echo
+in:s_three4 -s 11 -x echo
+in:s_three4 -s 12 echo
+in:s_three4 -s 12 -x echo
+in:s_three4 -s 13 echo
+in:s_three4 -s 13 -x echo
+in:s_three4 -s 14 echo
+in:s_three4 -s 14 -x echo
+in:s_three4 -s 15 echo
+in:s_three4 -s 15 -x echo
+in:s_three4 -s 16 echo
+in:s_three4 -s 16 -x echo
+in:s_three4 -s 20 echo
+in:s_three4 -s 20 -x echo
+in:s_three4 -s 25 echo
+in:s_three4 -s 25 -x echo
+in:s_three4 -s 30 echo
+in:s_three4 -s 30 -x echo
+in:s_long -s 5 echo
+in:s_long -s 5 -x echo
+in:s_long -s 8 echo
+in:s_long -s 8 -x echo
+in:s_long -s 9 echo
+in:s_long -s 9 -x echo
+in:s_long -s 10 echo
+in:s_long -s 10 -x echo
+in:s_long -s 11 echo
+in:s_long -s 11 -x echo
+in:s_long -s 12 echo
+in:s_long -s 12 -x echo
+in:s_long -s 13 echo
+in:s_long -s 13 -x echo
+in:s_long -s 14 echo
+in:s_long -s 14 -x echo
+in:s_long -s 15 echo
+in:s_long -s 15 -x echo
+in:s_long -s 16 echo
+in:s_long -s 16 -x echo
+in:s_long -s 20 echo
+in:s_long -s 20 -x echo
+in:s_long -s 25 echo
+in:s_long -s 25 -x echo
+in:s_long -s 30 echo
+in:s_long -s 30 -x echo
+# big arguments and many arguments
+in:line60 -n 100 sh -c 'echo "$#"' x
+in:line60 -n 100 -x sh -c 'echo "$#"' x
+in:line60 -s 100000 -n 100 sh -c 'echo "$#"' x
+in:line60 -n 3 sh -c 'echo "$#"' x
+in:big3000 -n 2 sh -c 'echo "$#"' x
+in:big3000 sh -c 'echo "$#"' x
+in:big3000 -s 100 sh -c 'echo "$#"' x
+in:big3000 -s 100 echo
+in:long_line sh -c 'echo "$#"' x
+in:long_line -n 1000 sh -c 'echo "$#"' x
+in:long_line -s 4096 sh -c 'echo "$#"' x
+in:long_line -s 20000 sh -c 'echo "$#"' x
+in:long_line -L 1 sh -c 'echo "$#"' x
+in:long_line -I {} sh -c 'echo "${#1}"' x {}
+# the utility is the default (echo), runs once without arguments, and -I has no line to run for
+in:empty_ws
+in:nl_only
+in:empty_ws -n 2 echo abc
+in:nl_only -L 1 echo abc
+in:empty_ws -I {} echo x
+in:nl_only -I {} echo x
+in:eof_first -E _ echo abc
+in:one
+in:one_nl
+in:one -n 1 echo
+# -I: the replacement string everywhere, in the utility name too
+in:ins_two -I {} cp {} {}.bak x{}y
+in:ins_two -I {} echo {}{}{}
+in:ins_two -I % echo hi
+in:one_nl -I @ @ -l @
+in:ins_lines -I {} echo '<{}>'
+in:ins_quoted -I {} echo '<{}>'
+in:ins_empty -I {} echo '<{}>'
+in:ins_lead -I {} echo '<{}>'
+in:emoji_lines -I {} echo '<{}>'
+in:emoji -I {} echo '<{}>'
+in:emoji -I 😀 echo 😀 '<😀>'
+in:emoji_lines -I '' echo x
+in:ins_two -I ' ' echo '<' '>'
+in:ins_two -I abc echo abc
+in:ins_two -I '{}{}' echo '{}'
+# exit statuses and stopping
+in:s6 -n 1 sh -c 'exit 1'
+in:s6 -n 1 sh -c 'echo "$1"; [ "$1" = c ] && exit 255; exit 0' x
+in:s6 -n 1 sh -c 'echo "$1"; [ "$1" = c ] && kill -9 $$; exit 0' x
+in:s6 -n 2 sh -c 'echo "$#"; exit 3' x
+in:s6 -n 2 nosuchutility
+in:s6 -n 2 -x nosuchutility
+in:s6 -n 2 sh -c 'kill -TERM $$' x
+in:s6 -n 2 sh -c 'exit 126' x
+in:s6 -n 2 sh -c 'exit 127' x
+
+# ---- -t: "the utility and its constructed argument list shall be written to standard error, as it will be invoked, prior to invocation"
+# errtext: compares the text of standard error (without "xargs: ..." diagnostics); GNU xargs 4.9 quotes what a shell would read otherwise,
+# the arguments stay apart in the trace. -p adds "?..." at the end of that line (it needs /dev/tty: difftest/regress.sh checks it)
+errtext: in:one_nl -t echo a
+errtext: in:one_nl -t echo 'a b'
+errtext: in:one_nl -t echo ''
+errtext: in:one_nl -t echo 'it'"'"'s'
+errtext: in:one_nl -t echo 'it'"'"'s x'
+errtext: in:one_nl -t echo 'it'"'"'s *'
+errtext: in:one_nl -t echo ''"'"''
+errtext: in:one_nl -t echo '"'
+errtext: in:one_nl -t echo "$(printf 'a\012b')"
+errtext: in:one_nl -t echo "$(printf 'a\011b')"
+errtext: in:one_nl -t echo '$HOME'
+errtext: in:one_nl -t echo '*'
+errtext: in:one_nl -t echo '?'
+errtext: in:one_nl -t echo '[x]'
+errtext: in:one_nl -t echo 'é'
+errtext: in:one_nl -t echo '😀'
+errtext: in:one_nl -t echo '#x'
+errtext: in:one_nl -t echo 'a#b'
+errtext: in:one_nl -t echo '~'
+errtext: in:one_nl -t echo 'a~b'
+errtext: in:one_nl -t echo '{'
+errtext: in:one_nl -t echo '}'
+errtext: in:one_nl -t echo '{}'
+errtext: in:one_nl -t echo 'a{b'
+errtext: in:one_nl -t echo "$(printf 'x\001y')"
+errtext: in:one_nl -t echo "$(printf '\001\047')"
+errtext: in:one_nl -t echo ''"'"'é'
+errtext: in:one_nl -t echo a=b
+errtext: in:one_nl -t echo -n
+errtext: in:one_nl -t echo --
+errtext: in:one_nl -t echo -
+errtext: in:one_nl -t echo 'a\b'
+errtext: in:one_nl -t echo 'a;b'
+errtext: in:one_nl -t echo '(a)'
+errtext: in:one_nl -t echo '<a>'
+errtext: in:one_nl -t echo 'a`b'
+errtext: in:one_nl -t echo '!'
+errtext: in:one_nl -t echo '^'
+errtext: in:one_nl -t echo %
+errtext: in:one_nl -t echo @
+errtext: in:one_nl -t echo ']'
+errtext: in:one_nl -t echo _
+errtext: in:one_nl -t echo a,b
+errtext: in:one_nl -t echo a:b
+errtext: in:one_nl -t echo a/b
+errtext: in:one_nl -t echo a.b
+errtext: in:one_nl -t echo a+b
+errtext: in:one_nl -t echo ' '
+errtext: in:one_nl -t echo '  '
+errtext: in:one_nl -t echo 'a  b'
+errtext: in:one_nl -t echo 'a'"'"'b"c'
+errtext: in:one_nl -t echo ''"'"''"'"''
+errtext: in:one_nl -t echo '""'
+errtext: in:one_nl -t echo ' '
+errtext: in:one_nl -t echo 'a　b'
+errtext: in:one_nl -t echo 'é'
+errtext: in:one_nl -t echo "$(printf '\177')"
+errtext: in:one_nl -t echo "$(printf '\033[31m')"
+errtext: in:trace_quotes -t true
+errtext: in:trace_quotes -t -n 1 true
+errtext: in:trace_quotes -t -n 2 true x
+errtext: in:trace_quotes -t -L 1 true
+errtext: in:trace_quotes -t -I {} echo '<{}>' {}
+errtext: in:trace_quotes -t -s 30 true
+errtext: in:trace_quotes -t -x -n 2 true
+errtext: in:trace_special -t true
+errtext: in:trace_special -t -n 1 true
+errtext: in:trace_special -t -n 2 true x
+errtext: in:trace_special -t -L 1 true
+errtext: in:trace_special -t -I {} echo '<{}>' {}
+errtext: in:trace_special -t -s 30 true
+errtext: in:trace_special -t -x -n 2 true
+errtext: in:trace_utf8 -t true
+errtext: in:trace_utf8 -t -n 1 true
+errtext: in:trace_utf8 -t -n 2 true x
+errtext: in:trace_utf8 -t -L 1 true
+errtext: in:trace_utf8 -t -I {} echo '<{}>' {}
+errtext: in:trace_utf8 -t -s 30 true
+errtext: in:trace_utf8 -t -x -n 2 true
+errtext: in:trace_bytes -t true
+errtext: in:trace_bytes -t -n 1 true
+errtext: in:trace_bytes -t -n 2 true x
+errtext: in:trace_bytes -t -L 1 true
+errtext: in:trace_bytes -t -I {} echo '<{}>' {}
+errtext: in:trace_bytes -t -s 30 true
+errtext: in:trace_bytes -t -x -n 2 true
+errtext: in:trace_ctrl -t true
+errtext: in:trace_ctrl -t -n 1 true
+errtext: in:trace_ctrl -t -n 2 true x
+errtext: in:trace_ctrl -t -L 1 true
+errtext: in:trace_ctrl -t -I {} echo '<{}>' {}
+errtext: in:trace_ctrl -t -s 30 true
+errtext: in:trace_ctrl -t -x -n 2 true
+errtext: in:trace_lines -t true
+errtext: in:trace_lines -t -n 1 true
+errtext: in:trace_lines -t -n 2 true x
+errtext: in:trace_lines -t -L 1 true
+errtext: in:trace_lines -t -I {} echo '<{}>' {}
+errtext: in:trace_lines -t -s 30 true
+errtext: in:trace_lines -t -x -n 2 true
+errtext: in:plain -t true
+errtext: in:plain -t -n 1 true
+errtext: in:plain -t -n 2 true x
+errtext: in:plain -t -L 1 true
+errtext: in:plain -t -I {} echo '<{}>' {}
+errtext: in:plain -t -s 30 true
+errtext: in:plain -t -x -n 2 true
+errtext: in:quotes -t true
+errtext: in:quotes -t -n 1 true
+errtext: in:quotes -t -n 2 true x
+errtext: in:quotes -t -L 1 true
+errtext: in:quotes -t -I {} echo '<{}>' {}
+errtext: in:quotes -t -s 30 true
+errtext: in:quotes -t -x -n 2 true
+errtext: in:escapes -t true
+errtext: in:escapes -t -n 1 true
+errtext: in:escapes -t -n 2 true x
+errtext: in:escapes -t -L 1 true
+errtext: in:escapes -t -I {} echo '<{}>' {}
+errtext: in:escapes -t -s 30 true
+errtext: in:escapes -t -x -n 2 true
+errtext: in:utf8 -t true
+errtext: in:utf8 -t -n 1 true
+errtext: in:utf8 -t -n 2 true x
+errtext: in:utf8 -t -L 1 true
+errtext: in:utf8 -t -I {} echo '<{}>' {}
+errtext: in:utf8 -t -s 30 true
+errtext: in:utf8 -t -x -n 2 true
+errtext: in:emoji -t true
+errtext: in:emoji -t -n 1 true
+errtext: in:emoji -t -n 2 true x
+errtext: in:emoji -t -L 1 true
+errtext: in:emoji -t -I {} echo '<{}>' {}
+errtext: in:emoji -t -s 30 true
+errtext: in:emoji -t -x -n 2 true
+errtext: in:one_nl -t true
+errtext: in:one_nl -t -n 1 true
+errtext: in:one_nl -t -n 2 true x
+errtext: in:one_nl -t -L 1 true
+errtext: in:one_nl -t -I {} echo '<{}>' {}
+errtext: in:one_nl -t -s 30 true
+errtext: in:one_nl -t -x -n 2 true
+errtext: in:plain -t
+errtext: in:plain -t -E c
+errtext: in:eof_a -t -E _
+errtext: in:one_nl -t -- echo -n
+errtext: in:one_nl -t echo a b c d e f
+errtext: in:ins_two -t -I {} echo x{}y {}{}
+errtext: in:ins_two -t -I {} sh -c 'echo "$1"' x {}
+errtext: in:empty_ws -t
+errtext: in:empty_ws -t echo x
+errtext: in:nl_only -t -n 1 echo x
+errtext: in:s6 -t -n 2 sh -c 'exit 1'
+errtext: in:s6 -t -n 2 nosuchutility
+errtext: in:one_nl -t nosuchutility a b
+errtext: in:one_nl -t /etc/passwd
+
+# exit status: 127 utility not found, 126 found but not invoked, 1-125 other (the harness tells these apart for xargs)
+in:one_nl nosuchutility
+in:one_nl /nosuch/dir/utility
+in:one_nl /etc/passwd
+in:one_nl /tmp
+in:one_nl ./
+in:one_nl ""
+in:one_nl -n 1 sh -c 'exit 126' x
+in:one_nl -n 1 sh -c 'exit 127' x
+in:s6 -n 1 sh -c 'exit 125' x
+in:s6 -n 1 sh -c 'kill -TERM $$' x
+in:s6 -n 1 sh -c 'kill -KILL $$' x
+in:s6 -n 1 sh -c 'kill -HUP $$' x
+in:s6 -n 1 sh -c 'exit 255' x
+in:s6 -n 1 sh -c 'exit 254' x
+in:s6 -n 1 sh -c 'exit 2' x
+in:one_nl -x -n 1 nosuchutility
+in:empty_ws nosuchutility
+in:empty_ws /etc/passwd
+in:nl_only nosuchutility
+in:one_nl -I {} nosuchutility {}
+in:one_nl -I {} /etc/passwd {}
+in:one_nl -L 1 nosuchutility
+in:one_nl -s 100 nosuchutility
+in:one_nl -E x nosuchutility
+in:one_nl -t nosuchutility
+in:one_nl -n 1 -- nosuchutility
+in:one_nl -- nosuchutility
+in:one_nl -- -n
+
+# -x and the size that -n implies ({LINE_MAX}): an argument over it alone is a line that does not fit
+in:big3000 -n 1 -x sh -c 'echo "$#"' x
+in:big3000 -n 2 -x sh -c 'echo "$#"' x
+in:big3000 -n 3 -x sh -c 'echo "$#"' x
+in:big3000 -n 1 sh -c 'echo "$#"' x
+in:big3000 -x sh -c 'echo "$#"' x
+in:big3000 -n 1 -x -s 100000 sh -c 'echo "$#"' x
+in:one_nl -n 1 -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:one_nl -n 1 echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:one_nl -x echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:one_nl -x -L 1 echo "$(head -c 3000 /dev/zero | tr '\0' x)"
+in:one_nl -I {} -x echo "$(head -c 3000 /dev/zero | tr '\0' x)" {}

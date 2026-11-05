@@ -166,3 +166,772 @@ root:wheel f
 -R "$(id -u):$(id -G | cut -d' ' -f2)" d/.
 -R "$(id -u):$(id -G | cut -d' ' -f2)" d/..
 -R -- "$(id -u):$(id -G | cut -d' ' -f2)" d
+
+# ---- the Rust unit tests of chown.rs, moved here; the corpus is chown.in (each: lines)
+# the owner[:group] operand in all its shapes (environment-independent: ids, names that exist everywhere, edges of 32 bits)
+each:owners @@ f
+each:owners_bad @@ f
+each:owners @@ f nosuch g
+each:owners_bad @@ nosuch
+# -h -R -H -L -P on links of every kind, for the group change that every user may do and for the one that no plain user may do
+"$(id -u):$(id -G | cut -d' ' -f2)" f
+0 f
+"$(id -u):$(id -G | cut -d' ' -f2)" sl
+0 sl
+"$(id -u):$(id -G | cut -d' ' -f2)" dl
+0 dl
+"$(id -u):$(id -G | cut -d' ' -f2)" dang
+0 dang
+"$(id -u):$(id -G | cut -d' ' -f2)" lf3
+0 lf3
+"$(id -u):$(id -G | cut -d' ' -f2)" ld3
+0 ld3
+"$(id -u):$(id -G | cut -d' ' -f2)" tree
+0 tree
+"$(id -u):$(id -G | cut -d' ' -f2)" treelink
+0 treelink
+"$(id -u):$(id -G | cut -d' ' -f2)" t3
+0 t3
+"$(id -u):$(id -G | cut -d' ' -f2)" top3
+0 top3
+"$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+0 toptop3
+"$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+0 'l😀'
+"$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+0 sl f dang
+"$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+0 tree sl dang f
+-h "$(id -u):$(id -G | cut -d' ' -f2)" f
+-h 0 f
+-h "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-h 0 sl
+-h "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-h 0 dl
+-h "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-h 0 dang
+-h "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-h 0 lf3
+-h "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-h 0 ld3
+-h "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-h 0 tree
+-h "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-h 0 treelink
+-h "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-h 0 t3
+-h "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-h 0 top3
+-h "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-h 0 toptop3
+-h "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-h 0 'l😀'
+-h "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-h 0 sl f dang
+-h "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-h 0 tree sl dang f
+-R "$(id -u):$(id -G | cut -d' ' -f2)" f
+-R 0 f
+-R "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-R 0 sl
+-R "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-R 0 dl
+-R "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R 0 dang
+-R "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-R 0 lf3
+-R "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-R 0 ld3
+-R "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R 0 tree
+-R "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-R 0 treelink
+-R "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R 0 t3
+-R "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R 0 top3
+-R "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R 0 toptop3
+-R "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-R 0 'l😀'
+-R "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R 0 sl f dang
+-R "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R 0 tree sl dang f
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hR 0 f
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hR 0 sl
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hR 0 dl
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hR 0 dang
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hR 0 lf3
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hR 0 ld3
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hR 0 tree
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hR 0 treelink
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hR 0 t3
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hR 0 top3
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hR 0 toptop3
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hR 0 'l😀'
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hR 0 sl f dang
+-hR "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hR 0 tree sl dang f
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" f
+-Rh 0 f
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-Rh 0 sl
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-Rh 0 dl
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-Rh 0 dang
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-Rh 0 lf3
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-Rh 0 ld3
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-Rh 0 tree
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-Rh 0 treelink
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-Rh 0 t3
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-Rh 0 top3
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-Rh 0 toptop3
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-Rh 0 'l😀'
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-Rh 0 sl f dang
+-Rh "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-Rh 0 tree sl dang f
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RH 0 f
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RH 0 sl
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RH 0 dl
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RH 0 dang
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RH 0 lf3
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RH 0 ld3
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RH 0 tree
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RH 0 treelink
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RH 0 t3
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RH 0 top3
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RH 0 toptop3
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RH 0 'l😀'
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RH 0 sl f dang
+-RH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RH 0 tree sl dang f
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RL 0 f
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RL 0 sl
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RL 0 dl
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RL 0 dang
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RL 0 lf3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RL 0 ld3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RL 0 tree
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RL 0 treelink
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RL 0 t3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RL 0 top3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RL 0 toptop3
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RL 0 'l😀'
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RL 0 sl f dang
+-RL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RL 0 tree sl dang f
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RP 0 f
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RP 0 sl
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RP 0 dl
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RP 0 dang
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RP 0 lf3
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RP 0 ld3
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RP 0 tree
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RP 0 treelink
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RP 0 t3
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RP 0 top3
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RP 0 toptop3
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RP 0 'l😀'
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RP 0 sl f dang
+-RP "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RP 0 tree sl dang f
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hRH 0 f
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hRH 0 sl
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hRH 0 dl
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hRH 0 dang
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hRH 0 lf3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hRH 0 ld3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hRH 0 tree
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hRH 0 treelink
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hRH 0 t3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hRH 0 top3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hRH 0 toptop3
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hRH 0 'l😀'
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hRH 0 sl f dang
+-hRH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hRH 0 tree sl dang f
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hRL 0 f
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hRL 0 sl
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hRL 0 dl
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hRL 0 dang
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hRL 0 lf3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hRL 0 ld3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hRL 0 tree
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hRL 0 treelink
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hRL 0 t3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hRL 0 top3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hRL 0 toptop3
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hRL 0 'l😀'
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hRL 0 sl f dang
+-hRL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hRL 0 tree sl dang f
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hRP 0 f
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hRP 0 sl
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hRP 0 dl
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hRP 0 dang
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hRP 0 lf3
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hRP 0 ld3
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hRP 0 tree
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hRP 0 treelink
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hRP 0 t3
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hRP 0 top3
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hRP 0 toptop3
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hRP 0 'l😀'
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hRP 0 sl f dang
+-hRP "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hRP 0 tree sl dang f
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RHL 0 f
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RHL 0 sl
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RHL 0 dl
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RHL 0 dang
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RHL 0 lf3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RHL 0 ld3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RHL 0 tree
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RHL 0 treelink
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RHL 0 t3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RHL 0 top3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RHL 0 toptop3
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RHL 0 'l😀'
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RHL 0 sl f dang
+-RHL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RHL 0 tree sl dang f
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RLH 0 f
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RLH 0 sl
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RLH 0 dl
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RLH 0 dang
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RLH 0 lf3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RLH 0 ld3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RLH 0 tree
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RLH 0 treelink
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RLH 0 t3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RLH 0 top3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RLH 0 toptop3
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RLH 0 'l😀'
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RLH 0 sl f dang
+-RLH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RLH 0 tree sl dang f
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RPH 0 f
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RPH 0 sl
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RPH 0 dl
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RPH 0 dang
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RPH 0 lf3
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RPH 0 ld3
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RPH 0 tree
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RPH 0 treelink
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RPH 0 t3
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RPH 0 top3
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RPH 0 toptop3
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RPH 0 'l😀'
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RPH 0 sl f dang
+-RPH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RPH 0 tree sl dang f
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" f
+-RLP 0 f
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-RLP 0 sl
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-RLP 0 dl
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-RLP 0 dang
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-RLP 0 lf3
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-RLP 0 ld3
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-RLP 0 tree
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-RLP 0 treelink
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-RLP 0 t3
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-RLP 0 top3
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-RLP 0 toptop3
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-RLP 0 'l😀'
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-RLP 0 sl f dang
+-RLP "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-RLP 0 tree sl dang f
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" f
+-R -H 0 f
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-R -H 0 sl
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-R -H 0 dl
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -H 0 dang
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-R -H 0 lf3
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-R -H 0 ld3
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R -H 0 tree
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-R -H 0 treelink
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R -H 0 t3
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R -H 0 top3
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R -H 0 toptop3
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-R -H 0 'l😀'
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -H 0 sl f dang
+-R -H "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -H 0 tree sl dang f
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" f
+-R -L 0 f
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-R -L 0 sl
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-R -L 0 dl
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -L 0 dang
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-R -L 0 lf3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-R -L 0 ld3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R -L 0 tree
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-R -L 0 treelink
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R -L 0 t3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R -L 0 top3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R -L 0 toptop3
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-R -L 0 'l😀'
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -L 0 sl f dang
+-R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -L 0 tree sl dang f
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" f
+-R -P 0 f
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-R -P 0 sl
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-R -P 0 dl
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -P 0 dang
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-R -P 0 lf3
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-R -P 0 ld3
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R -P 0 tree
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-R -P 0 treelink
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R -P 0 t3
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R -P 0 top3
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R -P 0 toptop3
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-R -P 0 'l😀'
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -P 0 sl f dang
+-R -P "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -P 0 tree sl dang f
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" f
+-R -h 0 f
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-R -h 0 sl
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-R -h 0 dl
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-R -h 0 dang
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-R -h 0 lf3
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-R -h 0 ld3
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-R -h 0 tree
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-R -h 0 treelink
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-R -h 0 t3
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-R -h 0 top3
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-R -h 0 toptop3
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-R -h 0 'l😀'
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-R -h 0 sl f dang
+-R -h "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-R -h 0 tree sl dang f
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" f
+-h -R -L 0 f
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-h -R -L 0 sl
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-h -R -L 0 dl
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-h -R -L 0 dang
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-h -R -L 0 lf3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-h -R -L 0 ld3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-h -R -L 0 tree
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-h -R -L 0 treelink
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-h -R -L 0 t3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-h -R -L 0 top3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-h -R -L 0 toptop3
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-h -R -L 0 'l😀'
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-h -R -L 0 sl f dang
+-h -R -L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-h -R -L 0 tree sl dang f
+-H "$(id -u):$(id -G | cut -d' ' -f2)" f
+-H 0 f
+-H "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-H 0 sl
+-H "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-H 0 dl
+-H "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-H 0 dang
+-H "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-H 0 lf3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-H 0 ld3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-H 0 tree
+-H "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-H 0 treelink
+-H "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-H 0 t3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-H 0 top3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-H 0 toptop3
+-H "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-H 0 'l😀'
+-H "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-H 0 sl f dang
+-H "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-H 0 tree sl dang f
+-L "$(id -u):$(id -G | cut -d' ' -f2)" f
+-L 0 f
+-L "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-L 0 sl
+-L "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-L 0 dl
+-L "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-L 0 dang
+-L "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-L 0 lf3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-L 0 ld3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-L 0 tree
+-L "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-L 0 treelink
+-L "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-L 0 t3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-L 0 top3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-L 0 toptop3
+-L "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-L 0 'l😀'
+-L "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-L 0 sl f dang
+-L "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-L 0 tree sl dang f
+-P "$(id -u):$(id -G | cut -d' ' -f2)" f
+-P 0 f
+-P "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-P 0 sl
+-P "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-P 0 dl
+-P "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-P 0 dang
+-P "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-P 0 lf3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-P 0 ld3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-P 0 tree
+-P "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-P 0 treelink
+-P "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-P 0 t3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-P 0 top3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-P 0 toptop3
+-P "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-P 0 'l😀'
+-P "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-P 0 sl f dang
+-P "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-P 0 tree sl dang f
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hH 0 f
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hH 0 sl
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hH 0 dl
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hH 0 dang
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hH 0 lf3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hH 0 ld3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hH 0 tree
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hH 0 treelink
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hH 0 t3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hH 0 top3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hH 0 toptop3
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hH 0 'l😀'
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hH 0 sl f dang
+-hH "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hH 0 tree sl dang f
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" f
+-hL 0 f
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" sl
+-hL 0 sl
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" dl
+-hL 0 dl
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" dang
+-hL 0 dang
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" lf3
+-hL 0 lf3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+-hL 0 ld3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" tree
+-hL 0 tree
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" treelink
+-hL 0 treelink
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" t3
+-hL 0 t3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" top3
+-hL 0 top3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" toptop3
+-hL 0 toptop3
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+-hL 0 'l😀'
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" sl f dang
+-hL 0 sl f dang
+-hL "$(id -u):$(id -G | cut -d' ' -f2)" tree sl dang f
+-hL 0 tree sl dang f
+# a dangling link is an error unless the link itself is meant
+"$(id -u)" dang
+-h "$(id -u)" dang
+-R "$(id -u)" dang
+-hR "$(id -u)" dang
+"$(id -u)" t3/dangling
+-h "$(id -u)" t3/dangling
+-R "$(id -u)" t3
+-hR "$(id -u)" t3
+-RL "$(id -u)" t3
+-RH "$(id -u)" top3
+-RP "$(id -u)" top3
+-RL "$(id -u)" top3
+# changing to the owner it already has, and the group follows the operand: in one go and one at a time
+"$(id -u)" f
+"$(id -u):$(id -g)" f
+":$(id -g)" f
+"$(id -un):$(id -gn)" f g
+"$(id -u):$(id -G | cut -d' ' -f2)" f g
+"$(id -u):$(id -G | cut -d' ' -f2)" ld3
+"$(id -u):$(id -G | cut -d' ' -f2)" ld3/in
+-h "$(id -u):$(id -G | cut -d' ' -f2)" ld3
+# names that are not plain ASCII
+"$(id -u):$(id -G | cut -d' ' -f2)" 'ü ñ 😀.txt'
+"$(id -u):$(id -G | cut -d' ' -f2)" 'dir 😀'
+-R "$(id -u):$(id -G | cut -d' ' -f2)" 'dir 😀'
+-h "$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+"$(id -u):$(id -G | cut -d' ' -f2)" 'l😀'
+# not permitted for a plain user: the next file is still tried, in order, with a diagnostic each
+0 f nosuch g
+root f g
+0 f g d
+-R 0 tree
+-R 0 t3
+-hR 0 t3
+"$(id -u)" f 0 g
+0:0 f g nosuch
+1 f
+daemon f
+nobody f
+daemon:daemon f
+nobody:nogroup f
+0:0 d d/x
+-R 65534 t3
+-R 65534:65534 t3
+# options
+-R -- "$(id -u)" f
+-- "$(id -u)" f
+-- "$(id -u)" -h
+-R
+-R "$(id -u)"
+"$(id -u)"
+-x "$(id -u)" f
+-Rx "$(id -u)" f
+-f "$(id -u)" f
+-v "$(id -u)" f
+-c "$(id -u)" f
+--reference=f g
+--from=0 "$(id -u)" f
+--no-dereference "$(id -u)" sl
+-n "$(id -u)" f

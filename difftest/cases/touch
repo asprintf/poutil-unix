@@ -189,3 +189,91 @@ d/new
 -a ./f
 f/
 d/
+
+# ---- the Rust unit tests of touch.rs, moved here; the corpus is touch.in (each: lines)
+# -t: [[CC]YY]MMDDhhmm[.SS], valid forms, then everything that must be refused
+each:t_valid -t @@ f
+each:t_bad -t @@ f
+# -d: the ISO 8601 form of the spec, valid and not
+each:d_valid -d @@ f
+each:d_bad -d @@ f
+# the spec's EXAMPLES
+-t 200711121015 cathy
+-t 200711121015.30 drepper
+-t 0711121015.30 ebb9
+-d 2007-11-12T10:15:30 dwc
+-d 2007-11-12T10:15:30Z nick
+-d 2007-11-12T10:15:30,002 gwc
+-d '2007-11-12 10:15:30.002Z' ajosey
+-a -r ref eggert
+-a -r ref f
+-m -r ref f
+-r ref2 f g h
+# a file name that is not plain ASCII, with a blank, with emoji
+'a b'
+-t 200711121015 'a b'
+'ü ñ 😀.txt'
+'ü ñ 😀.txt' 'a b' fresh
+-t 200711121015 'ü ñ 😀.txt' new
+-c '😀 not here.txt'
+-r 'ü ñ 😀.txt' f
+-r f 'ü ñ 😀.txt'
+😀.txt
+-d 2007-11-12T10:15:30Z 😀.txt
+# options grouped and in every order
+-acm f
+-amc new
+-cam new
+-c -a -m f
+-cmr ref f
+-acr ref new
+-cat 200711121015 f
+-mt 200711121015 f
+-ad 2007-11-12T10:15:30Z f
+-md 2007-11-12T10:15:30Z f
+-tm 200711121015 f
+# creation: the file is empty, mode 0666 less the umask; an existing file keeps its contents
+fresh
+new
+fresh new
+-c fresh new
+-t 200711121015 fresh
+-r ref2 fresh new
+# read-only files and directories, links to directories, a tree
+ro
+-t 200711121015 ro
+-a ro
+rod
+rod/x
+-c rod/x
+tl
+tl/sub/x
+tl/new
+tree/sub/x
+tree/sub/new
+tree/nodir/new
+-c tree/nodir/new
+-c tl
+lf2
+-c lf2
+-r lf2 f
+-r tl f
+-r tree/sub/x f
+# a missing directory is an error when creating, ENOENT is silent with -c, ENOTDIR is not
+nodir/f
+plain/f
+f/f
+-c nodir/f
+-c f/f
+-c f/f/f
+nodir/a nodir/b f
+f nodir/a g
+# the work goes on after an error and the status is non-zero
+nosuch/x f
+-r nosuch f g
+-r ref nosuch/x f g
+# a dangling link creates its target
+dang
+-c dang
+dang dang
+-d 2007-11-12T10:15:30Z dang

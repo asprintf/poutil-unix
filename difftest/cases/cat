@@ -53,3 +53,196 @@ f1 . f2
 -u -- -f
 -- -- f1
 f1 ./-f
+# ---- the Rust unit tests of cat.rs, moved here (cat.in, cat.setup, regress.sh for redirections)
+all256
+-u all256
+all256 all256
+crlf
+-u crlf
+crlf crlf
+emoji
+-u emoji
+emoji emoji
+highbytes
+-u highbytes
+highbytes highbytes
+nonl
+-u nonl
+nonl nonl
+nul_nl
+-u nul_nl
+nul_nl nul_nl
+nuls
+-u nuls
+nuls nuls
+only_nl
+-u only_nl
+only_nl only_nl
+trailing_blank
+-u trailing_blank
+trailing_blank trailing_blank
+utf8_invalid
+-u utf8_invalid
+utf8_invalid utf8_invalid
+b1
+-u b1
+b1 b1
+b65535
+-u b65535
+b65535 b65535
+b65536
+-u b65536
+b65536 b65536
+b65537
+-u b65537
+b65537 b65537
+b131071
+-u b131071
+b131071 b131071
+b131072
+-u b131072
+b131072 b131072
+b131073
+-u b131073
+b131073 b131073
+cycle
+-u cycle
+cycle cycle
+cycle200k
+-u cycle200k
+cycle200k cycle200k
+longline
+-u longline
+longline longline
+newlines
+-u newlines
+newlines newlines
+in:all256
+in:all256 -
+in:all256 -u
+in:all256 - f1
+in:all256 f1 -
+in:all256 - -
+in:all256 - all256 -
+in:crlf
+in:crlf -
+in:crlf -u
+in:crlf - f1
+in:crlf f1 -
+in:crlf - -
+in:crlf - crlf -
+in:emoji
+in:emoji -
+in:emoji -u
+in:emoji - f1
+in:emoji f1 -
+in:emoji - -
+in:emoji - emoji -
+in:highbytes
+in:highbytes -
+in:highbytes -u
+in:highbytes - f1
+in:highbytes f1 -
+in:highbytes - -
+in:highbytes - highbytes -
+in:nonl
+in:nonl -
+in:nonl -u
+in:nonl - f1
+in:nonl f1 -
+in:nonl - -
+in:nonl - nonl -
+in:nul_nl
+in:nul_nl -
+in:nul_nl -u
+in:nul_nl - f1
+in:nul_nl f1 -
+in:nul_nl - -
+in:nul_nl - nul_nl -
+in:nuls
+in:nuls -
+in:nuls -u
+in:nuls - f1
+in:nuls f1 -
+in:nuls - -
+in:nuls - nuls -
+in:only_nl
+in:only_nl -
+in:only_nl -u
+in:only_nl - f1
+in:only_nl f1 -
+in:only_nl - -
+in:only_nl - only_nl -
+in:trailing_blank
+in:trailing_blank -
+in:trailing_blank -u
+in:trailing_blank - f1
+in:trailing_blank f1 -
+in:trailing_blank - -
+in:trailing_blank - trailing_blank -
+in:utf8_invalid
+in:utf8_invalid -
+in:utf8_invalid -u
+in:utf8_invalid - f1
+in:utf8_invalid f1 -
+in:utf8_invalid - -
+in:utf8_invalid - utf8_invalid -
+b65535 b65536 b65537 b131072
+b131073 b1 b65536
+cycle all256 cycle200k
+-u b65536 b65537
+all256 nonl crlf
+nonl nonl nonl
+crlf nonl
+nuls nul_nl nuls
+all256 emoji highbytes utf8_invalid
+emoji only_nl emoji
+# a file after a failure is still copied, and the status is non-zero
+nosuch all256
+all256 nosuch b65536
+d all256
+all256 d b65537
+noperm all256
+# symbolic links, a loop, a directory through a link
+slink
+slink slink
+dangling
+dangling f1
+loop
+loop f1
+dlink
+dlink f1
+# names: a very long one, a trailing slash on a file, an empty name, a name with emoji
+"$(head -c 300 /dev/zero | tr '\0' a)"
+"$(head -c 300 /dev/zero | tr '\0' a)" f1
+f1/
+f1/ f2
+''
+'ü ñ 😀.txt'
+-u 'ü ñ 😀.txt'
+'ü ñ 😀.txt' 'ü ñ 😀.txt'
+emoji 'ü ñ 😀.txt'
+# devices
+/dev/null
+-u /dev/null
+/dev/null all256 /dev/null
+in:all256 /dev/null - /dev/null
+# options
+-u -u all256
+-uu all256
+-u -- all256
+-- -u
+-u -u
+-U all256
+-ux all256
+-n all256
+-v all256
+-e all256
+-s all256
+-t all256
+-A all256
+-b all256
+---
+-u --
+--help
+--version

@@ -1,0 +1,11 @@
+# Extensions: the spec has only -u. GNU and macOS add -n -v -e -s -t -b (and GNU
+# -A and --help/--version); we refuse them on purpose, as with the primaries of test
+-n all256
+-v all256
+-e all256
+-s all256
+-t all256
+-A all256
+-b all256
+--help
+--version
