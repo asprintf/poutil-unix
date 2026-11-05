@@ -10,3 +10,5 @@ length = length
 a : '[b-a]'
 # we refuse parentheses nested more than a few hundred deep (an error, not a stack overflow); GNU recurses without a limit
 $(yes '(' | head -5000) 1 $(yes ')' | head -5000)
+# An invalid byte sequence in a UTF-8 locale is undefined for the regular expression; the C library of ours (and macOS) fails the match, GNU matches the valid prefix.
+"$(printf 'a\377b')" : '.*'

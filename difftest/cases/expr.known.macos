@@ -1,0 +1,26 @@
+# Overflow is an error, so above 2 (EXIT STATUS: 2 is an invalid expression); macOS exits 2 for it.
+-9223372036854775808 - 1
+-9223372036854775808 / -1
+4611686018427387904 '*' 2
+99999999999999999999 + 1
+# An integer-looking operand above LONG_MAX: macOS refuses it ("operand too large"); ours and GNU take it as a string.
+-99999999999999999999999 '<' 5
+99999999999999999999999 '>' 99999999999999999999998
+# The spec does not say what an operator as an operand does, or an empty regular expression; ours and GNU read ( = ) as a group
+# holding =, "| | x" as the string |, and foo : '' as 0; macOS reports an error.
+'(' = ')'
+'|' '|' x
+foo : ''
+# expr1 | expr2 : the spec does not say that expr2 is evaluated when expr1 decides; ours (and GNU) do not, macOS fails on the "a".
+1 '|' a + 1
+# A lone operand is its own string: 007 is written as 007; macOS writes 7.
+007
+# a\(x\)* matches without the group taking part: the result is the (empty) string of the group, as for ours and GNU; macOS gives the count.
+abc : 'a\(x\)*bc'
+# ":" counts characters ("number of characters matched") in a UTF-8 locale; macOS counts bytes.
+'ééx' : '.*'
+"$(printf '\303\251\342\202\254')" : '.\{2\}'
+"$(printf '\303\251\342\202\254')" : '[[:alpha:]]*'
+"X$(printf '\303\251\342\202\254')" : '.*' - 1
+# Parentheses nest at least 32 deep; ours stops at 200, macOS has no such limit.
+$(yes '(' | head -5000) 1 $(yes ')' | head -5000)
