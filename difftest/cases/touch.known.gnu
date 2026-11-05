@@ -46,3 +46,6 @@
 -d 2007-11-12T10:15:60 f
 -d 1998-12-31T23:59:60Z f
 -d 2016-12-31T23:59:60Z f
+# Beyond what APFS holds (after 2262): GNU says success and the time is clamped; the spec says to exit with an error, as ours does.
+-d 2400-02-29T00:00:00Z f
+-t 229912312359 f
