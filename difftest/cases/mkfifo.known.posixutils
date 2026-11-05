@@ -1,6 +1,0 @@
-# the synopsis requires a file operand; posixutils-rs exits 0 without one, we and macOS report a usage error
-@
-# an empty mode is not valid (chmod mode grammar); posixutils-rs accepts it and creates the fifo with the default mode, we and macOS reject it
--m ''  f1
-# posixutils-rs refuses a repeated option (clap: cannot be used multiple times); we, macOS and GNU accept it
--m 700 -m 755 f1

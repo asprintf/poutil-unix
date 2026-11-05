@@ -4,10 +4,10 @@
 -j2 1 f1 f2
 # the -t character is "char": an empty string is none (macOS and GNU accept it)
 -t '' f1 f2
-# -e is "in the list selected by -o" and RATIONALE says it is only effective with -o; macOS, GNU and posixutils-rs also replace the empty fields of the default output
+# -e is "in the list selected by -o" and RATIONALE says it is only effective with -o; macOS and GNU also replace the empty fields of the default output
 -e bozo -t : c1 c2
 -t : -e X c1 c2
-# the synopsis is [-a file_number|-v file_number]: both together is a usage error (GNU and posixutils-rs accept it)
+# the synopsis is [-a file_number|-v file_number]: both together is a usage error (GNU accepts it)
 -a 1 -v 2 f1 f2
 -v 1 -a 1 f1 f2
 # the -o list is commas or blanks, elements are 0 or file_number.field with file_number 1 or 2; the spec says nothing of an empty element, a mixture or file 0, so those are usage errors here (the references accept some of them)
@@ -22,15 +22,15 @@
 -o ' 0 1.2 ' f1 f2
 # both operands - (the standard input twice): the spec is silent, the references refuse; the second read is an end of file here
 - -
-# GNU and posixutils-rs take an option that follows an operand; POSIX08 treats it as an operand (PCTS join 47)
+# GNU takes an option that follows an operand; POSIX08 treats it as an operand (PCTS join 47)
 f1 f2 -a 1
 f1 -a 1 f2
-# repeated options are read in order (XBD guideline 11), the last one wins; GNU and posixutils-rs refuse a repeat that conflicts
+# repeated options are read in order (XBD guideline 11), the last one wins; GNU refuses a repeat that conflicts
 -1 5 -1 1 f1 f2
 -2 5 -2 1 f1 f2
 -e a -e b -o 1.9 f1 f2
 -t : -t ';' semi1 semi2
-# input that is not sorted for the -t field: the results are unspecified; GNU and posixutils-rs report the disorder and fail
+# input that is not sorted for the -t field: the results are unspecified; GNU reports the disorder and fails
 -t : sp1 sp2
 -t ' ' sp1 sp2
 -t "	" sp1 sp2

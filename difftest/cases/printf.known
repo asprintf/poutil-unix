@@ -14,9 +14,9 @@
 '%Lf\n' 1.5
 # the quote rule is for the integer conversions only (RATIONALE: "the special treatment of leading single-quote and double-quote applying only to integer conversions"); the references give the character's value to the floating-point ones too
 "%f\n" "'A"
-# a denormal in %a: ours is the C library's, normalized, as macOS writes it (macOS also reports the underflow); GNU has its own digits (long double), posixutils-rs writes 0x0.
+# a denormal in %a: ours is the C library's, normalized, as macOS writes it (macOS also reports the underflow); GNU has its own digits (long double).
 '%a\n' 1e-310
-# a NaN is written "[-]nan" (XBD File Format Notation, f and F; PCTS printf 37, 53, 76, 77 expect -nan for -NAN), so a negative NaN has its sign; macOS, GNU and posixutils-rs all leave it out
+# a NaN is written "[-]nan" (XBD File Format Notation, f and F; PCTS printf 37, 53, 76, 77 expect -nan for -NAN), so a negative NaN has its sign; macOS and GNU both leave it out
 '%f\n' nan -nan +nan NAN -NAN nAn -nAn
 '%F|%E|%G|%A\n' -nan -nan -nan -nan
 '%e|%g|%a\n' -nan -nan -nan

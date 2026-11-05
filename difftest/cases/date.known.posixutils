@@ -1,2 +1,0 @@
-# a repeated option without an argument (-u -u) is not an error; posixutils-rs (clap) refuses it.
--u -u

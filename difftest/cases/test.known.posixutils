@@ -1,4 +1,0 @@
-# XSI: "= and != shall have a higher precedence than any unary primary" in the more-than-4-arguments case; posixutils-rs reports "unexpected argument", we, macOS and GNU follow the rule
--d = -d -a x
--n = x -o y
--z '!=' -z -o ''

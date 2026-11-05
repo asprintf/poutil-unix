@@ -11,7 +11,7 @@
 -t 4 -t 8 plain
 -t 8 -t 4 plain
 # width of control characters is not specified: here ASCII controls take no
-# column; GNU counts one, posixutils-rs resets the column on a carriage return
+# column; GNU counts one
 ctl
 -t 4 ctl
 # "-" is standard input (PCTS 833); macOS opens a file named "-"
@@ -24,12 +24,12 @@ mb
 comb
 bad
 latin1
-# the column carries over from one file to the next (as in GNU); macOS and
-# posixutils-rs begin every file at column 0
+# the column carries over from one file to the next (as in GNU); macOS
+# begins every file at column 0
 nonl1 nonl2
 # expand terminates at the first file operand it cannot access (CONSEQUENCES
 # OF ERRORS of expand, PCTS 824; unexpand has the default and goes on).
-# macOS does the same; GNU and posixutils-rs go on with the next operand
+# macOS does the same; GNU goes on with the next operand
 dir plain
 noread plain
 nosuch plain

@@ -1,2 +1,0 @@
-# OPTIONS is "None." so an unknown option is undefined (XCU 1.4); posixutils-rs takes -x as the string, we, macOS and GNU reject it
--x

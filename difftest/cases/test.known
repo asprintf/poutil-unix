@@ -14,7 +14,7 @@ a '<' b
 1 -eq ' 1'
 99999999999999999999999 -gt 99999999999999999999998
 # -t: "False if file_descriptor is not a valid file descriptor number", so a bad operand is a quiet
-# false for us (exit 1), as for posixutils-rs. GNU (and macOS, by the old note) stop with exit 2 and a
+# false for us (exit 1). GNU (and macOS, by the old note) stop with exit 2 and a
 # message when the operand is no integer.
 -t x
 -t ''

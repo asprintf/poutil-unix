@@ -39,22 +39,17 @@
 # A line "@" means no arguments. Case lines also listed in UTIL.known are
 # reported as "known" (judged acceptable) and not counted as differences.
 #
-# A third reference is optional: if POSIXUTILS_RS names a directory holding
-# built posixutils-rs binaries, UTIL from there is compared too, as a black
-# box (it is only ever run, never read). Lines accepted only for that one are
-# listed in UTIL.known.posixutils; UTIL.known applies to every reference.
-# UTIL.known.gnu and UTIL.known.macos are the same for one of the others.
+# UTIL.known applies to every reference; UTIL.known.gnu and UTIL.known.macos to one of them.
 #
 # Environment: DIFFTEST_TIMEOUT (seconds a case may run, default 60; needs timeout or gtimeout), OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
 # LLVM_PROFILE_FILE (passed on to ours, for difftest/coverage.sh),
-# POSIXUTILS_RS (default unset: no third reference), SHARD=K/N (run only every
+# SHARD=K/N (run only every
 # Nth case line, those with number mod N equal to K: start N copies with
 # K = 0 .. N-1 at the same time to use all the processors)
 
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
 LOCALES=${LOCALES:-"C en_US.UTF-8"}
-RS=${POSIXUTILS_RS:-}
 verbose=0
 [ "$1" = "-v" ] && { verbose=1; shift; }
 [ $# -ge 1 ] || { echo "usage: sh $0 [-v] util..." >&2; exit 2; }
@@ -138,7 +133,6 @@ for util in "$@"; do
 		for seen in $refs; do cmp -s "$r" "$seen" && dup=1; done
 		[ $dup -eq 1 ] || refs="$refs $r"
 	done
-	[ -n "$RS" ] && [ -x "$RS/$util" ] && refs="$refs $RS/$util"
 	# a line "each:NAME TEMPLATE" stands for one case line per line of
 	# cases/UTIL.in/NAME, with the first @@ of TEMPLATE replaced by that line,
 	# quoted as one word (a corpus of values: modes, times, expressions)
@@ -196,18 +190,11 @@ for util in "$@"; do
 				[ "$o_st" = "$r_st" ] || why="$why status($o_st/$r_st)"
 				cmp -s "$tmp/o.fs" "$tmp/r.fs" || why="$why files"
 				[ $case_et -eq 0 ] || cmp -s "$tmp/o.et" "$tmp/r.et" || why="$why stderr-text"
-				name=$ref is_rs=0
-				if [ -n "$RS" ] && [ "$ref" = "$RS/$util" ]; then
-					name=posixutils-rs is_rs=1
-				fi
+				name=$ref
 				known=0
 				grep -qxF -- "$line" "$cases.known" 2>/dev/null && known=1
 				if [ $known -eq 0 ]; then
-					if [ $is_rs -eq 1 ]; then
-						kind=posixutils
-					else
-						case $ref in /opt/local/bin/*) kind=gnu ;; *) kind=$native ;; esac
-					fi
+					case $ref in /opt/local/bin/*) kind=gnu ;; *) kind=$native ;; esac
 					grep -qxF -- "$line" "$cases.known.$kind" 2>/dev/null && known=1
 				fi
 				if [ -n "$why" ] && [ $known -eq 1 ]; then

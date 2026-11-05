@@ -10,11 +10,10 @@ i.fifoname
 i.slash
 i.slashmissing
 # a line "begin the meeting" is not a header here and the real one after it is
-# found; macOS and posixutils-rs stop at it
+# found; macOS stops at it
 i.junk
 # the end line straight after the data, without the line of length zero, is
-# accepted (the text does not have that line); macOS refuses, posixutils-rs
-# appends garbage
+# accepted (the text does not have that line); macOS refuses
 i.nozero
 # bad Base64 padding: all three fail, what was written before differs
 i.b64after

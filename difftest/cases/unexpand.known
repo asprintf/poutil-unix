@@ -27,7 +27,7 @@ trail
 -t 5,10 mid
 -t "4 8" runs
 # a single blank at the start of the line that fills a stop is a tab (-t 1);
-# macOS and posixutils-rs keep it a space
+# macOS keeps it a space
 -t 1 lead
 # macOS stops on an invalid sequence in UTF-8 and counts non-ASCII bytes
 # differently in the C locale

@@ -5,8 +5,8 @@
 #
 # Each round makes random files (random bytes, or a few letters and newlines,
 # sizes biased to the edges of the buffers), runs the utility and every
-# reference that exists (/usr/bin, GNU g-prefixed with POSIXLY_CORRECT=1,
-# and posixutils-rs when POSIXUTILS_RS is set) on the same arguments, and
+# reference that exists (/usr/bin, GNU g-prefixed with POSIXLY_CORRECT=1)
+# on the same arguments, and
 # compares standard output and the exit status (zero / non-zero). The first
 # difference is kept in a directory that is named, with the command line, so
 # that it can be repeated. Unlike difftest.sh the input is random; the
@@ -14,13 +14,12 @@
 # leaves open are dropped by FUZZ_SKIP_<util> (see the fuzz_<util> functions).
 #
 # Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
-# POSIXUTILS_RS (default unset), FUZZ_KEEP (directory for failures, default
+# FUZZ_KEEP (directory for failures, default
 # $TMPDIR/fuzz-fail)
 
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
 LOCALES=${LOCALES:-"C en_US.UTF-8"}
-RS=${POSIXUTILS_RS:-}
 KEEP=${FUZZ_KEEP:-${TMPDIR:-/tmp}/fuzz-fail}
 count=200
 [ "$1" = "-n" ] && { count=$2; shift 2; }
@@ -91,7 +90,7 @@ check() {
 		ref=
 		(cd "$tmp/w" && env -i PATH=/usr/bin:/bin LC_ALL="$loc" POSIXLY_CORRECT=1 \
 			"$OURS/$util" "$@" < "${STDIN:-/dev/null}" > "$tmp/o.ours" 2>/dev/null; echo $? > "$tmp/s.ours")
-		for bin in /usr/bin/$util /bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util ${RS:+${NO_RS:-$RS/$util}}; do
+		for bin in /usr/bin/$util /bin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
 			[ -x "$bin" ] || continue
 			case $bin in /usr/bin/* | /bin/*) [ -n "$NO_MAC" ] && continue ;; esac
 			(cd "$tmp/w" && env -i PATH=/usr/bin:/bin LC_ALL="$loc" POSIXLY_CORRECT=1 \
@@ -173,8 +172,7 @@ fuzz_id() {
 	case $(rnd 7) in 0) u=;; 1) u=;; 2) u=root;; 3) u=nobody;; 4) u=daemon;; 5) u=nosuch;; 6) u=$(id -un);; esac
 	if [ -z "$m" ]; then n=; r=; fi
 	if [ -n "$u" ]; then
-		# posixutils-rs reads the group file: other groups for a named user
-		NO_RS=x check $m $n $r $u
+		check $m $n $r $u
 	else
 		check $m $n $r
 	fi
@@ -210,7 +208,7 @@ fuzz_cut() {
 
 # xargs: random input made of words, blanks, newlines, quotes, backslashes and the logical end-of-file
 # string, with a random choice of -n, -L, -s, -x, -E and -I. The utility prints how many arguments it
-# got and which. Left out: posixutils-rs (quoting), -s (they allow a command line of size bytes, we
+# got and which. Left out: -s (they allow a command line of size bytes, we
 # less than size), unmatched quotes (GNU runs what it read before) and an escaped blank ending a line
 # (they take it for a continuation under -L). macOS squeezes the blanks of -I lines: GNU only there.
 mkxargs_in() {
@@ -238,7 +236,6 @@ mkxargs_in() {
 fuzz_xargs() {
 	mkxargs_in $(rnd 2) in
 	set -- sh -c 'echo "$#:$*"' x
-	NO_RS=x
 	case $(rnd 8) in
 	0) o= ;;
 	1) o="-n $((1 + $(rnd 5)))" ;;
@@ -250,15 +247,15 @@ fuzz_xargs() {
 	7) o="-E '' -L 2" ;;
 	esac
 	case $(rnd 6) in 0) o="$o -x" ;; esac
-	eval "STDIN=in NO_RS=x check $o \"\$@\"" || return
-	STDIN=in NO_RS=x NO_MAC=x check -I '{}' echo '[{}]' || return
-	STDIN=in NO_RS=x NO_MAC=x check -I '{}' -E EOF echo '<{}>' '{}' || return
+	eval "STDIN=in check $o \"\$@\"" || return
+	STDIN=in NO_MAC=x check -I '{}' echo '[{}]' || return
+	STDIN=in NO_MAC=x check -I '{}' -E EOF echo '<{}>' '{}' || return
 }
 
 # chmod: random symbolic and octal modes applied to files of every mode; what is compared is the mode
 # of each file afterwards. macOS is left out (it keeps the set-ID and sticky bits that a mode with "="
 # must clear and ignores "X" after "-"; see chmod.known.macos), and so are the modes of directories,
-# where the set-ID and sticky bits of an octal mode are kept by GNU and posixutils-rs.
+# where the set-ID and sticky bits of an octal mode are kept by GNU.
 mkmode() {
 	awk -v seed="$(rnd 1000000)" 'BEGIN {
 		srand(seed)
@@ -288,7 +285,7 @@ mkmode() {
 fuzz_chmod() {
 	m=$(mkmode)
 	ops="f0 f4 f6 f7 f77 fs fg"
-	for bin in /opt/local/bin/gchmod ${RS:+$RS/chmod}; do
+	for bin in /opt/local/bin/gchmod; do
 		[ -x "$bin" ] || continue
 		for who in ours ref; do
 			rm -rf "$tmp/m"; mkdir "$tmp/m"

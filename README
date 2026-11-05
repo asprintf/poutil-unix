@@ -76,16 +76,11 @@ because of its large per-platform name tables.
 
 RELATED PROJECTS
 
-posixutils-rs (https://github.com/rustcoreutils/posixutils-rs) is a much
-bigger Rust implementation of the POSIX utilities, MIT licensed, with well
-over a hundred of them. It is far ahead of this project in breadth and
-aims at POSIX.1-2024 plus the extensions that real software needs. I have
-only read its documentation, not its source. This project is smaller and
-picks other priorities: the 2018 edition of the specification (SUSv4),
-extensions refused, bytes instead of UTF-8, every utility run through the
-VSC-PCTS, and the GPL. uutils coreutils is another Rust project, aimed at
-GNU compatibility. If one of those fits your needs better than this does,
-use it.
+uutils coreutils is a Rust implementation of the GNU tools, aimed at GNU
+compatibility. This project is smaller and picks other priorities: the
+2018 edition of the specification (SUSv4), extensions refused, bytes
+instead of UTF-8, every utility run through the VSC-PCTS, and the GPL. If
+uutils fits your needs better than this does, use it.
 
 Developed and checked (VSC-PCTS, difftest) on x86_64 macOS. All utilities
 also build on Linux (x86_64, glibc) and pass the unit tests there; FreeBSD

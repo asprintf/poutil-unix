@@ -1,6 +1,6 @@
 # macOS compares and prints a line only up to a NUL byte
 nul1 nul2
 -12 nul1 nul2
-# bytes that are not characters in en_US.UTF-8: the order is unspecified (GNU rejects them; posixutils-rs reads UTF-8 in every locale)
+# bytes that are not characters in en_US.UTF-8: the order is unspecified (GNU rejects them)
 bin1 bin2
 -12 bin1 bin2

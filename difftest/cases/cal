@@ -81,7 +81,7 @@ x 2020
 -j 2026
 -3
 -m 3 2026
-# macOS and posixutils-rs take more than a decimal integer
+# macOS takes more than a decimal integer
 +5
 1.5
 +3 2026
