@@ -1,3 +1,4 @@
+. "$DIFFTEST_LIB/stat.sh"
 now=$(date +%s)
 tag() {
 	d=$((now - ${1%%.*}))
@@ -8,6 +9,6 @@ find . | sort | while IFS= read -r f; do
 		echo "$f -> $(readlink "$f")"
 		continue
 	fi
-	set -- $(stat -f '%Fm %Fa %z %Sp' "$f")
+	set -- $(st_mtime "$f") $(st_atime "$f") $(st_size "$f") $(st_mode "$f")
 	echo "$f m=$(tag "$1") a=$(tag "$2") size=$3 mode=$4"
 done

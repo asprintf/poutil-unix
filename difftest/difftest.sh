@@ -18,8 +18,23 @@
 # output before it is compared, for what the spec leaves open: the padding of
 # wc, the order of tsort).
 #
-# A first word in:NAME on a case line means standard input from the file
-# cases/UTIL.in/NAME for that line only (xargs), the word is not an argument.
+# First words on a case line that are no arguments (any number, in any order):
+#   in:NAME    standard input from the file cases/UTIL.in/NAME for that line only (xargs)
+#   umask:MASK the utility runs with that umask (cp, chmod: what the mode of a new file is)
+#   errtext:   the text of standard error is compared too, without the lines that start
+#              with the name of the program ("xargs: ..." and "/usr/bin/xargs: ..." differ
+#              and the standard leaves diagnostics open); for what the standard writes
+#              there, such as the lines of xargs -t. Without it only "is there any" counts.
+#
+# UTIL.setup and UTIL.show get DIFFTEST_LIB, the directory lib/ (stat.sh: a stat that
+# prints the same on macOS and on Linux). UTIL.setup runs with LC_ALL=C (bytes, not characters: BSD tr and sed refuse
+# invalid UTF-8). CORPUS (environment of UTIL.setup and UTIL.show) names the directory
+# cases/UTIL.in, so a setup file can copy corpus files into the fresh directory:
+# cp "$CORPUS/emoji" .
+#
+# A line "each:NAME TEMPLATE" is a case line for every line of cases/UTIL.in/NAME
+# (blank lines and # comments skipped): the first @@ in TEMPLATE is replaced by
+# that line as one quoted word. "each:modes -- @@ f" runs chmod once per mode.
 #
 # A line "@" means no arguments. Case lines also listed in UTIL.known are
 # reported as "known" (judged acceptable) and not counted as differences.
@@ -30,7 +45,8 @@
 # listed in UTIL.known.posixutils; UTIL.known applies to every reference.
 # UTIL.known.gnu and UTIL.known.macos are the same for one of the others.
 #
-# Environment: OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
+# Environment: DIFFTEST_TIMEOUT (seconds a case may run, default 60; needs timeout or gtimeout), OURS (default target/release), LOCALES (default "C en_US.UTF-8"),
+# LLVM_PROFILE_FILE (passed on to ours, for difftest/coverage.sh),
 # POSIXUTILS_RS (default unset: no third reference), SHARD=K/N (run only every
 # Nth case line, those with number mod N equal to K: start N copies with
 # K = 0 .. N-1 at the same time to use all the processors)
@@ -43,6 +59,15 @@ verbose=0
 [ "$1" = "-v" ] && { verbose=1; shift; }
 [ $# -ge 1 ] || { echo "usage: sh $0 [-v] util..." >&2; exit 2; }
 
+# A case that does not end (cp -p on a FIFO nobody writes to is a read that waits for ever, an endless
+# recursion) is killed after DIFFTEST_TIMEOUT seconds (default 60) if timeout(1) or gtimeout is there; the
+# status is then 124, for ours and for the reference alike. Not for the utilities whose process
+# surroundings are part of what is tested.
+limit_cmd=
+for t in timeout gtimeout; do
+	p=$(command -v $t 2>/dev/null) && { limit_cmd="$p -k 5 ${DIFFTEST_TIMEOUT:-60}"; break; }
+done
+
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/difftest.XXXXXX") || exit 1
 trap 'chmod -R u+rwx "$tmp" 2>/dev/null; rm -rf "$tmp"' EXIT
 
@@ -50,6 +75,8 @@ trap 'chmod -R u+rwx "$tmp" 2>/dev/null; rm -rf "$tmp"' EXIT
 run() {
 	bin=$1 loc=$2
 	shift 2
+	lim=$limit_cmd
+	case $util in tty | env | nice | nohup | time | kill) lim= ;; esac
 	work=$tmp/work
 	chmod -R u+rwx "$work" 2>/dev/null
 	rm -rf "$work"
@@ -58,26 +85,46 @@ run() {
 	[ -f "$here/cases/$util.stdin" ] && in=$here/cases/$util.stdin
 	[ -n "$case_in" ] && in=$here/cases/$util.in/$case_in
 	if [ -f "$here/cases/$util.setup" ]; then
-		(cd "$work" && sh "$here/cases/$util.setup") >/dev/null 2>&1
+		(cd "$work" && LC_ALL=C CORPUS=$here/cases/$util.in DIFFTEST_LIB=$here/lib sh "$here/cases/$util.setup") >/dev/null 2>&1
 	fi
-	(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
-		POSIXLY_CORRECT=1 "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
+	if [ -n "$case_mask" ]; then
+		(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
+			POSIXLY_CORRECT=1 ${LLVM_PROFILE_FILE:+LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE"} \
+			sh -c 'umask "$1" && shift && exec "$@"' sh "$case_mask" $lim "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
+	else
+		(cd "$work" && env -i PATH=/usr/bin:/bin PWD="$work" LC_ALL="$loc" \
+			POSIXLY_CORRECT=1 ${LLVM_PROFILE_FILE:+LLVM_PROFILE_FILE="$LLVM_PROFILE_FILE"} $lim "$bin" "$@") <"$in" >"$tmp/r.out" 2>"$tmp/r.err"
+	fi
 	echo $? >"$tmp/r.st"
+	# the text of standard error without the program's own diagnostics, for errtext: lines
+	grep -v -e "^$bin: " -e "^$(basename "$bin"): " "$tmp/r.err" >"$tmp/r.et" 2>/dev/null
 	if [ -f "$here/cases/$util.filter" ]; then
 		sh "$here/cases/$util.filter" <"$tmp/r.out" >"$tmp/r.flt" 2>/dev/null
 		mv "$tmp/r.flt" "$tmp/r.out"
 	fi
 	(cd "$work" && ls -1) >"$tmp/r.fs" 2>&1
 	if [ -f "$here/cases/$util.show" ]; then
-		(cd "$work" && env -i PATH=/usr/bin:/bin sh "$here/cases/$util.show") >>"$tmp/r.fs" 2>&1
+		(cd "$work" && env -i PATH=/usr/bin:/bin CORPUS="$here/cases/$util.in" DIFFTEST_LIB="$here/lib" sh "$here/cases/$util.show") >>"$tmp/r.fs" 2>&1
 	fi
 }
 
 # norm STATUS: zero / non-zero, except where the value matters
 norm() {
 	case $util in tty | env | nice | nohup | time) echo "$1"; return ;; esac
+	# xargs: 126 and 127 say what went wrong with the utility, any other failure is 1-125 (EXIT STATUS)
+	if [ "$util" = xargs ]; then case $1 in 0 | 126 | 127) echo "$1" ;; *) echo nz ;; esac; return; fi
+	# test and [: 1 is false, above 1 an error. expr: 1 is a null or zero result, 2 an invalid expression,
+	# above 2 an error (their EXIT STATUS sections)
+	case $util in
+	test | '[') case $1 in 0 | 1) echo "$1" ;; *) echo err ;; esac; return ;;
+	expr) case $1 in 0 | 1 | 2) echo "$1" ;; *) echo ">2" ;; esac; return ;;
+	esac
 	if [ "$util" = tty ]; then echo "$1"; elif [ "$1" -eq 0 ]; then echo 0; else echo nz; fi
 }
+
+# the tools in /usr/bin are the GNU ones on Linux, the BSD ones elsewhere; that
+# decides whether UTIL.known.gnu or UTIL.known.macos applies to them
+case $(uname -s) in Linux) native=gnu ;; *) native=macos ;; esac
 
 total=0 bad=0 missing=0
 for util in "$@"; do
@@ -85,9 +132,36 @@ for util in "$@"; do
 	[ -f "$cases" ] || { echo "$util: no case file" >&2; missing=$((missing + 1)); continue; }
 	refs=
 	for r in /usr/bin/$util /bin/$util /usr/sbin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
-		[ -x "$r" ] && refs="$refs $r"
+		[ -x "$r" ] || continue
+		# /bin and /usr/bin often hold the same file: one reference, not two
+		dup=0
+		for seen in $refs; do cmp -s "$r" "$seen" && dup=1; done
+		[ $dup -eq 1 ] || refs="$refs $r"
 	done
 	[ -n "$RS" ] && [ -x "$RS/$util" ] && refs="$refs $RS/$util"
+	# a line "each:NAME TEMPLATE" stands for one case line per line of
+	# cases/UTIL.in/NAME, with the first @@ of TEMPLATE replaced by that line,
+	# quoted as one word (a corpus of values: modes, times, expressions)
+	expanded=$tmp/cases.expanded
+	while IFS= read -r line; do
+		case $line in
+		each:*)
+			rest=${line#each:}
+			name=${rest%% *}
+			tmpl=${rest#* }
+			while IFS= read -r val || [ -n "$val" ]; do
+				case $val in '' | '#'*) continue ;; esac
+				# quoted only when it has to be: the line then reads as one written by hand
+				case $val in
+				*[!A-Za-z0-9_./:=+@%^,-]*) q="'$(printf '%s' "$val" | sed "s/'/'\\\\''/g")'" ;;
+				*) q=$val ;;
+				esac
+				printf '%s\n' "${tmpl%%@@*}$q${tmpl#*@@}"
+			done <"$here/cases/$util.in/$name"
+			;;
+		*) printf '%s\n' "$line" ;;
+		esac
+	done <"$cases" >"$expanded"
 	lineno=0
 	while IFS= read -r line; do
 		case $line in '' | '#'*) continue ;; esac
@@ -95,11 +169,19 @@ for util in "$@"; do
 		[ -z "$SHARD" ] || [ $((lineno % ${SHARD#*/})) -eq "${SHARD%/*}" ] || continue
 		for loc in $LOCALES; do
 			if [ "$line" = "@" ]; then set --; else eval "set -- $line"; fi
-			# a first word in:NAME: standard input from cases/UTIL.in/NAME for this line (xargs)
-			case_in=
-			case ${1-} in in:*) case_in=${1#in:}; shift ;; esac
+			# first words that are no arguments: in:NAME (standard input from cases/UTIL.in/NAME), umask:MASK, errtext:
+			case_in= case_mask= case_et=0
+			while :; do
+				case ${1-} in
+				in:*) case_in=${1#in:}; shift ;;
+				umask:*) case_mask=${1#umask:}; shift ;;
+				errtext:) case_et=1; shift ;;
+				*) break ;;
+				esac
+			done
 			run "$OURS/$util" "$loc" "$@"
 			cp "$tmp/r.out" "$tmp/o.out"
+			cp "$tmp/r.et" "$tmp/o.et"
 			o_err=$([ -s "$tmp/r.err" ] && echo err || echo quiet)
 			o_st=$(norm "$(cat "$tmp/r.st")")
 			cp "$tmp/r.fs" "$tmp/o.fs"
@@ -113,6 +195,7 @@ for util in "$@"; do
 				[ "$o_err" = "$r_err" ] || why="$why stderr($o_err/$r_err)"
 				[ "$o_st" = "$r_st" ] || why="$why status($o_st/$r_st)"
 				cmp -s "$tmp/o.fs" "$tmp/r.fs" || why="$why files"
+				[ $case_et -eq 0 ] || cmp -s "$tmp/o.et" "$tmp/r.et" || why="$why stderr-text"
 				name=$ref is_rs=0
 				if [ -n "$RS" ] && [ "$ref" = "$RS/$util" ]; then
 					name=posixutils-rs is_rs=1
@@ -123,7 +206,7 @@ for util in "$@"; do
 					if [ $is_rs -eq 1 ]; then
 						kind=posixutils
 					else
-						case $ref in /opt/local/bin/*) kind=gnu ;; *) kind=macos ;; esac
+						case $ref in /opt/local/bin/*) kind=gnu ;; *) kind=$native ;; esac
 					fi
 					grep -qxF -- "$line" "$cases.known.$kind" 2>/dev/null && known=1
 				fi
@@ -139,7 +222,7 @@ for util in "$@"; do
 				fi
 			done
 		done
-	done <"$cases"
+	done <"$expanded"
 done
 echo "difftest: $total comparisons, $bad differences"
 [ "$missing" -eq 0 ] || echo "difftest: $missing without a case file" >&2

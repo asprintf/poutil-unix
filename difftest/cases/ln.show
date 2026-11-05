@@ -1,9 +1,10 @@
+. "$DIFFTEST_LIB/stat.sh"
 find . ! -name . | sort | while IFS= read -r f; do
 	if [ -L "$f" ]; then
-		echo "L $f -> $(readlink "$f") ino=$(stat -f %i "$f")"
+		echo "L $f -> $(readlink "$f") ino=$(st_ino "$f")"
 	elif [ -d "$f" ]; then
-		echo "D $f $(stat -f '%Sp' "$f") ino=$(stat -f %i "$f")"
+		echo "D $f $(st_mode "$f") ino=$(st_ino "$f")"
 	else
-		echo "F $f $(stat -f '%Sp %l %z' "$f") ino=$(stat -f %i "$f")"
+		echo "F $f $(st_mode "$f") $(st_nlink "$f") $(st_size "$f") ino=$(st_ino "$f")"
 	fi
 done | awk '{ n = split($NF, a, "="); i = a[2]; if (!(i in m)) m[i] = ++c; $NF = "g" m[i]; print }'

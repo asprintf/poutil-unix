@@ -1,3 +1,4 @@
+. "$DIFFTEST_LIB/stat.sh"
 now=$(date +%s)
 tag() {
 	d=$((now - ${1%%.*}))
@@ -5,11 +6,16 @@ tag() {
 }
 find . | sort | while IFS= read -r f; do
 	if [ -L "$f" ]; then
-		echo "$f -> $(readlink "$f")"
+		set -- $(st_all "$f")
+		echo "$f -> $(readlink "$f") m=$(tag "$3")"
 		continue
 	fi
-	set -- $(stat -f '%Sp %z %m' "$f")
+	set -- $(st_all "$f")
+	m=$1 z=$2 mt=$3 at=$4
 	c=
-	[ -f "$f" ] && c=$(cat "$f" 2>/dev/null | cksum | cut -d' ' -f1)
-	echo "$f $1 size=$2 m=$(tag "$3") sum=$c"
+	if [ -f "$f" ]; then
+		set -- $(cksum < "$f" 2> /dev/null)
+		c=$1
+	fi
+	echo "$f $m size=$z m=$(tag "$mt") a=$(tag "$at") sum=$c"
 done

@@ -9,6 +9,19 @@ test: all
 	cargo test
 	sh difftest/regress.sh
 
+# the comparison with other implementations (GNU, BSD) on the case files in difftest/cases;
+# one utility: make difftest U=wc
+difftest: all
+	utils='$(U)'; \
+	if [ -z "$$utils" ]; then \
+		for f in difftest/cases/*; do case $$f in *.*) ;; *) utils="$$utils $${f##*/}" ;; esac; done; \
+	fi; \
+	sh difftest/difftest.sh $$utils
+
+# which lines the difftest and regress checks run (needs llvm-tools); output in target/cov/html
+coverage:
+	sh difftest/coverage.sh $(U)
+
 # the linter, default groups only (see [lints.clippy] in Cargo.toml)
 clippy:
 	cargo clippy --all-targets
@@ -29,4 +42,4 @@ deploy: all
 	sudo install -d -o $(VSC_USER) -g $(VSC_GROUP) $(OURS)
 	cd target/release && sudo install -o root -g wheel -m 755 $(BINS) $(OURS)/
 
-.PHONY: all test clippy clean deploy
+.PHONY: all test difftest coverage clippy clean deploy

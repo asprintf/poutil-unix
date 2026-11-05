@@ -19,6 +19,28 @@
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}
 OURS=$(cd "$OURS" && pwd) || exit 1
+# st_mode, st_mtime_s, ...: the same text from BSD stat (macOS) and GNU stat (note that GNU "stat -f" is a different thing)
+. "$here/lib/stat.sh"
+
+# a UTF-8 locale this system has: en_US.UTF-8 on macOS and most Linux systems, C.UTF-8 or C.utf8 on a bare one
+U8=en_US.UTF-8
+for l in en_US.UTF-8 en_US.utf8 C.UTF-8 C.utf8; do
+	if [ "$(LC_ALL=$l locale charmap 2> /dev/null)" = UTF-8 ]; then
+		U8=$l
+		break
+	fi
+done
+
+# md5: macOS has md5, Linux md5sum
+echo x | md5 > /dev/null 2>&1 || md5() { md5sum | cut -d ' ' -f 1; }
+
+# deeptree DIR N FILES: N nested directories below DIR, a file in each if FILES is 1. This is deeper than
+# PATH_MAX, so the shell has to be able to cd that deep: dash builds the whole path and cannot, bash can.
+deeptree() {
+	deepsh=sh
+	command -v bash > /dev/null 2>&1 && deepsh=bash
+	$deepsh -c 'cd "$1" || exit 1; i=0; while [ $i -lt $2 ]; do mkdir dddddddddddddddd || exit 1; cd dddddddddddddddd || exit 1; [ "$3" = 1 ] && : > file; i=$((i + 1)); done' deeptree "$1" "$2" "$3"
+}
 LC_ALL=C
 export LC_ALL
 umask 022
@@ -193,7 +215,7 @@ eq "echo: \\c in a later operand keeps what came before" 6120 "$("$OURS/echo" a 
 eq "echo: \\c alone prints nothing" "" "$("$OURS/echo" '\c' | hex)"
 eq "echo: an unknown escape does not fail" 0 "$("$OURS/echo" '\q' > /dev/null; echo $?)"
 eq "echo: bytes that are not characters pass through" ff80780a "$("$OURS/echo" "$(printf '\377\200x')" | hex)"
-big=$(awk 'BEGIN { s = sprintf("%100000s", ""); gsub(/ /, "x", s); printf "%s", s }')
+big=$(head -c 100000 /dev/zero | tr '\0' x)
 eq "echo: a 100000-byte operand" 100001 "$("$OURS/echo" "$big" | wc -c | tr -d ' ')"
 eq "echo: 20000 operands" "$(seq 1 20000 | tr '\n' ' ' | sed 's/ $//')" "$("$OURS/echo" $(seq 1 20000))"
 "$OURS/echo" hi <&- > /dev/null
@@ -203,10 +225,10 @@ eq "echo with stdout closed: status" 1 $?
 eq "echo with stdout closed: one diagnostic" 1 "$(wc -l < err | tr -d ' ')"
 { "$OURS/echo" $(seq 1 50000); echo $? > st; } | head -c 10 > /dev/null
 eq "echo into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
-if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+if [ "$(LC_ALL=$U8 locale charmap 2> /dev/null)" = UTF-8 ]; then
 	E=$(printf '\303\251')
-	eq "echo: a multibyte character passes through" "c3a90a" "$(LC_ALL=en_US.UTF-8 "$OURS/echo" "$E" | hex)"
-	eq "echo: an escape next to a multibyte character" "c3a9090a" "$(LC_ALL=en_US.UTF-8 "$OURS/echo" "$E\\t" | hex)"
+	eq "echo: a multibyte character passes through" "c3a90a" "$(LC_ALL=$U8 "$OURS/echo" "$E" | hex)"
+	eq "echo: an escape next to a multibyte character" "c3a9090a" "$(LC_ALL=$U8 "$OURS/echo" "$E\\t" | hex)"
 fi
 
 #---------------------------------------------------------------------- tee
@@ -602,6 +624,40 @@ fi
 "$OURS/time" -p ./nosuchcmd > /dev/null 2> t
 eq "time of a missing utility: status" 127 $?
 
+#------------------------------------------------- xargs -p on a terminal
+# -p reads its answers from /dev/tty and writes "?..." at the end of the line of the -t output. script(1) gives
+# xargs a terminal; its standard input is typed on it a second later, when the echo is off, so that the screen shows
+# what xargs wrote.
+fresh
+if [ -x /usr/bin/script ] && /usr/bin/script -q /dev/null true < /dev/null > /dev/null 2>&1; then
+	ptyrun() { (sleep 1; printf '%s' "$1") | /usr/bin/script -q /dev/null sh -c "stty -echo; $2" > ty 2>&1; tr -d '\r' < ty; }
+elif [ -x /usr/bin/script ] && /usr/bin/script -qec true /dev/null < /dev/null > /dev/null 2>&1; then
+	ptyrun() { (sleep 1; printf '%s' "$1") | /usr/bin/script -qec "stty -echo; $2" /dev/null 2>&1 | tr -d '\r'; }
+else
+	ptyrun() { return 1; }
+fi
+if ptyrun '' true > /dev/null 2>&1; then
+	export OURS
+	eq "xargs -p: yes runs the utility; the prompt follows the -t line" "echo hi a b?...hi a b" "$(ptyrun 'y
+' 'echo "a b" | "$OURS/xargs" -p echo hi')"
+	eq "xargs -p: no skips it" "echo hi a b?..." "$(ptyrun 'n
+' 'echo "a b" | "$OURS/xargs" -p echo hi')"
+	eq "xargs -p: anything that does not start with y is no" "echo hi a?..." "$(ptyrun 'maybe
+' 'echo a | "$OURS/xargs" -p echo hi')"
+	eq "xargs -p: Yes (an answer that starts with y or Y) is yes" "echo hi a?...hi a" "$(ptyrun 'Yes
+' 'echo a | "$OURS/xargs" -p echo hi')"
+	eq "xargs -p -n 1: each invocation is asked about (no answer is echoed, so a no leaves the next line on the same row)" "echo hi a?...hi a|echo hi b?...echo hi c?...hi c" "$(ptyrun 'y
+n
+y
+' 'echo a b c | "$OURS/xargs" -p -n 1 echo hi' | tr '\n' '|' | sed 's/|$//')"
+	eq "xargs -p: the arguments are shown apart" "echo 'a b'?..." "$(ptyrun 'n
+' 'echo "\"a b\"" | "$OURS/xargs" -p echo')"
+	eq "xargs -p: the status is 0 when the answers were no" "0" "$(ptyrun 'n
+' 'echo a | "$OURS/xargs" -p echo hi; echo $?' | tail -1 | sed 's/.*?\.\.\.//')"
+else
+	echo "skip: no script(1) with a usable terminal for xargs -p"
+fi
+
 #------------------------------------------------- nohup on a terminal
 # script(1) gives the command a pseudo-terminal for stdin, stdout and stderr.
 export OURS
@@ -745,11 +801,20 @@ eq "tty into a broken pipe, SIGPIPE ignored: status 2 and a diagnostic" "2 1" "$
 #---------------------------------------------------------------------- uname
 # the system's own figures, from sysctl, are the reference
 fresh
-s=$(sysctl -n kern.ostype)
-n=$(sysctl -n kern.hostname)
-r=$(sysctl -n kern.osrelease)
-v=$(sysctl -n kern.version)
-m=$(sysctl -n hw.machine)
+s=$(sysctl -n kern.ostype 2> /dev/null)
+if [ -n "$s" ]; then
+	n=$(sysctl -n kern.hostname)
+	r=$(sysctl -n kern.osrelease)
+	v=$(sysctl -n kern.version)
+	m=$(sysctl -n hw.machine)
+else
+	# no BSD sysctl (Linux): the system's own uname is the reference
+	s=$(/usr/bin/uname -s)
+	n=$(/usr/bin/uname -n)
+	r=$(/usr/bin/uname -r)
+	v=$(/usr/bin/uname -v)
+	m=$(/usr/bin/uname -m)
+fi
 eq "uname: no option means -s" "$s" "$("$OURS/uname")"
 eq "uname -s" "$s" "$("$OURS/uname" -s)"
 eq "uname -n" "$n" "$("$OURS/uname" -n)"
@@ -797,17 +862,17 @@ eq "wc of a directory: status" 1 $?
 eq "wc with a missing file: status" 1 $?
 eq "wc with a missing file: the rest is counted, with a total" "1 3 6 abc
 1 3 6 total" "$(cat out)"
-if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+if [ "$(LC_ALL=$U8 locale charmap 2> /dev/null)" = UTF-8 ]; then
 	E=$(printf '\303\251')
 	# 100000 lines of "e-acute newline": 64 KB blocks cut some of the characters in two
 	eq "wc -mw counts characters whole over a pipe" "100000 200000" \
-		"$(yes "$E" | head -n 100000 | LC_ALL=en_US.UTF-8 "$OURS/wc" -wm)"
+		"$(yes "$E" | head -n 100000 | LC_ALL=$U8 "$OURS/wc" -wm)"
 	eq "wc -c over the same pipe counts bytes" 300000 \
-		"$(yes "$E" | head -n 100000 | LC_ALL=en_US.UTF-8 "$OURS/wc" -c)"
+		"$(yes "$E" | head -n 100000 | LC_ALL=$U8 "$OURS/wc" -c)"
 	eq "wc -m in the C locale counts bytes" 300000 \
 		"$(yes "$E" | head -n 100000 | LC_ALL=C "$OURS/wc" -m)"
 else
-	echo "skip: no en_US.UTF-8 locale"
+	echo "skip: no $U8 locale"
 fi
 
 eq "head of an endless pipe stops" "1 2 3" "$(seq 1 2000000000 | "$OURS/head" -n 3 | tr '\n' ' ' | sed 's/ $//')"
@@ -975,7 +1040,7 @@ eq "tsort of the same chain written backwards: in order" 0 "$(cmp out2 seq1m > /
 { "$OURS/tsort" chain; echo $? > st; } | head -c 10 > /dev/null
 eq "tsort into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
 eq "tsort: a million copies of one pair" "a b" "$(yes 'a b' | head -n 1000000 | "$OURS/tsort" | tr '\n' ' ' | sed 's/ $//')"
-awk 'BEGIN { s = sprintf("%1000000s", ""); gsub(/ /, "y", s); print s, "z" }' > longitem
+{ head -c 1000000 /dev/zero | tr '\0' y; echo " z"; } > longitem
 "$OURS/tsort" longitem > out
 eq "tsort: an item of a million bytes" "1000001 2" "$(head -n 1 out | wc -c | tr -d ' ') $(wc -l < out | tr -d ' ')"
 
@@ -1027,8 +1092,12 @@ eq "test with no arguments: false" 1 $?
 eq "test a = b c: error status and a diagnostic" "2 1" "$? $(wc -l < err | tr -d ' ')"
 "$T" x -eq 1 2> /dev/null
 eq "test x -eq 1: error status" 2 $?
-"$T" -t x 2> /dev/null
-eq "test -t x: error status" 2 $?
+"$T" -t x 2> err
+eq "test -t x: false, as the spec says for a bad descriptor number: status" 1 $?
+eq "test -t x: no diagnostic" 0 "$(wc -c < err | tr -d ' ')"
+"$T" -t -1 2> err
+eq "test -t -1: false: status" 1 $?
+eq "test -t -1: no diagnostic" 0 "$(wc -c < err | tr -d ' ')"
 "$B" a = a ']'
 eq "[ a = a ]: status" 0 $?
 "$B" a = b ']'
@@ -1229,7 +1298,7 @@ for n in 65535 65536 65537 131071 131072 131073; do
 	eq "expand: a tab after $n characters with no newline" "$want" "$("$OURS/expand" ln | wc -c | tr -d ' ')"
 	eq "expand: the same from a pipe" "$want" "$(cat ln | "$OURS/expand" | wc -c | tr -d ' ')"
 done
-LC_ALL=en_US.UTF-8
+LC_ALL=$U8
 if [ "$(locale charmap 2> /dev/null)" = UTF-8 ]; then
 	# a character split across two reads: two columns wide, so six spaces
 	eq "expand: a UTF-8 character cut by the end of a read" "e697a5202020202020780a" \
@@ -1243,7 +1312,7 @@ if [ "$(locale charmap 2> /dev/null)" = UTF-8 ]; then
 	eq "unexpand: a blank run cut by the end of a read" "09780a" "$({ printf '    '; sleep 1; printf '    x\n'; } | "$OURS/unexpand" | hex)"
 	eq "unexpand: a character cut by the end of a read" "e697a509780a" "$({ printf '\346\227'; sleep 1; printf '\245      x\n'; } | "$OURS/unexpand" -a | hex)"
 else
-	echo "skip: no en_US.UTF-8 locale"
+	echo "skip: no $U8 locale"
 fi
 LC_ALL=C
 
@@ -1622,7 +1691,7 @@ eq "df -P /: the line is exactly \"%s %d %d %d %d%% %s\"" 1 "$(sed -n 2p out | g
 eq "df -kP /: the header says 1024-blocks" "Filesystem 1024-blocks Used Available Capacity Mounted on" "$(sed -n 1p outk)"
 eq "df -kP /: the total is half of the 512-byte one, rounded up" 1 "$(awk 'NR == FNR { if (FNR == 2) t = $2; next } FNR == 2 { print ($2 * 2 - t == 0 || $2 * 2 - t == 1) ? 1 : 0 }' out outk)"
 "$OURS/df" -P / > a
-/bin/df -P / > b
+POSIXLY_CORRECT=1 /bin/df -P / > b
 eq "df -P / agrees with the system df (total exactly, used and available to 50 MB, capacity to 1)" 1 "$(awk 'NR == FNR { if (FNR == 2) { t = $2; u = $3; v = $4; c = $5 + 0 } next } FNR == 2 { d1 = $3 - u; d2 = $4 - v; if (d1 < 0) d1 = -d1; if (d2 < 0) d2 = -d2; dc = ($5 + 0) - c; if (dc < 0) dc = -dc; print ($2 == t && d1 < 100000 && d2 < 100000 && dc <= 1) ? 1 : 0 }' a b)"
 eq "df -P /: the capacity is used/(used+available) rounded up" 1 "$(awk 'NR == 2 { p = $3 * 100 / ($3 + $4); c = (p == int(p)) ? p : int(p) + 1; sub("%", "", $5); print (c == $5) ? 1 : 0 }' a)"
 eq "df -P /: used and available do not pass the total" 1 "$(awk 'NR == 2 { print ($3 + $4 <= $2) ? 1 : 0 }' a)"
@@ -1696,13 +1765,13 @@ ln t/f1 t/c/hard
 eq "du of a file: status, one line, silence" "0 1 0" "$? $(wc -l < out | tr -d ' ') $(wc -c < err | tr -d ' ')"
 eq "du of a file: exactly \"%d %s\" with one blank" 1 "$(grep -c -E '^[0-9]+ t/f1$' out | tr -d ' ')"
 "$OURS/du" -a t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > a
-/usr/bin/du -a t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > b
+POSIXLY_CORRECT=1 /usr/bin/du -a t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > b
 eq "du -a t/a: the same sizes and names as the system du" "" "$(diff a b)"
 "$OURS/du" -ak t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > a
 /usr/bin/du -ak t/a | sed 's/^\([0-9][0-9]*\)[[:space:]]/\1 /' | sort > b
 eq "du -ak t/a: and in 1024-byte units" "" "$(diff a b)"
 "$OURS/du" -s t > out
-eq "du -s t: the total of the operand, as the system du has it" "$(/usr/bin/du -s t | awk '{ print $1 }') t" "$(awk '{ print $1, $2 }' out)"
+eq "du -s t: the total of the operand, as the system du has it" "$(POSIXLY_CORRECT=1 /usr/bin/du -s t | awk '{ print $1 }') t" "$(awk '{ print $1, $2 }' out)"
 "$OURS/du" -sk t > outk
 "$OURS/du" -s t > out
 eq "du -sk is the total of du -s in 1024-byte units, rounded up" 1 "$(awk 'NR == FNR { b = $1; next } { print ($1 == int((b + 1) / 2)) ? 1 : 0 }' out outk)"
@@ -1765,31 +1834,14 @@ else
 	echo "skip: no other file system mounted below /Volumes"
 fi
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 40 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		: > file
-		i=$((i + 1))
-	done
-)
+deeptree deep 40 1
 "$OURS/du" -s deep > out 2> err
 eq "du -s of a tree 40 levels deep (over 700 bytes of path)" "0 1" "$? $(wc -l < out | tr -d ' ')"
 (ulimit -s 512 2> /dev/null; "$OURS/du" deep > out 2> err; echo $? > st)
 eq "du with a small stack, 40 levels deep" "0 41" "$(cat st) $(wc -l < out | tr -d ' ')"
 rm -rf deep
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 300 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		i=$((i + 1))
-	done
-)
+deeptree deep 300 0
 "$OURS/du" -s deep > out 2> err
 eq "du of a tree deeper than PATH_MAX: a diagnostic and status 1, no crash" "1 1 File name too long" "$? $(wc -l < err | tr -d ' ') $(sed 's/.*: //' err | sort -u)"
 rm -rf deep
@@ -1885,10 +1937,10 @@ eq "printf with stdout closed: status" 1 $?
 eq "printf with stdin closed: fine, it reads nothing" 0 $?
 "$OURS/printf" '%s\n' $(cat nums) | head -n 2 > out
 eq "printf into a closed pipe ends quietly" "0/1/" "$(tr '\n' '/' < out)"
-if LC_ALL=en_US.UTF-8 "$OURS/printf" '%d' "'$(printf '\303\251')" 2> /dev/null | grep -q '^233$'; then
-	eq "printf %d '<e acute> in a UTF-8 locale: the character's value" 233 "$(LC_ALL=en_US.UTF-8 "$OURS/printf" '%d' "'$(printf '\303\251')")"
+if LC_ALL=$U8 "$OURS/printf" '%d' "'$(printf '\303\251')" 2> /dev/null | grep -q '^233$'; then
+	eq "printf %d '<e acute> in a UTF-8 locale: the character's value" 233 "$(LC_ALL=$U8 "$OURS/printf" '%d' "'$(printf '\303\251')")"
 else
-	echo "skip: no locale en_US.UTF-8"
+	echo "skip: no locale $U8"
 fi
 eq "printf in the C locale: the first byte of a multibyte character" 195 "$(LC_ALL=C "$OURS/printf" '%d' "'$(printf '\303\251')")"
 "$OURS/printf" 'a%+.2147483647db' 1 > out 2> err
@@ -2034,10 +2086,10 @@ eq "fold -s -w 4: the same before a backspace" "6162632008640a656667680a690a" "$
 eq "fold -s -w 4: an earlier blank is used when the last one stands before a return" "61200a62200d636465660a670a" "$(printf 'a b \rcdefg\n' | "$OURS/fold" -s -w 4 | hex)"
 eq "fold -bs -w 4: with -b a return is a byte like the rest" "616263200a0d6465660a670a" "$(printf 'abc \rdefg\n' | "$OURS/fold" -bs -w 4 | hex)"
 # -b counts bytes but never cuts a character in two (a UTF-8 locale is needed to know what one is)
-if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
-	eq "fold -b -w 2: two two-byte characters, one per line" "c3a90ac3a90a" "$(printf '\303\251\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -b -w 2 | hex)"
-	eq "fold -b -w 3: a character that does not fit goes to the next line whole" "61c3a90ac3a90a" "$(printf 'a\303\251\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -b -w 3 | hex)"
-	eq "fold -w 2: a wide character counts two columns" "e697a50ae69cac0a" "$(printf '\346\227\245\346\234\254\n' | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 2 | hex)"
+if [ "$(LC_ALL=$U8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	eq "fold -b -w 2: two two-byte characters, one per line" "c3a90ac3a90a" "$(printf '\303\251\303\251\n' | LC_ALL=$U8 "$OURS/fold" -b -w 2 | hex)"
+	eq "fold -b -w 3: a character that does not fit goes to the next line whole" "61c3a90ac3a90a" "$(printf 'a\303\251\303\251\n' | LC_ALL=$U8 "$OURS/fold" -b -w 3 | hex)"
+	eq "fold -w 2: a wide character counts two columns" "e697a50ae69cac0a" "$(printf '\346\227\245\346\234\254\n' | LC_ALL=$U8 "$OURS/fold" -w 2 | hex)"
 fi
 eq "fold of a big file with a width that fits is the file" 0 "$("$OURS/fold" -w 100 pbig | cmp - pbig > /dev/null; echo $?)"
 eq "fold of a big pipe is the same as of the file" 0 "$(cat pbig | "$OURS/fold" -w 2 | cmp - "$("$OURS/fold" -w 2 pbig > fo; echo fo)" > /dev/null; echo $?)"
@@ -2057,9 +2109,9 @@ eq "fold into a closed pipe ends quietly" 0 "$([ "$(cat st)" -ne 0 ] && echo 0 |
 start=$(date +%s)
 { printf 'abcdef\n'; sleep 3; } | "$OURS/fold" -w 3 | { read -r line; date +%s > t1; }
 eq "fold answers before its input ends" 1 "$([ $(($(cat t1) - start)) -lt 3 ] && echo 1 || echo 0)"
-if [ "$(LC_ALL=en_US.UTF-8 locale charmap 2> /dev/null)" = UTF-8 ]; then
-	eq "fold: a UTF-8 character cut by the end of a read stays whole" "e697a50a65" "$({ printf '\346\227'; sleep 1; printf '\245e\n'; } | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 2 | hex | cut -c1-10)"
-	eq "fold: two CJK characters need four columns" "e697a50ae697a5" "$(printf '\346\227\245\346\227\245' | LC_ALL=en_US.UTF-8 "$OURS/fold" -w 3 | hex)"
+if [ "$(LC_ALL=$U8 locale charmap 2> /dev/null)" = UTF-8 ]; then
+	eq "fold: a UTF-8 character cut by the end of a read stays whole" "e697a50a65" "$({ printf '\346\227'; sleep 1; printf '\245e\n'; } | LC_ALL=$U8 "$OURS/fold" -w 2 | hex | cut -c1-10)"
+	eq "fold: two CJK characters need four columns" "e697a50ae697a5" "$(printf '\346\227\245\346\227\245' | LC_ALL=$U8 "$OURS/fold" -w 3 | hex)"
 fi
 
 # cut
@@ -2071,10 +2123,10 @@ eq "cut -c of a pipe equals cut -c of the file" 0 "$(cat cf | "$OURS/cut" -c 2-5
 eq "cut: a last line without a newline gets one" "610a" "$(printf 'ab' | "$OURS/cut" -b 1 | hex)"
 eq "cut -s drops a line with no delimiter" "620a" "$(printf 'a\nx:b\n' | "$OURS/cut" -s -d: -f2 | hex)"
 eq "cut -f keeps a line with no delimiter" "610a620a" "$(printf 'a\nx:b\n' | "$OURS/cut" -d: -f2 | hex)"
-eq "cut -n: a start inside a character moves back" "c3a90a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -n -b 2 | hex)"
-eq "cut -n: an end inside a character drops the character" "0a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -n -b 1 | hex)"
-eq "cut -b may cut a character in two" "c30a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -b 1 | hex)"
-eq "cut -c takes a whole character" "c3a90a" "$(printf '\303\251\n' | LC_ALL=en_US.UTF-8 "$OURS/cut" -c 1 | hex)"
+eq "cut -n: a start inside a character moves back" "c3a90a" "$(printf '\303\251\n' | LC_ALL=$U8 "$OURS/cut" -n -b 2 | hex)"
+eq "cut -n: an end inside a character drops the character" "0a" "$(printf '\303\251\n' | LC_ALL=$U8 "$OURS/cut" -n -b 1 | hex)"
+eq "cut -b may cut a character in two" "c30a" "$(printf '\303\251\n' | LC_ALL=$U8 "$OURS/cut" -b 1 | hex)"
+eq "cut -c takes a whole character" "c3a90a" "$(printf '\303\251\n' | LC_ALL=$U8 "$OURS/cut" -c 1 | hex)"
 head -c 300000 /dev/zero | tr '\000' x > cl
 echo >> cl
 eq "cut: a line of 300000 bytes" 100 "$("$OURS/cut" -b 299901-300000 cl | tr -d '\n' | wc -c | tr -d ' ')"
@@ -2185,29 +2237,11 @@ rm -rf real
 
 # depth: a tree deeper than any pathname can be, and with very few descriptors
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 700 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		: > file
-		i=$((i + 1))
-	done
-)
+deeptree deep 700 1
 "$OURS/rm" -r deep 2> e
 eq "rm -r of a tree 700 levels deep (over 11000 bytes of path)" "0 gone" "$? $([ -e deep ] || echo gone)"
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 300 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		: > file
-		i=$((i + 1))
-	done
-)
+deeptree deep 300 1
 (ulimit -n 12 2> /dev/null && "$OURS/rm" -r deep 2> e; echo $? > st)
 eq "rm -r with 12 descriptors allowed, 300 levels deep" "0 gone" "$(cat st) $([ -e deep ] || echo gone)"
 rm -rf deep
@@ -2264,8 +2298,8 @@ fi
 
 #-------------------------------------------------------------------- touch
 # mt/at FILE: modification and access time in seconds (BSD stat, else GNU stat)
-mt() { stat -f %m "$1" 2> /dev/null || stat -c %Y "$1"; }
-at() { stat -f %a "$1" 2> /dev/null || stat -c %X "$1"; }
+mt() { st_mtime_s "$1"; }
+at() { st_atime_s "$1"; }
 
 fresh
 "$OURS/touch" new
@@ -2356,8 +2390,13 @@ TZ=UTC0 "$OURS/touch" -t 199812312359.60 f
 eq "touch -t ....60 is one second after .59" 915148800 "$(mt f)"
 "$OURS/touch" -d 1998-12-31T23:59:60Z f
 eq "touch -d ...:60Z is one second after :59" 915148800 "$(mt f)"
-TZ=UTC0 "$OURS/touch" -t 190001010000 f
-eq "touch -t 190001010000: before the Epoch is fine where the file system holds it" -2208988800 "$(mt f)"
+if TZ=UTC0 /usr/bin/touch -t 190001010000 probe 2> /dev/null && [ "$(mt probe)" = -2208988800 ]; then
+	TZ=UTC0 "$OURS/touch" -t 190001010000 f
+	eq "touch -t 190001010000: before the Epoch is fine where the file system holds it" -2208988800 "$(mt f)"
+else
+	echo "skip: this file system does not hold times before 1901"
+fi
+rm -f probe
 "$OURS/touch" -d 1969-12-31T23:59:59Z f
 eq "touch -d 1969-12-31T23:59:59Z" -1 "$(mt f)"
 TZ=UTC0 "$OURS/touch" -t 203801010000 f
@@ -2367,12 +2406,12 @@ eq "touch -t 210001010000" 4102444800 "$(mt f)"
 
 # fractions of a second
 "$OURS/touch" -d 2007-11-12T10:15:30.123456789Z f
-if stat -f %Fm f > /dev/null 2>&1; then
-	eq "touch -d keeps nanoseconds" 1194862530.123456789 "$(stat -f %Fm f)"
+if st_mtime f > /dev/null 2>&1; then
+	eq "touch -d keeps nanoseconds" 1194862530.123456789 "$(st_mtime f)"
 	"$OURS/touch" -d 2007-11-12T10:15:30,5Z f
-	eq "touch -d accepts a comma fraction" 1194862530.500000000 "$(stat -f %Fm f)"
+	eq "touch -d accepts a comma fraction" 1194862530.500000000 "$(st_mtime f)"
 	"$OURS/touch" -d 2007-11-12T10:15:30.9999999999Z f
-	eq "touch -d cuts a fraction beyond nanoseconds" 1194862530.999999999 "$(stat -f %Fm f)"
+	eq "touch -d cuts a fraction beyond nanoseconds" 1194862530.999999999 "$(st_mtime f)"
 else
 	echo "skip: touch fractions (no BSD stat)"
 fi
@@ -2476,7 +2515,7 @@ eq "TZ=EST5EDT date -u +%Z is UTC" UTC "$(TZ=EST5EDT "$OURS/date" -u +%Z)"
 eq "date -u +%Z with no TZ" UTC "$(env -u TZ "$OURS/date" -u +%Z)"
 eq "date -u ignores TZ=JST-9 for the hour" "$("$OURS/date" -u +%Y%j%H)" "$(TZ=JST-9 "$OURS/date" -u +%Y%j%H)"
 eq "TZ=UTC0 date and date -u agree" "$(TZ=UTC0 "$OURS/date" +%Y%j%H)" "$("$OURS/date" -u +%Y%j%H)"
-eq "TZ=JST-9 is nine hours ahead of -u" 9 "$(a=$(TZ=JST-9 "$OURS/date" +%H); b=$("$OURS/date" -u +%H); echo $(( (10#$a - 10#$b + 24) % 24 )))"
+eq "TZ=JST-9 is nine hours ahead of -u" 9 "$(a=$(TZ=JST-9 "$OURS/date" +%H); b=$("$OURS/date" -u +%H); echo $(( (${a#0} - ${b#0} + 24) % 24 )))"
 eq "date -u in the default format ends in UTC and the year" 1 "$("$OURS/date" -u | grep -Ec ' UTC [0-9]{4}$')"
 eq "a null TZ is the same as an unset one" "$(env -u TZ "$OURS/date" +%Z)" "$(TZ= "$OURS/date" +%Z)"
 
@@ -2641,9 +2680,9 @@ rm -f ./- dashcopy dd emptied ff fromfifo fifocopy
 echo p > pf; chmod 640 pf
 "$OURS/touch" -d 2001-01-01T00:00:00Z pf
 "$OURS/cp" -p pf pf2
-eq "cp -p: times and mode" "$(stat -f '%m %Sp' pf 2> /dev/null || stat -c '%Y %A' pf)" "$(stat -f '%m %Sp' pf2 2> /dev/null || stat -c '%Y %A' pf2)"
+eq "cp -p: times and mode" "$(st_mtime_s pf) $(st_mode pf)" "$(st_mtime_s pf2) $(st_mode pf2)"
 "$OURS/cp" pf pf3
-eq "cp without -p: the copy is new" 1 "$([ "$(stat -f %m pf3 2> /dev/null || stat -c %Y pf3)" -gt 978307200 ] && echo 1)"
+eq "cp without -p: the copy is new" 1 "$([ "$(st_mtime_s pf3)" -gt 978307200 ] && echo 1)"
 rm -f pf pf2 pf3
 
 # hierarchies
@@ -2729,15 +2768,8 @@ rm -rf deepc
 eq "cp -R with 12 descriptors allowed: still fine (no descriptor per level)" "0" "$(cat st)"
 rm -rf deep deepc2 st
 mkdir longp
-(
-	cd longp || exit 1
-	i=0
-	while [ $i -lt 700 ]; do
-		mkdir dd || exit 1
-		cd dd || exit 1
-		i=$((i + 1))
-	done
-)
+# longer than PATH_MAX here, whatever it is (1024 on macOS, 4096 on Linux)
+deeptree longp $(($(getconf PATH_MAX /) / 17 + 20)) 0
 "$OURS/cp" -R longp longpc 2> e
 eq "cp -R of a tree deeper than PATH_MAX: an error, not a crash" "1" "$?"
 eq "cp -R of a tree deeper than PATH_MAX: a diagnostic" 1 "$([ -s e ] && echo 1)"
@@ -2807,7 +2839,7 @@ eq "ls nosuch f1: status 1, f1 is listed, one diagnostic naming it" "1 f1 1" "$?
 eq "ls -d with no operand lists dot" "." "$("$OURS/ls" -d)"
 
 # -i
-ino=$(stat -f %i f1 2> /dev/null || stat -c %i f1)
+ino=$(st_ino f1)
 eq "ls -i: the inode number first" "$ino f1" "$("$OURS/ls" -i f1)"
 eq "ls -li: the inode number before the mode" 1 "$("$OURS/ls" -li f1 | grep -c "^$ino -rw")"
 eq "ls -1i d1 pads the inode numbers to one width" 1 "$("$OURS/ls" -1i d1 | awk '{print length($1)}' | sort -u | wc -l | tr -d ' ')"
@@ -2823,7 +2855,7 @@ eq "ls without -q (not a terminal): the bytes as they are" 1 "$("$OURS/ls" | gre
 eq "ls -q: a name with a blank is not changed" "a b" "$(: > 'a b'; "$OURS/ls" -q 'a b')"
 rm -f 'a b'
 : > "$(printf '\303\251')"
-eq "ls -q in a UTF-8 locale keeps a printable multibyte character" "$(printf '\303\251')" "$(LC_ALL=en_US.UTF-8 "$OURS/ls" -q "$(printf '\303\251')")"
+eq "ls -q in a UTF-8 locale keeps a printable multibyte character" "$(printf '\303\251')" "$(LC_ALL=$U8 "$OURS/ls" -q "$(printf '\303\251')")"
 eq "ls -q in the C locale: its two bytes are not printable" "??" "$(LC_ALL=C "$OURS/ls" -q "$(printf '\303\251')")"
 rm -f "$(printf '\303\251')" "$(printf 'tab\there')" "$(printf 'nl\nhere')" "$(printf 'ctl\001x')"
 
@@ -3054,6 +3086,17 @@ eq "xargs: and 126 the same" "123" "$?"
 printf 'x y\nz\n' | "$OURS/xargs" -n 1 sh -c 'cat | wc -c | tr -d " "' > out 2> e
 eq "xargs: the utility's standard input is empty" "0 0 0" "$(tr '\n' ' ' < out | sed 's/ $//')"
 
+# -t: "the utility and its constructed argument list shall be written to standard error, as it will be invoked,
+# prior to invocation": one line for each invocation, before it, the arguments kept apart
+printf 'a b\n' | "$OURS/xargs" -t echo hi 2>&1 > /dev/null | cat > e
+eq "xargs -t: the command line on standard error" "echo hi a b" "$(cat e)"
+printf '"a b" it\\'"'"'s ""\n' | "$OURS/xargs" -t echo 2>&1 > /dev/null | cat > e
+eq "xargs -t: an argument with a blank, a quote or nothing in it is quoted, so that the arguments stay apart" "echo 'a b' \"it's\" ''" "$(cat e)"
+printf 'a\nb\n' | "$OURS/xargs" -t -n 1 sh -c 'echo "run $1" >&2' x 2>&1 > /dev/null | cat > e
+eq "xargs -t: each line is written just before its invocation" "sh -c 'echo \"run \$1\" >&2' x a|run a|sh -c 'echo \"run \$1\" >&2' x b|run b" "$(tr '\n' '|' < e | sed 's/|$//')"
+printf 'a\n' | "$OURS/xargs" -t true > out 2> e
+eq "xargs -t: nothing on standard output, one line on standard error" "0 true a" "$(wc -c < out | tr -d ' ') $(cat e)"
+
 # size: every invocation is within the limit, nothing is lost, the order is kept
 awk 'BEGIN { for (i = 1; i <= 200000; i++) printf "arg%07d\n", i }' > big
 "$OURS/xargs" sh -c 'echo $#; for a; do echo "$a" >&2; done' x < big > counts 2> seen
@@ -3167,16 +3210,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 # depth: a tree deeper than any pathname, a small stack, and few descriptors
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 300 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		: > file
-		i=$((i + 1))
-	done
-)
+deeptree deep 300 1
 (ulimit -s 512 2> /dev/null; "$OURS/chmod" -R 700 deep 2> e; echo $? > st)
 eq "chmod -R of a tree 300 levels deep (over 5000 bytes of path), small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
 (ulimit -n 12 2> /dev/null && "$OURS/chmod" -R 755 deep 2> e; echo $? > st)
@@ -3206,16 +3240,7 @@ eq "chown -h: of a link and of a dangling link" "0" "$?"
 "$OURS/chown" "$me:$gr" sl
 eq "chown of a link: the file it leads to" "0" "$?"
 mkdir deep
-(
-	cd deep || exit 1
-	i=0
-	while [ $i -lt 300 ]; do
-		mkdir dddddddddddddddd || exit 1
-		cd dddddddddddddddd || exit 1
-		: > file
-		i=$((i + 1))
-	done
-)
+deeptree deep 300 1
 (ulimit -s 512 2> /dev/null; "$OURS/chown" -R "$me" deep 2> e; echo $? > st)
 eq "chown -R of a tree 300 levels deep, small stack" "0 0" "$(cat st) $(wc -c < e | tr -d ' ')"
 (ulimit -n 12 2> /dev/null && "$OURS/chown" -R "$me" deep 2> e; echo $? > st)

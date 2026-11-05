@@ -1,7 +1,8 @@
+. "$DIFFTEST_LIB/stat.sh"
 find . ! -name . | sort | while IFS= read -r f; do
 	if [ -L "$f" ]; then
-		echo "L $f -> $(readlink "$f") $(stat -f '%u %g' "$f")"
+		echo "L $f -> $(readlink "$f") $(st_ids "$f")"
 	else
-		echo "F $f $(stat -f '%Sp %u %g' "$f")"
+		echo "F $f $(st_mode "$f") $(st_ids "$f")"
 	fi
 done
