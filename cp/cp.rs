@@ -100,11 +100,15 @@ fn join(dir: &[u8], name: &[u8]) -> Vec<u8> {
     v
 }
 
-/* The destination path of a source copied into a directory target. */
+/* The destination path of a source copied into a directory target. A source that ends in ".." is
+   a directory named by its parent link, as one that ends in "." is by itself: its contents go
+   into the target. Taken at its word ("target/..") the files would land beside the target. */
 fn dest_in(target: &[u8], src: &[u8]) -> Vec<u8> {
     let base = last_component(src);
     if base.is_empty() {
         target.to_vec()
+    } else if base == b".." {
+        join(target, b".")
     } else {
         join(target, base)
     }
@@ -272,6 +276,8 @@ impl<'a> Cp<'a> {
                 true
             }
             Err(e) if e.raw_os_error() == Some(libc::ENOENT) => false,
+            /* a link loop cannot be opened, which is what -f is for: it is removed and made again */
+            Err(e) if e.raw_os_error() == Some(libc::ELOOP) && self.o.force && matches!(stat_path(dest, false), Ok(l) if kind(&l) == libc::S_IFLNK) => true,
             Err(e) => {
                 self.err_io(dest, &e);
                 return;
@@ -488,16 +494,16 @@ impl<'a> Cp<'a> {
         }
         self.walking.pop();
         self.active.pop();
-        /* steps 2g: the final permissions, and with -p the owner and the times, now that nothing more is added */
-        if created {
-            if self.o.preserve {
-                self.preserve_path(dest, st);
-            } else {
-                let mode = (st.st_mode & 0o777) & !self.umask as libc::mode_t;
-                if posix::sys::chmod(&cd, mode) < 0 {
-                    let e = last_err();
-                    self.err_io(dest, &e);
-                }
+        /* step 2g: the final permissions, now that nothing more is added. -p is about every source
+           file and "the corresponding destination file": the owner, the permissions and the times
+           go to a directory that was already there as well, as GNU and BSD do. */
+        if self.o.preserve {
+            self.preserve_path(dest, st);
+        } else if created {
+            let mode = (st.st_mode & 0o777) & !self.umask as libc::mode_t;
+            if posix::sys::chmod(&cd, mode) < 0 {
+                let e = last_err();
+                self.err_io(dest, &e);
             }
         }
     }
@@ -541,6 +547,16 @@ impl<'a> Cp<'a> {
                 return;
             }
         };
+        /* step 1: the same file. The destination is replaced by a new link, so a source link that
+           leads to the destination (or to another name of it) would cost the file its contents:
+           "la -> a" with "cp -P la a" must not leave "a -> a". A destination that is a link itself is
+           only replaced, which is fine, so it is looked at without following. */
+        if let (Ok(through), Ok(d)) = (stat_path(src, true), stat_path(dest, false)) {
+            if kind(&d) != libc::S_IFLNK && id_of(&through) == id_of(&d) {
+                self.err_two(src, dest, "are identical (not copied)");
+                return;
+            }
+        }
         if !self.clear_dest(src, dest, st) {
             return;
         }
@@ -740,6 +756,9 @@ mod tests {
         assert_eq!(dest_in(b"t/", b"a/b/"), b"t/b");
         assert_eq!(dest_in(b"t", b"/"), b"t");
         assert_eq!(dest_in(b"t", b"."), b"t/.");
+        assert_eq!(dest_in(b"t", b".."), b"t/.");
+        assert_eq!(dest_in(b"t/", b"a/b/.."), b"t/.");
+        assert_eq!(dest_in(b"t", b"a/..b"), b"t/..b");
     }
 
     #[test]
@@ -843,6 +862,40 @@ mod tests {
         dotted.extend_from_slice(b"/d/../a");
         assert_eq!(one(opts(), t.p("a"), dotted).0, 1);
         assert_eq!(std::fs::read(t.path("a")).unwrap(), b"keep");
+    }
+
+    #[test]
+    fn a_link_copied_as_a_link_never_replaces_the_file_it_leads_to() {
+        let t = Tmp::new();
+        t.write("a", "keep");
+        std::os::unix::fs::symlink("a", t.path("la")).unwrap();
+        std::os::unix::fs::symlink("la", t.path("lla")).unwrap();
+        std::os::unix::fs::symlink("a", t.path("la2")).unwrap();
+        std::fs::hard_link(t.path("a"), t.path("ha")).unwrap();
+        let o = || Opts { link: Link::P, ..opts() };
+        let intact = |t: &Tmp| {
+            assert_eq!(std::fs::read(t.path("a")).unwrap(), b"keep");
+            assert!(!std::fs::symlink_metadata(t.path("a")).unwrap().file_type().is_symlink());
+            assert!(!std::fs::symlink_metadata(t.path("ha")).unwrap().file_type().is_symlink());
+        };
+        /* the link, a chain of links, and another name of the file: all refused */
+        for (src, dst) in [("la", "a"), ("lla", "a"), ("la", "ha"), ("lla", "ha")] {
+            let (st, log) = one(o(), t.p(src), t.p(dst));
+            assert_eq!((st, log.len()), (1, 1), "{src} {dst}");
+            intact(&t);
+        }
+        /* with -R, which also copies links as links */
+        let r = || Opts { recursive: true, ..o() };
+        assert_eq!(one(r(), t.p("la"), t.p("a")).0, 1);
+        intact(&t);
+        /* a destination that is only another link to the file is replaced, as it always was */
+        assert_eq!(one(o(), t.p("la2"), t.p("la")).0, 0);
+        assert_eq!(std::fs::read_link(t.path("la")).unwrap().to_str(), Some("a"));
+        intact(&t);
+        /* a link that dangles has nothing to protect */
+        std::os::unix::fs::symlink("nowhere", t.path("dang")).unwrap();
+        assert_eq!(one(o(), t.p("dang"), t.p("copy")).0, 0);
+        assert_eq!(std::fs::read_link(t.path("copy")).unwrap().to_str(), Some("nowhere"));
     }
 
     #[test]
@@ -958,6 +1011,15 @@ mod tests {
         std::fs::create_dir(t.path("into")).unwrap();
         assert_eq!(one(r, t.p("src"), dest_in(&t.p("into"), &t.p("src"))).0, 0);
         assert_eq!(std::fs::read(t.path("into/src/sub/b")).unwrap(), b"B");
+        /* a source that ends in ".." puts its contents into the target, not beside it */
+        std::fs::create_dir(t.path("up")).unwrap();
+        let mut via = t.0.as_os_str().as_bytes().to_vec();
+        via.extend_from_slice(b"/src/sub/..");
+        let to = dest_in(&t.p("up"), &via);
+        assert_eq!(one(r, via, to).0, 0);
+        assert_eq!(std::fs::read(t.path("up/sub/deep/c")).unwrap(), b"C");
+        assert_eq!(std::fs::read(t.path("up/a")).unwrap(), b"A");
+        assert!(!t.path("a").exists());
         /* a second time over an existing hierarchy merges and overwrites */
         t.write("src/a", "A2");
         assert_eq!(one(r, t.p("src"), t.p("copy")).0, 0);
@@ -1120,6 +1182,15 @@ mod tests {
         let (st, _) = one(opts(), t.p("a"), t.p("out"));
         assert_eq!(st, 1);
         assert!(!t.path("out").exists());
+        /* a loop as the destination: an error, and with -f the loop is replaced by the copy */
+        t.write("data", "D");
+        let (st, _) = one(opts(), t.p("data"), t.p("a"));
+        assert_eq!(st, 1);
+        assert!(std::fs::symlink_metadata(t.path("a")).unwrap().file_type().is_symlink());
+        let f = Opts { force: true, ..opts() };
+        assert_eq!(one(f, t.p("data"), t.p("a")).0, 0);
+        assert_eq!(std::fs::read(t.path("a")).unwrap(), b"D");
+        assert!(std::fs::symlink_metadata(t.path("a")).unwrap().file_type().is_file());
     }
 
     #[test]
@@ -1234,6 +1305,24 @@ mod tests {
         for d in ["copy", "copy/sub", "copy/sub/deep", "copy/empty"] {
             assert_eq!(std::fs::metadata(t.path(d)).unwrap().mtime(), 4000, "{d}");
         }
+        /* directories that were already there get them too: the mode and the times of the source */
+        std::fs::create_dir_all(t.path("again/sub")).unwrap();
+        std::fs::set_permissions(t.path("again/sub"), std::fs::Permissions::from_mode(0o700)).unwrap();
+        std::fs::set_permissions(t.path("src/sub"), std::fs::Permissions::from_mode(0o750)).unwrap();
+        let c = posix::cstr(&t.p("src/sub"));
+        posix::sys::utimensat(libc::AT_FDCWD, &c, &old, 0);
+        assert_eq!(one(r, t.p("src"), t.p("again")).0, 0);
+        let m = std::fs::metadata(t.path("again/sub")).unwrap();
+        assert_eq!((m.mtime(), m.mode() & 0o7777), (4000, 0o750));
+        assert_eq!(std::fs::metadata(t.path("again")).unwrap().mtime(), 4000);
+        /* and without -p a directory that was there keeps both */
+        std::fs::create_dir_all(t.path("keep/sub")).unwrap();
+        std::fs::set_permissions(t.path("keep/sub"), std::fs::Permissions::from_mode(0o700)).unwrap();
+        let r = Opts { preserve: false, ..r };
+        assert_eq!(one(r, t.p("src"), t.p("keep")).0, 0);
+        let m = std::fs::metadata(t.path("keep/sub")).unwrap();
+        assert_eq!(m.mode() & 0o7777, 0o700);
+        assert_ne!(m.mtime(), 4000);
     }
 
     #[test]
