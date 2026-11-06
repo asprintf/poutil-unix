@@ -1,0 +1,111 @@
+# macOS reads a line only up to a NUL byte and stops at an invalid sequence (p8 has both)
+-d ',' p7 p8
+-d ',:' p7 p8
+-d ',\0' p7 p8
+-d ':' p7 p8
+-d '\0' p7 p8
+-d '\0,' p7 p8
+-d '\\' p7 p8
+-d '\n' p7 p8
+-d '\n,' p7 p8
+-d '\t' p7 p8
+-d '\t\n' p7 p8
+-d 'abc' p7 p8
+-d 'é€' p7 p8
+-d '😂' p7 p8
+-d '😂,🇩🇪' p7 p8
+-d '😂👍' p7 p8
+-s p7 p8
+-sd ',' p7 p8
+-sd ',:' p7 p8
+-sd ',\0' p7 p8
+-sd ':' p7 p8
+-sd '\0' p7 p8
+-sd '\0,' p7 p8
+-sd '\\' p7 p8
+-sd '\n' p7 p8
+-sd '\n,' p7 p8
+-sd '\t' p7 p8
+-sd '\t\n' p7 p8
+-sd 'abc' p7 p8
+-sd 'é€' p7 p8
+-sd '😂' p7 p8
+-sd '😂,🇩🇪' p7 p8
+-sd '😂👍' p7 p8
+p7 p8
+
+# -s: macOS writes no newline after a file without a final newline and none for an empty file; the spec has one output line per file, a newline for an empty file
+-s /dev/null p1 /dev/null
+-s p1 p3 p4
+-s p3 p7 p2 p11 p4
+-s p4 p5 p4
+-s p5 p5
+-sd ',' p1 p3 p4
+-sd ',' p3 p7 p2 p11 p4
+-sd ',' p4 p5 p4
+-sd ',' p5 p5
+-sd ',:' p1 p3 p4
+-sd ',:' p3 p7 p2 p11 p4
+-sd ',:' p4 p5 p4
+-sd ',:' p5 p5
+-sd ',\0' p1 p3 p4
+-sd ',\0' p3 p7 p2 p11 p4
+-sd ',\0' p4 p5 p4
+-sd ',\0' p5 p5
+-sd ':' p1 p3 p4
+-sd ':' p3 p7 p2 p11 p4
+-sd ':' p4 p5 p4
+-sd ':' p5 p5
+-sd '\0' p1 p3 p4
+-sd '\0' p3 p7 p2 p11 p4
+-sd '\0' p4 p5 p4
+-sd '\0' p5 p5
+-sd '\0,' p1 p3 p4
+-sd '\0,' p3 p7 p2 p11 p4
+-sd '\0,' p4 p5 p4
+-sd '\0,' p5 p5
+-sd '\\' p1 p3 p4
+-sd '\\' p3 p7 p2 p11 p4
+-sd '\\' p4 p5 p4
+-sd '\\' p5 p5
+-sd '\n' p1 p3 p4
+-sd '\n' p3 p7 p2 p11 p4
+-sd '\n' p4 p5 p4
+-sd '\n' p5 p5
+-sd '\n,' p1 p3 p4
+-sd '\n,' p3 p7 p2 p11 p4
+-sd '\n,' p4 p5 p4
+-sd '\n,' p5 p5
+-sd '\t' p1 p3 p4
+-sd '\t' p3 p7 p2 p11 p4
+-sd '\t' p4 p5 p4
+-sd '\t' p5 p5
+-sd '\t\n' p1 p3 p4
+-sd '\t\n' p3 p7 p2 p11 p4
+-sd '\t\n' p4 p5 p4
+-sd '\t\n' p5 p5
+-sd 'abc' p1 p3 p4
+-sd 'abc' p3 p7 p2 p11 p4
+-sd 'abc' p4 p5 p4
+-sd 'abc' p5 p5
+-sd 'é€' p1 p3 p4
+-sd 'é€' p3 p7 p2 p11 p4
+-sd 'é€' p4 p5 p4
+-sd 'é€' p5 p5
+-sd '😂' p1 p3 p4
+-sd '😂' p3 p7 p2 p11 p4
+-sd '😂' p4 p5 p4
+-sd '😂' p5 p5
+-sd '😂,🇩🇪' p1 p3 p4
+-sd '😂,🇩🇪' p3 p7 p2 p11 p4
+-sd '😂,🇩🇪' p4 p5 p4
+-sd '😂,🇩🇪' p5 p5
+-sd '😂👍' p1 p3 p4
+-sd '😂👍' p3 p7 p2 p11 p4
+-sd '😂👍' p4 p5 p4
+-sd '😂👍' p5 p5
+in:p1 -s - -
+in:p10 -s - -
+in:p3 -s - -
+in:p7 -s - -
+in:p9 -s - -

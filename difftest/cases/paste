@@ -186,3 +186,505 @@ f1 -x
 -h
 --help
 --
+
+# --- 2026-11-06: files with emoji, CJK, empty lines and different lengths, with delimiter lists of one or more characters (also multibyte)
+p1 p2
+-s p1 p2
+-d ',' p1 p2
+-sd ',' p1 p2
+-d ':' p1 p2
+-sd ':' p1 p2
+-d ',:' p1 p2
+-sd ',:' p1 p2
+-d '😂' p1 p2
+-sd '😂' p1 p2
+-d '😂👍' p1 p2
+-sd '😂👍' p1 p2
+-d '\0' p1 p2
+-sd '\0' p1 p2
+-d '\n' p1 p2
+-sd '\n' p1 p2
+-d '\t' p1 p2
+-sd '\t' p1 p2
+-d '\\' p1 p2
+-sd '\\' p1 p2
+-d '\0,' p1 p2
+-sd '\0,' p1 p2
+-d ',\0' p1 p2
+-sd ',\0' p1 p2
+-d '\t\n' p1 p2
+-sd '\t\n' p1 p2
+-d '😂,🇩🇪' p1 p2
+-sd '😂,🇩🇪' p1 p2
+-d 'é€' p1 p2
+-sd 'é€' p1 p2
+-d '\n,' p1 p2
+-sd '\n,' p1 p2
+-d 'abc' p1 p2
+-sd 'abc' p1 p2
+p2 p1
+-s p2 p1
+-d ',' p2 p1
+-sd ',' p2 p1
+-d ':' p2 p1
+-sd ':' p2 p1
+-d ',:' p2 p1
+-sd ',:' p2 p1
+-d '😂' p2 p1
+-sd '😂' p2 p1
+-d '😂👍' p2 p1
+-sd '😂👍' p2 p1
+-d '\0' p2 p1
+-sd '\0' p2 p1
+-d '\n' p2 p1
+-sd '\n' p2 p1
+-d '\t' p2 p1
+-sd '\t' p2 p1
+-d '\\' p2 p1
+-sd '\\' p2 p1
+-d '\0,' p2 p1
+-sd '\0,' p2 p1
+-d ',\0' p2 p1
+-sd ',\0' p2 p1
+-d '\t\n' p2 p1
+-sd '\t\n' p2 p1
+-d '😂,🇩🇪' p2 p1
+-sd '😂,🇩🇪' p2 p1
+-d 'é€' p2 p1
+-sd 'é€' p2 p1
+-d '\n,' p2 p1
+-sd '\n,' p2 p1
+-d 'abc' p2 p1
+-sd 'abc' p2 p1
+p1 p3 p4
+-s p1 p3 p4
+-d ',' p1 p3 p4
+-sd ',' p1 p3 p4
+-d ':' p1 p3 p4
+-sd ':' p1 p3 p4
+-d ',:' p1 p3 p4
+-sd ',:' p1 p3 p4
+-d '😂' p1 p3 p4
+-sd '😂' p1 p3 p4
+-d '😂👍' p1 p3 p4
+-sd '😂👍' p1 p3 p4
+-d '\0' p1 p3 p4
+-sd '\0' p1 p3 p4
+-d '\n' p1 p3 p4
+-sd '\n' p1 p3 p4
+-d '\t' p1 p3 p4
+-sd '\t' p1 p3 p4
+-d '\\' p1 p3 p4
+-sd '\\' p1 p3 p4
+-d '\0,' p1 p3 p4
+-sd '\0,' p1 p3 p4
+-d ',\0' p1 p3 p4
+-sd ',\0' p1 p3 p4
+-d '\t\n' p1 p3 p4
+-sd '\t\n' p1 p3 p4
+-d '😂,🇩🇪' p1 p3 p4
+-sd '😂,🇩🇪' p1 p3 p4
+-d 'é€' p1 p3 p4
+-sd 'é€' p1 p3 p4
+-d '\n,' p1 p3 p4
+-sd '\n,' p1 p3 p4
+-d 'abc' p1 p3 p4
+-sd 'abc' p1 p3 p4
+p4 p5 p4
+-s p4 p5 p4
+-d ',' p4 p5 p4
+-sd ',' p4 p5 p4
+-d ':' p4 p5 p4
+-sd ':' p4 p5 p4
+-d ',:' p4 p5 p4
+-sd ',:' p4 p5 p4
+-d '😂' p4 p5 p4
+-sd '😂' p4 p5 p4
+-d '😂👍' p4 p5 p4
+-sd '😂👍' p4 p5 p4
+-d '\0' p4 p5 p4
+-sd '\0' p4 p5 p4
+-d '\n' p4 p5 p4
+-sd '\n' p4 p5 p4
+-d '\t' p4 p5 p4
+-sd '\t' p4 p5 p4
+-d '\\' p4 p5 p4
+-sd '\\' p4 p5 p4
+-d '\0,' p4 p5 p4
+-sd '\0,' p4 p5 p4
+-d ',\0' p4 p5 p4
+-sd ',\0' p4 p5 p4
+-d '\t\n' p4 p5 p4
+-sd '\t\n' p4 p5 p4
+-d '😂,🇩🇪' p4 p5 p4
+-sd '😂,🇩🇪' p4 p5 p4
+-d 'é€' p4 p5 p4
+-sd 'é€' p4 p5 p4
+-d '\n,' p4 p5 p4
+-sd '\n,' p4 p5 p4
+-d 'abc' p4 p5 p4
+-sd 'abc' p4 p5 p4
+p5 p5
+-s p5 p5
+-d ',' p5 p5
+-sd ',' p5 p5
+-d ':' p5 p5
+-sd ':' p5 p5
+-d ',:' p5 p5
+-sd ',:' p5 p5
+-d '😂' p5 p5
+-sd '😂' p5 p5
+-d '😂👍' p5 p5
+-sd '😂👍' p5 p5
+-d '\0' p5 p5
+-sd '\0' p5 p5
+-d '\n' p5 p5
+-sd '\n' p5 p5
+-d '\t' p5 p5
+-sd '\t' p5 p5
+-d '\\' p5 p5
+-sd '\\' p5 p5
+-d '\0,' p5 p5
+-sd '\0,' p5 p5
+-d ',\0' p5 p5
+-sd ',\0' p5 p5
+-d '\t\n' p5 p5
+-sd '\t\n' p5 p5
+-d '😂,🇩🇪' p5 p5
+-sd '😂,🇩🇪' p5 p5
+-d 'é€' p5 p5
+-sd 'é€' p5 p5
+-d '\n,' p5 p5
+-sd '\n,' p5 p5
+-d 'abc' p5 p5
+-sd 'abc' p5 p5
+p6 p6
+-s p6 p6
+-d ',' p6 p6
+-sd ',' p6 p6
+-d ':' p6 p6
+-sd ':' p6 p6
+-d ',:' p6 p6
+-sd ',:' p6 p6
+-d '😂' p6 p6
+-sd '😂' p6 p6
+-d '😂👍' p6 p6
+-sd '😂👍' p6 p6
+-d '\0' p6 p6
+-sd '\0' p6 p6
+-d '\n' p6 p6
+-sd '\n' p6 p6
+-d '\t' p6 p6
+-sd '\t' p6 p6
+-d '\\' p6 p6
+-sd '\\' p6 p6
+-d '\0,' p6 p6
+-sd '\0,' p6 p6
+-d ',\0' p6 p6
+-sd ',\0' p6 p6
+-d '\t\n' p6 p6
+-sd '\t\n' p6 p6
+-d '😂,🇩🇪' p6 p6
+-sd '😂,🇩🇪' p6 p6
+-d 'é€' p6 p6
+-sd 'é€' p6 p6
+-d '\n,' p6 p6
+-sd '\n,' p6 p6
+-d 'abc' p6 p6
+-sd 'abc' p6 p6
+p9 p10
+-s p9 p10
+-d ',' p9 p10
+-sd ',' p9 p10
+-d ':' p9 p10
+-sd ':' p9 p10
+-d ',:' p9 p10
+-sd ',:' p9 p10
+-d '😂' p9 p10
+-sd '😂' p9 p10
+-d '😂👍' p9 p10
+-sd '😂👍' p9 p10
+-d '\0' p9 p10
+-sd '\0' p9 p10
+-d '\n' p9 p10
+-sd '\n' p9 p10
+-d '\t' p9 p10
+-sd '\t' p9 p10
+-d '\\' p9 p10
+-sd '\\' p9 p10
+-d '\0,' p9 p10
+-sd '\0,' p9 p10
+-d ',\0' p9 p10
+-sd ',\0' p9 p10
+-d '\t\n' p9 p10
+-sd '\t\n' p9 p10
+-d '😂,🇩🇪' p9 p10
+-sd '😂,🇩🇪' p9 p10
+-d 'é€' p9 p10
+-sd 'é€' p9 p10
+-d '\n,' p9 p10
+-sd '\n,' p9 p10
+-d 'abc' p9 p10
+-sd 'abc' p9 p10
+p10 p9 p11
+-s p10 p9 p11
+-d ',' p10 p9 p11
+-sd ',' p10 p9 p11
+-d ':' p10 p9 p11
+-sd ':' p10 p9 p11
+-d ',:' p10 p9 p11
+-sd ',:' p10 p9 p11
+-d '😂' p10 p9 p11
+-sd '😂' p10 p9 p11
+-d '😂👍' p10 p9 p11
+-sd '😂👍' p10 p9 p11
+-d '\0' p10 p9 p11
+-sd '\0' p10 p9 p11
+-d '\n' p10 p9 p11
+-sd '\n' p10 p9 p11
+-d '\t' p10 p9 p11
+-sd '\t' p10 p9 p11
+-d '\\' p10 p9 p11
+-sd '\\' p10 p9 p11
+-d '\0,' p10 p9 p11
+-sd '\0,' p10 p9 p11
+-d ',\0' p10 p9 p11
+-sd ',\0' p10 p9 p11
+-d '\t\n' p10 p9 p11
+-sd '\t\n' p10 p9 p11
+-d '😂,🇩🇪' p10 p9 p11
+-sd '😂,🇩🇪' p10 p9 p11
+-d 'é€' p10 p9 p11
+-sd 'é€' p10 p9 p11
+-d '\n,' p10 p9 p11
+-sd '\n,' p10 p9 p11
+-d 'abc' p10 p9 p11
+-sd 'abc' p10 p9 p11
+p7 p8
+-s p7 p8
+-d ',' p7 p8
+-sd ',' p7 p8
+-d ':' p7 p8
+-sd ':' p7 p8
+-d ',:' p7 p8
+-sd ',:' p7 p8
+-d '😂' p7 p8
+-sd '😂' p7 p8
+-d '😂👍' p7 p8
+-sd '😂👍' p7 p8
+-d '\0' p7 p8
+-sd '\0' p7 p8
+-d '\n' p7 p8
+-sd '\n' p7 p8
+-d '\t' p7 p8
+-sd '\t' p7 p8
+-d '\\' p7 p8
+-sd '\\' p7 p8
+-d '\0,' p7 p8
+-sd '\0,' p7 p8
+-d ',\0' p7 p8
+-sd ',\0' p7 p8
+-d '\t\n' p7 p8
+-sd '\t\n' p7 p8
+-d '😂,🇩🇪' p7 p8
+-sd '😂,🇩🇪' p7 p8
+-d 'é€' p7 p8
+-sd 'é€' p7 p8
+-d '\n,' p7 p8
+-sd '\n,' p7 p8
+-d 'abc' p7 p8
+-sd 'abc' p7 p8
+p12 p12
+-s p12 p12
+-d ',' p12 p12
+-sd ',' p12 p12
+-d ':' p12 p12
+-sd ':' p12 p12
+-d ',:' p12 p12
+-sd ',:' p12 p12
+-d '😂' p12 p12
+-sd '😂' p12 p12
+-d '😂👍' p12 p12
+-sd '😂👍' p12 p12
+-d '\0' p12 p12
+-sd '\0' p12 p12
+-d '\n' p12 p12
+-sd '\n' p12 p12
+-d '\t' p12 p12
+-sd '\t' p12 p12
+-d '\\' p12 p12
+-sd '\\' p12 p12
+-d '\0,' p12 p12
+-sd '\0,' p12 p12
+-d ',\0' p12 p12
+-sd ',\0' p12 p12
+-d '\t\n' p12 p12
+-sd '\t\n' p12 p12
+-d '😂,🇩🇪' p12 p12
+-sd '😂,🇩🇪' p12 p12
+-d 'é€' p12 p12
+-sd 'é€' p12 p12
+-d '\n,' p12 p12
+-sd '\n,' p12 p12
+-d 'abc' p12 p12
+-sd 'abc' p12 p12
+p1 p1 p1 p1
+-s p1 p1 p1 p1
+-d ',' p1 p1 p1 p1
+-sd ',' p1 p1 p1 p1
+-d ':' p1 p1 p1 p1
+-sd ':' p1 p1 p1 p1
+-d ',:' p1 p1 p1 p1
+-sd ',:' p1 p1 p1 p1
+-d '😂' p1 p1 p1 p1
+-sd '😂' p1 p1 p1 p1
+-d '😂👍' p1 p1 p1 p1
+-sd '😂👍' p1 p1 p1 p1
+-d '\0' p1 p1 p1 p1
+-sd '\0' p1 p1 p1 p1
+-d '\n' p1 p1 p1 p1
+-sd '\n' p1 p1 p1 p1
+-d '\t' p1 p1 p1 p1
+-sd '\t' p1 p1 p1 p1
+-d '\\' p1 p1 p1 p1
+-sd '\\' p1 p1 p1 p1
+-d '\0,' p1 p1 p1 p1
+-sd '\0,' p1 p1 p1 p1
+-d ',\0' p1 p1 p1 p1
+-sd ',\0' p1 p1 p1 p1
+-d '\t\n' p1 p1 p1 p1
+-sd '\t\n' p1 p1 p1 p1
+-d '😂,🇩🇪' p1 p1 p1 p1
+-sd '😂,🇩🇪' p1 p1 p1 p1
+-d 'é€' p1 p1 p1 p1
+-sd 'é€' p1 p1 p1 p1
+-d '\n,' p1 p1 p1 p1
+-sd '\n,' p1 p1 p1 p1
+-d 'abc' p1 p1 p1 p1
+-sd 'abc' p1 p1 p1 p1
+p3 p7 p2 p11 p4
+-s p3 p7 p2 p11 p4
+-d ',' p3 p7 p2 p11 p4
+-sd ',' p3 p7 p2 p11 p4
+-d ':' p3 p7 p2 p11 p4
+-sd ':' p3 p7 p2 p11 p4
+-d ',:' p3 p7 p2 p11 p4
+-sd ',:' p3 p7 p2 p11 p4
+-d '😂' p3 p7 p2 p11 p4
+-sd '😂' p3 p7 p2 p11 p4
+-d '😂👍' p3 p7 p2 p11 p4
+-sd '😂👍' p3 p7 p2 p11 p4
+-d '\0' p3 p7 p2 p11 p4
+-sd '\0' p3 p7 p2 p11 p4
+-d '\n' p3 p7 p2 p11 p4
+-sd '\n' p3 p7 p2 p11 p4
+-d '\t' p3 p7 p2 p11 p4
+-sd '\t' p3 p7 p2 p11 p4
+-d '\\' p3 p7 p2 p11 p4
+-sd '\\' p3 p7 p2 p11 p4
+-d '\0,' p3 p7 p2 p11 p4
+-sd '\0,' p3 p7 p2 p11 p4
+-d ',\0' p3 p7 p2 p11 p4
+-sd ',\0' p3 p7 p2 p11 p4
+-d '\t\n' p3 p7 p2 p11 p4
+-sd '\t\n' p3 p7 p2 p11 p4
+-d '😂,🇩🇪' p3 p7 p2 p11 p4
+-sd '😂,🇩🇪' p3 p7 p2 p11 p4
+-d 'é€' p3 p7 p2 p11 p4
+-sd 'é€' p3 p7 p2 p11 p4
+-d '\n,' p3 p7 p2 p11 p4
+-sd '\n,' p3 p7 p2 p11 p4
+-d 'abc' p3 p7 p2 p11 p4
+-sd 'abc' p3 p7 p2 p11 p4
+-d '' p1 p2
+-sd '' p1 p2
+-d p1 p2
+-d
+
+# --- standard input, once and several times (lines are taken from it in turn)
+in:p1
+in:p1 -
+in:p1 - -
+in:p1 - - -
+in:p1 -s
+in:p1 -s -
+in:p1 -s - -
+in:p1 - p2
+in:p1 p2 -
+in:p1 -d ',' - p4 -
+in:p1 -sd '😂' - p1
+in:p3
+in:p3 -
+in:p3 - -
+in:p3 - - -
+in:p3 -s
+in:p3 -s -
+in:p3 -s - -
+in:p3 - p2
+in:p3 p2 -
+in:p3 -d ',' - p4 -
+in:p3 -sd '😂' - p1
+in:p7
+in:p7 -
+in:p7 - -
+in:p7 - - -
+in:p7 -s
+in:p7 -s -
+in:p7 -s - -
+in:p7 - p2
+in:p7 p2 -
+in:p7 -d ',' - p4 -
+in:p7 -sd '😂' - p1
+in:p9
+in:p9 -
+in:p9 - -
+in:p9 - - -
+in:p9 -s
+in:p9 -s -
+in:p9 -s - -
+in:p9 - p2
+in:p9 p2 -
+in:p9 -d ',' - p4 -
+in:p9 -sd '😂' - p1
+in:p10
+in:p10 -
+in:p10 - -
+in:p10 - - -
+in:p10 -s
+in:p10 -s -
+in:p10 -s - -
+in:p10 - p2
+in:p10 p2 -
+in:p10 -d ',' - p4 -
+in:p10 -sd '😂' - p1
+
+# --- the same file many times, many files, and the failures
+p10 p10 p10 p10 p10 p10 p10 p10 p10 p10 p10 p10
+-s p10 p10 p10 p10 p10 p10 p10 p10 p10 p10 p10 p10
+-d '😂,' p10 p10 p10 p10 p10 p10 p10
+p1 nosuch p2
+nosuch
+-s nosuch p1
+p1 d p2
+p1 noread
+p1 /dev/null p2
+/dev/null /dev/null
+-s /dev/null p1 /dev/null
+p1
+-s p1
+-s -s p1 p2
+-ss p1 p2
+-d , -d : p1 p2
+-d : -d , p1 p2
+-d , -s p1 p2
+-- p1 p2
+-d , -- p1 p2
+p1 p2 -s
+p1 p2 -d ,
+@
+-x p1
+-z p1 p2
+--serial p1 p2
+--delimiters=, p1 p2
+--help
+--version
