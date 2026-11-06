@@ -67,3 +67,31 @@ d1 file/x
 -m 700 -m 755 d1
 -mm
 -m u+rwx,g+rx,o+rx d1
+
+# --- 2026-11-06: the umask (none of the cases above set one)
+# DESCRIPTION: mkdir() with rwxrwxrwx, so the mode is 777 minus the umask
+umask:022 d1
+umask:077 d1
+umask:0 d1
+umask:0277 d1
+# -m with a number is the mode as given, whatever the umask
+umask:077 -m 755 d1
+umask:0 -m 700 d1
+# -m with + or -: relative to an assumed initial mode of rwx for all, not to the umask
+umask:077 -m g+r d1
+umask:077 -m u-w d1
+umask:022 -m o-x d1
+umask:077 -m +x d1
+umask:0277 -m g=rw d1
+umask:077 -m a-rwx,u+r d1
+# -p: a missing component gets (S_IWUSR|S_IXUSR|~umask)&0777, so u+wx even for a umask that takes them away; the last one gets the default or -m
+umask:0277 -p a/b/c
+umask:077 -p a/b/c
+umask:0 -p a/b/c
+umask:0377 -p -m 755 a/b/c
+umask:0577 -p a/b
+# a component that exists keeps its mode, only the new ones are made
+umask:0277 -p ex/x/y
+# multibyte names
+umask:077 -p '😂/🇩🇪/👍🏽'
+-m 700 '😂 😂'

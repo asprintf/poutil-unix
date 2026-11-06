@@ -2,3 +2,4 @@ mkdir ex
 touch file
 ln -s ex lnk
 ln -s nowhere dang
+chmod 755 ex
