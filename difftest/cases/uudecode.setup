@@ -261,3 +261,8 @@ chmod 444 ro
 mkdir d sub
 printf 'old and longer than the data of the file\n' > out
 chmod 640 out
+
+# the corpus in uudecode.in (see difftest.sh: CORPUS); its files are i.* like the other inputs
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+mkdir '😂dir'
+printf 'old\n' > 'old😂'

@@ -1,0 +1,57 @@
+# "-" as the file: the synopsis has none; we read standard input, macOS opens a file called -
+in:i.e.b0 -
+in:i.e.b20000 -
+in:i.e.b3 -
+in:i.e.b300 -
+in:i.e.b70000 -
+in:i.e.b_emoji_zwj -
+in:i.e.h0 -
+in:i.e.h1 -
+in:i.e.h20000 -
+in:i.e.h300 -
+in:i.e.h45 -
+in:i.e.h70000 -
+in:i.e.h_emoji_basic -
+in:i.m.b64spaces -
+in:i.m.b64wide -
+in:i.m.crlf -
+in:i.m.textbefore -
+in:i.m.twosections -
+in:i.n.b_flag -
+in:i.n.h_emoji -
+
+# a line "begin ..." in text before the data is not a header here and the real one after it is found; macOS stops at it
+-o /dev/stdout i.m.textbefore
+-o x i.m.textbefore
+i.m.textbefore
+in:i.m.textbefore
+in:i.m.textbefore -o /dev/stdout
+in:i.m.textbefore -o x
+
+# blank lines between the lines of data: skipped here; macOS fails
+-o /dev/stdout i.m.blankbetween
+-o x i.m.blankbetween
+i.m.blankbetween
+
+# a tab between the words of the begin line: taken here; macOS refuses it (the spec writes [] there, not settled)
+-o /dev/stdout i.m.tabsep
+-o x i.m.tabsep
+i.m.tabsep
+
+# macOS options the spec does not have: -c -i -m -p -s
+-c i.e.h45
+-i i.e.h45
+-m i.e.h45
+-p i.e.h45
+-s i.e.h45
+
+# more than one file or -o, or an option after the file or after --: a usage error here (the synopsis); macOS takes them
+-- -o x i.e.h45
+-o /dev/stdout -o x i.e.h45
+-o x -o /dev/stdout i.e.h45
+-o x -o y i.e.h45
+-o x i.e.h45 i.e.h300
+i.e.h45 --
+i.e.h45 -o x
+i.e.h45 i.e.h300
+i.n.h_emoji i.n.h_emoji

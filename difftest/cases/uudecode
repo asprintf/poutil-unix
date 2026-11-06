@@ -78,3 +78,401 @@ i.plain i.plain
 -o x
 -o x i.plain nosuch
 i.fifoname
+
+# --- 2026-11-06: valid data from the reference encoder, every size, both algorithms (written to out and to standard output)
+i.e.b_emoji_basic
+-o /dev/stdout i.e.b_emoji_basic
+i.e.b_emoji_crlf
+-o /dev/stdout i.e.b_emoji_crlf
+i.e.b_emoji_flags
+-o /dev/stdout i.e.b_emoji_flags
+i.e.b_emoji_keycap
+-o /dev/stdout i.e.b_emoji_keycap
+i.e.b_emoji_lines
+-o /dev/stdout i.e.b_emoji_lines
+i.e.b_emoji_max
+-o /dev/stdout i.e.b_emoji_max
+i.e.b_emoji_noeol
+-o /dev/stdout i.e.b_emoji_noeol
+i.e.b_emoji_nospace
+-o /dev/stdout i.e.b_emoji_nospace
+i.e.b_emoji_nul
+-o /dev/stdout i.e.b_emoji_nul
+i.e.b_emoji_only_newlines
+-o /dev/stdout i.e.b_emoji_only_newlines
+i.e.b_emoji_sentence
+-o /dev/stdout i.e.b_emoji_sentence
+i.e.b_emoji_skin
+-o /dev/stdout i.e.b_emoji_skin
+i.e.b_emoji_tabs
+-o /dev/stdout i.e.b_emoji_tabs
+i.e.b_emoji_tags
+-o /dev/stdout i.e.b_emoji_tags
+i.e.b_emoji_vs16
+-o /dev/stdout i.e.b_emoji_vs16
+i.e.b_emoji_zwj
+-o /dev/stdout i.e.b_emoji_zwj
+i.e.b_emoji_zwj2
+-o /dev/stdout i.e.b_emoji_zwj2
+i.e.b0
+-o /dev/stdout i.e.b0
+i.e.b1
+-o /dev/stdout i.e.b1
+i.e.b1000
+-o /dev/stdout i.e.b1000
+i.e.b135
+-o /dev/stdout i.e.b135
+i.e.b136
+-o /dev/stdout i.e.b136
+i.e.b2
+-o /dev/stdout i.e.b2
+i.e.b20000
+-o /dev/stdout i.e.b20000
+i.e.b255
+-o /dev/stdout i.e.b255
+i.e.b256
+-o /dev/stdout i.e.b256
+i.e.b3
+-o /dev/stdout i.e.b3
+i.e.b300
+-o /dev/stdout i.e.b300
+i.e.b4
+-o /dev/stdout i.e.b4
+i.e.b43
+-o /dev/stdout i.e.b43
+i.e.b44
+-o /dev/stdout i.e.b44
+i.e.b45
+-o /dev/stdout i.e.b45
+i.e.b46
+-o /dev/stdout i.e.b46
+i.e.b47
+-o /dev/stdout i.e.b47
+i.e.b48
+-o /dev/stdout i.e.b48
+i.e.b49
+-o /dev/stdout i.e.b49
+i.e.b5
+-o /dev/stdout i.e.b5
+i.e.b70000
+-o /dev/stdout i.e.b70000
+i.e.b89
+-o /dev/stdout i.e.b89
+i.e.b90
+-o /dev/stdout i.e.b90
+i.e.b91
+-o /dev/stdout i.e.b91
+i.e.b92
+-o /dev/stdout i.e.b92
+i.e.h_emoji_basic
+-o /dev/stdout i.e.h_emoji_basic
+i.e.h_emoji_crlf
+-o /dev/stdout i.e.h_emoji_crlf
+i.e.h_emoji_flags
+-o /dev/stdout i.e.h_emoji_flags
+i.e.h_emoji_keycap
+-o /dev/stdout i.e.h_emoji_keycap
+i.e.h_emoji_lines
+-o /dev/stdout i.e.h_emoji_lines
+i.e.h_emoji_max
+-o /dev/stdout i.e.h_emoji_max
+i.e.h_emoji_noeol
+-o /dev/stdout i.e.h_emoji_noeol
+i.e.h_emoji_nospace
+-o /dev/stdout i.e.h_emoji_nospace
+i.e.h_emoji_nul
+-o /dev/stdout i.e.h_emoji_nul
+i.e.h_emoji_only_newlines
+-o /dev/stdout i.e.h_emoji_only_newlines
+i.e.h_emoji_sentence
+-o /dev/stdout i.e.h_emoji_sentence
+i.e.h_emoji_skin
+-o /dev/stdout i.e.h_emoji_skin
+i.e.h_emoji_tabs
+-o /dev/stdout i.e.h_emoji_tabs
+i.e.h_emoji_tags
+-o /dev/stdout i.e.h_emoji_tags
+i.e.h_emoji_vs16
+-o /dev/stdout i.e.h_emoji_vs16
+i.e.h_emoji_zwj
+-o /dev/stdout i.e.h_emoji_zwj
+i.e.h_emoji_zwj2
+-o /dev/stdout i.e.h_emoji_zwj2
+i.e.h0
+-o /dev/stdout i.e.h0
+i.e.h1
+-o /dev/stdout i.e.h1
+i.e.h1000
+-o /dev/stdout i.e.h1000
+i.e.h135
+-o /dev/stdout i.e.h135
+i.e.h136
+-o /dev/stdout i.e.h136
+i.e.h2
+-o /dev/stdout i.e.h2
+i.e.h20000
+-o /dev/stdout i.e.h20000
+i.e.h255
+-o /dev/stdout i.e.h255
+i.e.h256
+-o /dev/stdout i.e.h256
+i.e.h3
+-o /dev/stdout i.e.h3
+i.e.h300
+-o /dev/stdout i.e.h300
+i.e.h4
+-o /dev/stdout i.e.h4
+i.e.h43
+-o /dev/stdout i.e.h43
+i.e.h44
+-o /dev/stdout i.e.h44
+i.e.h45
+-o /dev/stdout i.e.h45
+i.e.h46
+-o /dev/stdout i.e.h46
+i.e.h47
+-o /dev/stdout i.e.h47
+i.e.h48
+-o /dev/stdout i.e.h48
+i.e.h49
+-o /dev/stdout i.e.h49
+i.e.h5
+-o /dev/stdout i.e.h5
+i.e.h70000
+-o /dev/stdout i.e.h70000
+i.e.h89
+-o /dev/stdout i.e.h89
+i.e.h90
+-o /dev/stdout i.e.h90
+i.e.h91
+-o /dev/stdout i.e.h91
+i.e.h92
+-o /dev/stdout i.e.h92
+
+# --- names with emoji and blanks in the begin line, and with -o
+i.n.b_blank
+-o other i.n.b_blank
+-o /dev/stdout i.n.b_blank
+i.n.b_emoji
+-o other i.n.b_emoji
+-o /dev/stdout i.n.b_emoji
+i.n.b_emojiblank
+-o other i.n.b_emojiblank
+-o /dev/stdout i.n.b_emojiblank
+i.n.b_emojimid
+-o other i.n.b_emojimid
+-o /dev/stdout i.n.b_emojimid
+i.n.b_flag
+-o other i.n.b_flag
+-o /dev/stdout i.n.b_flag
+i.n.b_skin
+-o other i.n.b_skin
+-o /dev/stdout i.n.b_skin
+i.n.b_zwj
+-o other i.n.b_zwj
+-o /dev/stdout i.n.b_zwj
+i.n.h_blank
+-o other i.n.h_blank
+-o /dev/stdout i.n.h_blank
+i.n.h_emoji
+-o other i.n.h_emoji
+-o /dev/stdout i.n.h_emoji
+i.n.h_emojiblank
+-o other i.n.h_emojiblank
+-o /dev/stdout i.n.h_emojiblank
+i.n.h_emojimid
+-o other i.n.h_emojimid
+-o /dev/stdout i.n.h_emojimid
+i.n.h_flag
+-o other i.n.h_flag
+-o /dev/stdout i.n.h_flag
+i.n.h_skin
+-o other i.n.h_skin
+-o /dev/stdout i.n.h_skin
+i.n.h_zwj
+-o other i.n.h_zwj
+-o /dev/stdout i.n.h_zwj
+-o '😂' i.e.h45
+-o '😂' i.e.b45
+-o 'a😂b' i.e.h45
+-o 'a😂b' i.e.b45
+-o '👨‍👩‍👧' i.e.h45
+-o '👨‍👩‍👧' i.e.b45
+-o '🇩🇪' i.e.h45
+-o '🇩🇪' i.e.b45
+-o '👍🏽' i.e.h45
+-o '👍🏽' i.e.b45
+-o '😂 😂' i.e.h45
+-o '😂 😂' i.e.b45
+-o '😂dir' i.e.h45
+-o '😂dir' i.e.b45
+-o 'old😂' i.e.h45
+-o 'old😂' i.e.b45
+-o '😂dir/x' i.e.h45
+-o '😂dir/x' i.e.b45
+-o 'nodir😂/x' i.e.h45
+-o 'nodir😂/x' i.e.b45
+-o'😂' i.e.h45
+i.n.h_emoji i.n.h_emoji
+
+# --- damaged data: blanks after the lines, CRLF, END in capitals, a blank for the zero line, blank lines, text around, two sections
+i.m.b64crlf
+-o /dev/stdout i.m.b64crlf
+-o x i.m.b64crlf
+i.m.b64narrow
+-o /dev/stdout i.m.b64narrow
+-o x i.m.b64narrow
+i.m.b64noeq
+-o /dev/stdout i.m.b64noeq
+-o x i.m.b64noeq
+i.m.b64spaces
+-o /dev/stdout i.m.b64spaces
+-o x i.m.b64spaces
+i.m.b64wide
+-o /dev/stdout i.m.b64wide
+-o x i.m.b64wide
+i.m.blankbetween
+-o /dev/stdout i.m.blankbetween
+-o x i.m.blankbetween
+i.m.crlf
+-o /dev/stdout i.m.crlf
+-o x i.m.crlf
+i.m.indented
+-o /dev/stdout i.m.indented
+-o x i.m.indented
+i.m.mode644x
+-o /dev/stdout i.m.mode644x
+-o x i.m.mode644x
+i.m.noeolatend
+-o /dev/stdout i.m.noeolatend
+-o x i.m.noeolatend
+i.m.spacezero
+-o /dev/stdout i.m.spacezero
+-o x i.m.spacezero
+i.m.tabsep
+-o /dev/stdout i.m.tabsep
+-o x i.m.tabsep
+i.m.textafter
+-o /dev/stdout i.m.textafter
+-o x i.m.textafter
+i.m.textbefore
+-o /dev/stdout i.m.textbefore
+-o x i.m.textbefore
+i.m.trailblank
+-o /dev/stdout i.m.trailblank
+-o x i.m.trailblank
+i.m.twosections
+-o /dev/stdout i.m.twosections
+-o x i.m.twosections
+i.m.upperend
+-o /dev/stdout i.m.upperend
+-o x i.m.upperend
+
+# --- standard input
+in:i.e.h0
+in:i.e.h0 -o /dev/stdout
+in:i.e.h0 -o x
+in:i.e.h0 -
+in:i.e.h1
+in:i.e.h1 -o /dev/stdout
+in:i.e.h1 -o x
+in:i.e.h1 -
+in:i.e.h45
+in:i.e.h45 -o /dev/stdout
+in:i.e.h45 -o x
+in:i.e.h45 -
+in:i.e.h300
+in:i.e.h300 -o /dev/stdout
+in:i.e.h300 -o x
+in:i.e.h300 -
+in:i.e.h20000
+in:i.e.h20000 -o /dev/stdout
+in:i.e.h20000 -o x
+in:i.e.h20000 -
+in:i.e.b0
+in:i.e.b0 -o /dev/stdout
+in:i.e.b0 -o x
+in:i.e.b0 -
+in:i.e.b3
+in:i.e.b3 -o /dev/stdout
+in:i.e.b3 -o x
+in:i.e.b3 -
+in:i.e.b300
+in:i.e.b300 -o /dev/stdout
+in:i.e.b300 -o x
+in:i.e.b300 -
+in:i.e.b20000
+in:i.e.b20000 -o /dev/stdout
+in:i.e.b20000 -o x
+in:i.e.b20000 -
+in:i.e.h70000
+in:i.e.h70000 -o /dev/stdout
+in:i.e.h70000 -o x
+in:i.e.h70000 -
+in:i.e.b70000
+in:i.e.b70000 -o /dev/stdout
+in:i.e.b70000 -o x
+in:i.e.b70000 -
+in:i.e.h_emoji_basic
+in:i.e.h_emoji_basic -o /dev/stdout
+in:i.e.h_emoji_basic -o x
+in:i.e.h_emoji_basic -
+in:i.e.b_emoji_zwj
+in:i.e.b_emoji_zwj -o /dev/stdout
+in:i.e.b_emoji_zwj -o x
+in:i.e.b_emoji_zwj -
+in:i.n.h_emoji
+in:i.n.h_emoji -o /dev/stdout
+in:i.n.h_emoji -o x
+in:i.n.h_emoji -
+in:i.n.b_flag
+in:i.n.b_flag -o /dev/stdout
+in:i.n.b_flag -o x
+in:i.n.b_flag -
+in:i.m.crlf
+in:i.m.crlf -o /dev/stdout
+in:i.m.crlf -o x
+in:i.m.crlf -
+in:i.m.textbefore
+in:i.m.textbefore -o /dev/stdout
+in:i.m.textbefore -o x
+in:i.m.textbefore -
+in:i.m.twosections
+in:i.m.twosections -o /dev/stdout
+in:i.m.twosections -o x
+in:i.m.twosections -
+in:i.m.b64wide
+in:i.m.b64wide -o /dev/stdout
+in:i.m.b64wide -o x
+in:i.m.b64wide -
+in:i.m.b64spaces
+in:i.m.b64spaces -o /dev/stdout
+in:i.m.b64spaces -o x
+in:i.m.b64spaces -
+in:i.e.h45 i.e.h300
+in:i.e.h45 -o /dev/stdout i.e.b45
+in:i.e.h300 i.nosuch
+
+# --- the usage
+-o /dev/stdout
+-o /dev/stdout -o x i.e.h45
+-o x -o /dev/stdout i.e.h45
+-o x -o y i.e.h45
+-o x i.e.h45 i.e.h300
+i.e.h45 i.e.h300
+-- i.e.h45
+-- -o x i.e.h45
+-o x -- i.e.h45
+i.e.h45 -o x
+i.e.h45 --
+-m i.e.h45
+-p i.e.h45
+-c i.e.h45
+-s i.e.h45
+-i i.e.h45
+--help
+--version
+--output=x i.e.h45
+-o
+-ox i.e.h45
+-o '' i.e.h45
