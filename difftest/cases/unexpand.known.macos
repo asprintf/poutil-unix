@@ -1,0 +1,98 @@
+# macOS: it drops a last line of blanks that has no newline, an invalid UTF-8 sequence stops it, the operand - is a file
+-a all256_lines
+-a s.all256_lines
+-a s.emoji_basic u.emoji_basic s.emoji_zwj u.emoji_zwj
+-a u.all256_lines
+-t 2 s.emoji_skin u.emoji_skin s.cjk_lines u.cjk_lines
+-t 3,6,9 s.all256_lines
+-t 3,6,9 u.all256_lines
+-t 4 s.all256_lines
+-t 4 u.all256_lines
+-t 5,9,13 u.emoji_basic u.emoji_keycap u.emoji_tags u.emoji_vs16
+all256_lines
+in:s.all256_lines
+in:s.all256_lines -a
+in:s.all256_lines -a -
+in:s.all256_lines -t 4
+in:s.cjk_lines
+in:s.cjk_lines -a
+in:s.cjk_lines -a -
+in:s.cjk_lines -t 4
+in:s.combining
+in:s.combining -a
+in:s.combining -a -
+in:s.combining -t 4
+in:s.emoji_basic
+in:s.emoji_basic -a
+in:s.emoji_basic -a -
+in:s.emoji_basic -a s.emoji_zwj -
+in:s.emoji_basic -t 4
+in:s.emoji_flags
+in:s.emoji_flags -a
+in:s.emoji_flags -a -
+in:s.emoji_flags -t 4
+in:s.emoji_skin
+in:s.emoji_skin -a
+in:s.emoji_skin -a -
+in:s.emoji_skin -t 4
+in:s.emoji_zwj
+in:s.emoji_zwj -a
+in:s.emoji_zwj -a -
+in:s.emoji_zwj -t 4
+in:s.invalid_in_emoji
+in:s.invalid_in_emoji -a
+in:s.invalid_in_emoji -a -
+in:s.invalid_in_emoji -t 4
+in:s.mixed_scripts
+in:s.mixed_scripts -a
+in:s.mixed_scripts -a -
+in:s.mixed_scripts -t 4
+in:s.space_2003
+in:s.space_2003 -a
+in:s.space_2003 -a -
+in:s.space_2003 -t 4
+in:s.space_3000
+in:s.space_3000 -a
+in:s.space_3000 -a -
+in:s.space_3000 -t 4
+in:s.width_1234
+in:s.width_1234 -a
+in:s.width_1234 -a -
+in:s.width_1234 -t 4
+in:u.all256_lines
+in:u.all256_lines -a
+in:u.all256_lines -a -
+in:u.all256_lines -t 4
+in:u.cjk_lines - u.cjk_lines -
+in:u.cjk_lines -a
+in:u.cjk_lines -a -
+in:u.cjk_lines -t 4
+in:u.combining -a
+in:u.combining -a -
+in:u.combining -t 4
+in:u.emoji_basic -a
+in:u.emoji_basic -a -
+in:u.emoji_flags -a
+in:u.emoji_flags -a -
+in:u.emoji_skin -a
+in:u.emoji_skin -a -
+in:u.emoji_zwj -a
+in:u.emoji_zwj -a -
+in:u.emoji_zwj -t 4
+in:u.invalid_in_emoji
+in:u.invalid_in_emoji -a
+in:u.invalid_in_emoji -a -
+in:u.invalid_in_emoji -t 4
+in:u.mixed_scripts -a
+in:u.mixed_scripts -a -
+in:u.mixed_scripts -t 4
+in:u.space_2003 -a
+in:u.space_2003 -a -
+in:u.width_1234 -a
+in:u.width_1234 -a -
+in:u.width_1234 -t 4
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+s.all256_lines
+u.all256_lines

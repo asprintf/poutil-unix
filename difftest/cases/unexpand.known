@@ -34,3 +34,10 @@ trail
 -a hi
 -a mb
 -t 4 mb
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# U+2003 and U+3000: GNU takes them as blanks, macOS drops the final blanks
+in:u.space_2003 -t 4
+in:u.space_3000 -a
+in:u.space_3000 -a -
+in:u.space_3000 -t 4
