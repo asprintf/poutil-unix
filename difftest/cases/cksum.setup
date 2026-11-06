@@ -28,3 +28,21 @@ printf 'secret\n' > noread
 chmod 000 noread
 printf 'dash\n' > ./-f
 printf 'sp\n' > 'a b'
+
+# the corpus in cksum.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+printf 'x' > 'sp ace'
+printf 'x' > '%d'
+printf 'x' > "$(printf 'a\tb')"
+printf 'x' > 'ä'
+printf 'x' > '-'
+printf 'x' > "$(awk 'BEGIN{for(i=0;i<200;i++)printf "n"}')"
+ln -s f1 link
+ln -s nosuch dangling
+# emoji in the names: one, inside a name, a ZWJ sequence, a flag, a skin tone
+printf 'x' > '😂'
+printf 'x' > 'a😂b'
+printf 'x' > '👨‍👩‍👧'
+printf 'x' > '🇩🇪'
+printf 'x' > '👍🏽'
+printf 'x' > './😂 😂'

@@ -54,3 +54,273 @@ noread f1
 f1 -x
 -- -- f1
 -h
+
+# --- 2026-11-06: every length from 0 to 70 (the length octets are part of the CRC), bytes and text
+len0
+len1
+len2
+len3
+len4
+len5
+len6
+len7
+len8
+len9
+len10
+len11
+len12
+len13
+len14
+len15
+len16
+len17
+len18
+len19
+len20
+len21
+len22
+len23
+len24
+len25
+len26
+len27
+len28
+len29
+len30
+len31
+len32
+len33
+len34
+len35
+len36
+len37
+len38
+len39
+len40
+len41
+len42
+len43
+len44
+len45
+len46
+len47
+len48
+len49
+len50
+len51
+len52
+len53
+len54
+len55
+len56
+len57
+len58
+len59
+len60
+len61
+len62
+len63
+len64
+len65
+len66
+len67
+len68
+len69
+len70
+txt0
+txt1
+txt2
+txt3
+txt7
+txt8
+txt9
+txt15
+txt16
+txt17
+txt31
+txt32
+txt33
+txt63
+txt64
+txt65
+txt70
+len0 len1 len2 len3 len4
+len70 len0 len35
+
+# --- other byte patterns, emoji, and large files
+all256
+rev256
+ff1k
+aa55
+pow2
+lcg
+nul1
+nuls300
+utf8
+crlf
+nonl
+stdin.seq
+emoji.basic
+emoji.crlf
+emoji.flags
+emoji.keycap
+emoji.lines
+emoji.max
+emoji.noeol
+emoji.nospace
+emoji.nul
+emoji.only_newlines
+emoji.sentence
+emoji.skin
+emoji.tabs
+emoji.tags
+emoji.vs16
+emoji.zwj
+emoji.zwj2
+all256 all256
+all256 utf8 all256
+emoji.basic emoji.basic
+emoji.basic utf8 emoji.basic
+emoji.zwj emoji.zwj
+emoji.zwj utf8 emoji.zwj
+emoji.flags emoji.flags
+emoji.flags utf8 emoji.flags
+emoji.skin emoji.skin
+emoji.skin utf8 emoji.skin
+emoji.keycap emoji.keycap
+emoji.keycap utf8 emoji.keycap
+emoji.tags emoji.tags
+emoji.tags utf8 emoji.tags
+emoji.vs16 emoji.vs16
+emoji.vs16 utf8 emoji.vs16
+emoji.crlf emoji.crlf
+emoji.crlf utf8 emoji.crlf
+emoji.nul emoji.nul
+emoji.nul utf8 emoji.nul
+emoji.max emoji.max
+emoji.max utf8 emoji.max
+all256 rev256 ff1k aa55 pow2 lcg nul1 nuls300 utf8 crlf nonl stdin.seq
+
+# --- standard input: none, "-", repeated, mixed with files, for each pattern
+in:all256
+in:all256 -
+in:rev256
+in:rev256 -
+in:ff1k
+in:ff1k -
+in:aa55
+in:aa55 -
+in:pow2
+in:pow2 -
+in:lcg
+in:lcg -
+in:nul1
+in:nul1 -
+in:nuls300
+in:nuls300 -
+in:utf8
+in:utf8 -
+in:crlf
+in:crlf -
+in:nonl
+in:nonl -
+in:stdin.seq
+in:stdin.seq -
+in:emoji.basic
+in:emoji.basic -
+in:emoji.zwj
+in:emoji.zwj -
+in:emoji.flags
+in:emoji.flags -
+in:emoji.skin
+in:emoji.skin -
+in:emoji.keycap
+in:emoji.keycap -
+in:emoji.tags
+in:emoji.tags -
+in:emoji.vs16
+in:emoji.vs16 -
+in:emoji.crlf
+in:emoji.crlf -
+in:emoji.nul
+in:emoji.nul -
+in:emoji.max
+in:emoji.max -
+in:emoji.sentence
+in:emoji.sentence -
+in:emoji.lines
+in:emoji.lines -
+in:emoji.only_newlines
+in:emoji.only_newlines -
+in:emoji.noeol
+in:emoji.noeol -
+in:all256 - -
+in:all256 - f1
+in:all256 f1 -
+in:all256 f1 - f2
+in:all256 emoji.basic - utf8
+in:emoji.zwj - -
+in:emoji.zwj - f1
+in:emoji.zwj f1 -
+in:emoji.zwj f1 - f2
+in:emoji.zwj emoji.basic - utf8
+in:stdin.seq - -
+in:stdin.seq - f1
+in:stdin.seq f1 -
+in:stdin.seq f1 - f2
+in:stdin.seq emoji.basic - utf8
+
+# --- file names: blank, percent, tab, accent, 200 characters, emoji, and the name is written as given
+'sp ace'
+'%d'
+'ä'
+'😂'
+'a😂b'
+'👨‍👩‍👧'
+'🇩🇪'
+'👍🏽'
+'./😂 😂'
+./-
+-- -
+./😂
+'😂' '🇩🇪' '👍🏽'
+'sp ace' '%d' 'ä'
+./f1
+././f1
+f1
+'./f1'
+f1//
+link
+dangling
+link f1 link
+"$(printf 'a	b')"
+"$(awk 'BEGIN{for(i=0;i<200;i++)printf "n"}')"
+f1 'sp ace' 😂 f2
+
+# --- many operands, repeats, and failures between files
+f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1 f1
+len0 len1 len2 len3 len4 len5 len6 len7 len8 len9 len10 len11 len12 len13 len14 len15 len16 len17 len18 len19 len20
+f1 nosuch f2 dir f1 noread f2
+😂 nosuch 😂
+emoji.zwj nosuch emoji.flags
+'' f1
+f1 ''
+-- ''
+/dev/null
+/dev/null f1 /dev/null
+/dev/null -
+f1 -- f2
+-- f1 -- f2
+f1 -- -- f2
+-s f1
+-c f1
+-a md5 f1
+--algorithm=md5 f1
+-o f1
+-b f1
+--help
+--version
+-1 f1
+-- --help
+-- -x
+./--help

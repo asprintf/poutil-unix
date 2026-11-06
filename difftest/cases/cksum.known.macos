@@ -1,0 +1,44 @@
+# macOS cksum has no "-" for standard input and reads a file called "-" (the spec allows either)
+-- -
+/dev/null -
+in:aa55 -
+in:all256 -
+in:all256 - -
+in:all256 - f1
+in:all256 emoji.basic - utf8
+in:all256 f1 -
+in:all256 f1 - f2
+in:crlf -
+in:emoji.basic -
+in:emoji.crlf -
+in:emoji.flags -
+in:emoji.keycap -
+in:emoji.lines -
+in:emoji.max -
+in:emoji.noeol -
+in:emoji.nul -
+in:emoji.only_newlines -
+in:emoji.sentence -
+in:emoji.skin -
+in:emoji.tags -
+in:emoji.vs16 -
+in:emoji.zwj -
+in:emoji.zwj - -
+in:emoji.zwj - f1
+in:emoji.zwj emoji.basic - utf8
+in:emoji.zwj f1 -
+in:emoji.zwj f1 - f2
+in:ff1k -
+in:lcg -
+in:nonl -
+in:nul1 -
+in:nuls300 -
+in:pow2 -
+in:rev256 -
+in:stdin.seq -
+in:stdin.seq - -
+in:stdin.seq - f1
+in:stdin.seq emoji.basic - utf8
+in:stdin.seq f1 -
+in:stdin.seq f1 - f2
+in:utf8 -
