@@ -18,3 +18,46 @@
 -n +2 -
 # macOS reads a directory without complaint; we report the read error
 -n 2 d
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# the obsolete -number and +number forms and long options: both others take them
++0 ten
++2c ten
++2l ten
++3 ten
++33 ten
+--bytes=2 ten
+--lines=2 ten
+-0 ten
+-2c ten
+-2l ten
+-3 ten
+-33 ten
+
+# size suffixes (k b K M) on a count: both others take them
+-c 1K ten
+-c 1M ten
+-c 3b ten
+-n 3k ten
+
+# -q -v and several files: the synopsis has one file; both others take more and print headers
+-- -n ten
+-n 2 d ten
+-n 2 nosuch ten
+-n 2 ten ''
+-n 2 ten eleven
+-n 2 ten nosuch
+-n 2 ten ten
+-q ten
+-v ten
+
+# the spec wants digits only: a blank in a count; both others accept it
+-c ' 1' ten
+-n ' 1' ten
+
+# options after an operand: both others take them as options, POSIX08 reads them as operands
+-n 1 ten -n 2
+ten -n 2
+
+# a repeated -n after another option: both others take the last
+-n +2 -n 3 ten

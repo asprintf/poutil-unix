@@ -78,3 +78,1179 @@ nosuch
 +3 n5
 -n 3l n5
 -c 3c n5
+
+# --- every start in lines and bytes: none, -N, +N, around the length of each file
+lines.n
+-n 1 lines.n
+-n 2 lines.n
+-n 5 lines.n
+-n 10 lines.n
+-n 11 lines.n
+-n 100 lines.n
+-n 101 lines.n
+-n -1 lines.n
+-n -2 lines.n
+-n -10 lines.n
+-n -11 lines.n
+-n +1 lines.n
+-n +2 lines.n
+-n +3 lines.n
+-n +10 lines.n
+-n +11 lines.n
+-n +12 lines.n
+-n +100 lines.n
+-n +101 lines.n
+-c 1 lines.n
+-c 2 lines.n
+-c 3 lines.n
+-c 5 lines.n
+-c 10 lines.n
+-c 100 lines.n
+-c -1 lines.n
+-c -2 lines.n
+-c -3 lines.n
+-c +1 lines.n
+-c +2 lines.n
+-c +3 lines.n
+-c +5 lines.n
+-c +10 lines.n
+-c +100 lines.n
+-c +1000 lines.n
+ten
+-n 1 ten
+-n 2 ten
+-n 5 ten
+-n 10 ten
+-n 11 ten
+-n 100 ten
+-n 101 ten
+-n -1 ten
+-n -2 ten
+-n -10 ten
+-n -11 ten
+-n +1 ten
+-n +2 ten
+-n +3 ten
+-n +10 ten
+-n +11 ten
+-n +12 ten
+-n +100 ten
+-n +101 ten
+-c 1 ten
+-c 2 ten
+-c 3 ten
+-c 5 ten
+-c 10 ten
+-c 100 ten
+-c -1 ten
+-c -2 ten
+-c -3 ten
+-c +1 ten
+-c +2 ten
+-c +3 ten
+-c +5 ten
+-c +10 ten
+-c +100 ten
+-c +1000 ten
+eleven
+-n 1 eleven
+-n 2 eleven
+-n 5 eleven
+-n 10 eleven
+-n 11 eleven
+-n 100 eleven
+-n 101 eleven
+-n -1 eleven
+-n -2 eleven
+-n -10 eleven
+-n -11 eleven
+-n +1 eleven
+-n +2 eleven
+-n +3 eleven
+-n +10 eleven
+-n +11 eleven
+-n +12 eleven
+-n +100 eleven
+-n +101 eleven
+-c 1 eleven
+-c 2 eleven
+-c 3 eleven
+-c 5 eleven
+-c 10 eleven
+-c 100 eleven
+-c -1 eleven
+-c -2 eleven
+-c -3 eleven
+-c +1 eleven
+-c +2 eleven
+-c +3 eleven
+-c +5 eleven
+-c +10 eleven
+-c +100 eleven
+-c +1000 eleven
+eol.none
+-n 1 eol.none
+-n 2 eol.none
+-n 5 eol.none
+-n 10 eol.none
+-n 11 eol.none
+-n 100 eol.none
+-n 101 eol.none
+-n -1 eol.none
+-n -2 eol.none
+-n -10 eol.none
+-n -11 eol.none
+-n +1 eol.none
+-n +2 eol.none
+-n +3 eol.none
+-n +10 eol.none
+-n +11 eol.none
+-n +12 eol.none
+-n +100 eol.none
+-n +101 eol.none
+-c 1 eol.none
+-c 2 eol.none
+-c 3 eol.none
+-c 5 eol.none
+-c 10 eol.none
+-c 100 eol.none
+-c -1 eol.none
+-c -2 eol.none
+-c -3 eol.none
+-c +1 eol.none
+-c +2 eol.none
+-c +3 eol.none
+-c +5 eol.none
+-c +10 eol.none
+-c +100 eol.none
+-c +1000 eol.none
+eol.one
+-n 1 eol.one
+-n 2 eol.one
+-n 5 eol.one
+-n 10 eol.one
+-n 11 eol.one
+-n 100 eol.one
+-n 101 eol.one
+-n -1 eol.one
+-n -2 eol.one
+-n -10 eol.one
+-n -11 eol.one
+-n +1 eol.one
+-n +2 eol.one
+-n +3 eol.one
+-n +10 eol.one
+-n +11 eol.one
+-n +12 eol.one
+-n +100 eol.one
+-n +101 eol.one
+-c 1 eol.one
+-c 2 eol.one
+-c 3 eol.one
+-c 5 eol.one
+-c 10 eol.one
+-c 100 eol.one
+-c -1 eol.one
+-c -2 eol.one
+-c -3 eol.one
+-c +1 eol.one
+-c +2 eol.one
+-c +3 eol.one
+-c +5 eol.one
+-c +10 eol.one
+-c +100 eol.one
+-c +1000 eol.one
+nl.only
+-n 1 nl.only
+-n 2 nl.only
+-n 5 nl.only
+-n 10 nl.only
+-n 11 nl.only
+-n 100 nl.only
+-n 101 nl.only
+-n -1 nl.only
+-n -2 nl.only
+-n -10 nl.only
+-n -11 nl.only
+-n +1 nl.only
+-n +2 nl.only
+-n +3 nl.only
+-n +10 nl.only
+-n +11 nl.only
+-n +12 nl.only
+-n +100 nl.only
+-n +101 nl.only
+-c 1 nl.only
+-c 2 nl.only
+-c 3 nl.only
+-c 5 nl.only
+-c 10 nl.only
+-c 100 nl.only
+-c -1 nl.only
+-c -2 nl.only
+-c -3 nl.only
+-c +1 nl.only
+-c +2 nl.only
+-c +3 nl.only
+-c +5 nl.only
+-c +10 nl.only
+-c +100 nl.only
+-c +1000 nl.only
+nl.many
+-n 1 nl.many
+-n 2 nl.many
+-n 5 nl.many
+-n 10 nl.many
+-n 11 nl.many
+-n 100 nl.many
+-n 101 nl.many
+-n -1 nl.many
+-n -2 nl.many
+-n -10 nl.many
+-n -11 nl.many
+-n +1 nl.many
+-n +2 nl.many
+-n +3 nl.many
+-n +10 nl.many
+-n +11 nl.many
+-n +12 nl.many
+-n +100 nl.many
+-n +101 nl.many
+-c 1 nl.many
+-c 2 nl.many
+-c 3 nl.many
+-c 5 nl.many
+-c 10 nl.many
+-c 100 nl.many
+-c -1 nl.many
+-c -2 nl.many
+-c -3 nl.many
+-c +1 nl.many
+-c +2 nl.many
+-c +3 nl.many
+-c +5 nl.many
+-c +10 nl.many
+-c +100 nl.many
+-c +1000 nl.many
+empty
+-n 1 empty
+-n 2 empty
+-n 5 empty
+-n 10 empty
+-n 11 empty
+-n 100 empty
+-n 101 empty
+-n -1 empty
+-n -2 empty
+-n -10 empty
+-n -11 empty
+-n +1 empty
+-n +2 empty
+-n +3 empty
+-n +10 empty
+-n +11 empty
+-n +12 empty
+-n +100 empty
+-n +101 empty
+-c 1 empty
+-c 2 empty
+-c 3 empty
+-c 5 empty
+-c 10 empty
+-c 100 empty
+-c -1 empty
+-c -2 empty
+-c -3 empty
+-c +1 empty
+-c +2 empty
+-c +3 empty
+-c +5 empty
+-c +10 empty
+-c +100 empty
+-c +1000 empty
+crlf
+-n 1 crlf
+-n 2 crlf
+-n 5 crlf
+-n 10 crlf
+-n 11 crlf
+-n 100 crlf
+-n 101 crlf
+-n -1 crlf
+-n -2 crlf
+-n -10 crlf
+-n -11 crlf
+-n +1 crlf
+-n +2 crlf
+-n +3 crlf
+-n +10 crlf
+-n +11 crlf
+-n +12 crlf
+-n +100 crlf
+-n +101 crlf
+-c 1 crlf
+-c 2 crlf
+-c 3 crlf
+-c 5 crlf
+-c 10 crlf
+-c 100 crlf
+-c -1 crlf
+-c -2 crlf
+-c -3 crlf
+-c +1 crlf
+-c +2 crlf
+-c +3 crlf
+-c +5 crlf
+-c +10 crlf
+-c +100 crlf
+-c +1000 crlf
+nul
+-n 1 nul
+-n 2 nul
+-n 5 nul
+-n 10 nul
+-n 11 nul
+-n 100 nul
+-n 101 nul
+-n -1 nul
+-n -2 nul
+-n -10 nul
+-n -11 nul
+-n +1 nul
+-n +2 nul
+-n +3 nul
+-n +10 nul
+-n +11 nul
+-n +12 nul
+-n +100 nul
+-n +101 nul
+-c 1 nul
+-c 2 nul
+-c 3 nul
+-c 5 nul
+-c 10 nul
+-c 100 nul
+-c -1 nul
+-c -2 nul
+-c -3 nul
+-c +1 nul
+-c +2 nul
+-c +3 nul
+-c +5 nul
+-c +10 nul
+-c +100 nul
+-c +1000 nul
+invalid
+-n 1 invalid
+-n 2 invalid
+-n 5 invalid
+-n 10 invalid
+-n 11 invalid
+-n 100 invalid
+-n 101 invalid
+-n -1 invalid
+-n -2 invalid
+-n -10 invalid
+-n -11 invalid
+-n +1 invalid
+-n +2 invalid
+-n +3 invalid
+-n +10 invalid
+-n +11 invalid
+-n +12 invalid
+-n +100 invalid
+-n +101 invalid
+-c 1 invalid
+-c 2 invalid
+-c 3 invalid
+-c 5 invalid
+-c 10 invalid
+-c 100 invalid
+-c -1 invalid
+-c -2 invalid
+-c -3 invalid
+-c +1 invalid
+-c +2 invalid
+-c +3 invalid
+-c +5 invalid
+-c +10 invalid
+-c +100 invalid
+-c +1000 invalid
+u8
+-n 1 u8
+-n 2 u8
+-n 5 u8
+-n 10 u8
+-n 11 u8
+-n 100 u8
+-n 101 u8
+-n -1 u8
+-n -2 u8
+-n -10 u8
+-n -11 u8
+-n +1 u8
+-n +2 u8
+-n +3 u8
+-n +10 u8
+-n +11 u8
+-n +12 u8
+-n +100 u8
+-n +101 u8
+-c 1 u8
+-c 2 u8
+-c 3 u8
+-c 5 u8
+-c 10 u8
+-c 100 u8
+-c -1 u8
+-c -2 u8
+-c -3 u8
+-c +1 u8
+-c +2 u8
+-c +3 u8
+-c +5 u8
+-c +10 u8
+-c +100 u8
+-c +1000 u8
+u8.one
+-n 1 u8.one
+-n 2 u8.one
+-n 5 u8.one
+-n 10 u8.one
+-n 11 u8.one
+-n 100 u8.one
+-n 101 u8.one
+-n -1 u8.one
+-n -2 u8.one
+-n -10 u8.one
+-n -11 u8.one
+-n +1 u8.one
+-n +2 u8.one
+-n +3 u8.one
+-n +10 u8.one
+-n +11 u8.one
+-n +12 u8.one
+-n +100 u8.one
+-n +101 u8.one
+-c 1 u8.one
+-c 2 u8.one
+-c 3 u8.one
+-c 5 u8.one
+-c 10 u8.one
+-c 100 u8.one
+-c -1 u8.one
+-c -2 u8.one
+-c -3 u8.one
+-c +1 u8.one
+-c +2 u8.one
+-c +3 u8.one
+-c +5 u8.one
+-c +10 u8.one
+-c +100 u8.one
+-c +1000 u8.one
+gaps
+-n 1 gaps
+-n 2 gaps
+-n 5 gaps
+-n 10 gaps
+-n 11 gaps
+-n 100 gaps
+-n 101 gaps
+-n -1 gaps
+-n -2 gaps
+-n -10 gaps
+-n -11 gaps
+-n +1 gaps
+-n +2 gaps
+-n +3 gaps
+-n +10 gaps
+-n +11 gaps
+-n +12 gaps
+-n +100 gaps
+-n +101 gaps
+-c 1 gaps
+-c 2 gaps
+-c 3 gaps
+-c 5 gaps
+-c 10 gaps
+-c 100 gaps
+-c -1 gaps
+-c -2 gaps
+-c -3 gaps
+-c +1 gaps
+-c +2 gaps
+-c +3 gaps
+-c +5 gaps
+-c +10 gaps
+-c +100 gaps
+-c +1000 gaps
+tailnonl
+-n 1 tailnonl
+-n 2 tailnonl
+-n 5 tailnonl
+-n 10 tailnonl
+-n 11 tailnonl
+-n 100 tailnonl
+-n 101 tailnonl
+-n -1 tailnonl
+-n -2 tailnonl
+-n -10 tailnonl
+-n -11 tailnonl
+-n +1 tailnonl
+-n +2 tailnonl
+-n +3 tailnonl
+-n +10 tailnonl
+-n +11 tailnonl
+-n +12 tailnonl
+-n +100 tailnonl
+-n +101 tailnonl
+-c 1 tailnonl
+-c 2 tailnonl
+-c 3 tailnonl
+-c 5 tailnonl
+-c 10 tailnonl
+-c 100 tailnonl
+-c -1 tailnonl
+-c -2 tailnonl
+-c -3 tailnonl
+-c +1 tailnonl
+-c +2 tailnonl
+-c +3 tailnonl
+-c +5 tailnonl
+-c +10 tailnonl
+-c +100 tailnonl
+-c +1000 tailnonl
+long.x
+-n 1 long.x
+-n 2 long.x
+-n 5 long.x
+-n 10 long.x
+-n 11 long.x
+-n 100 long.x
+-n 101 long.x
+-n -1 long.x
+-n -2 long.x
+-n -10 long.x
+-n -11 long.x
+-n +1 long.x
+-n +2 long.x
+-n +3 long.x
+-n +10 long.x
+-n +11 long.x
+-n +12 long.x
+-n +100 long.x
+-n +101 long.x
+-c 1 long.x
+-c 2 long.x
+-c 3 long.x
+-c 5 long.x
+-c 10 long.x
+-c 100 long.x
+-c -1 long.x
+-c -2 long.x
+-c -3 long.x
+-c +1 long.x
+-c +2 long.x
+-c +3 long.x
+-c +5 long.x
+-c +10 long.x
+-c +100 long.x
+-c +1000 long.x
+
+# --- zeros and signs: -n 0, -c 0, +0 (the spec wants a non-zero count after a +)
+-n 0 ten
+-n -0 ten
+-n +0 ten
+-c 0 ten
+-c -0 ten
+-c +0 ten
+-n 0 empty
+-n -0 empty
+-n +0 empty
+-c 0 empty
+-c -0 empty
+-c +0 empty
+-n 0 eol.none
+-n -0 eol.none
+-n +0 eol.none
+-c 0 eol.none
+-c -0 eol.none
+-c +0 eol.none
+
+# --- a big file and counts larger than any buffer
+ big
+-n 1 big
+-n 10 big
+-n 1000 big
+-n 100000 big
+-n 199999 big
+-n 200000 big
+-n 200001 big
+-n +1 big
+-n +2 big
+-n +100000 big
+-n +199999 big
+-n +200000 big
+-n +200001 big
+-c 1 big
+-c 100 big
+-c 20480 big
+-c 20481 big
+-c 100000 big
+-c 1000000 big
+-c 1288895 big
+-c 1288896 big
+-c 1288897 big
+-c +1 big
+-c +1288895 big
+-c +1288896 big
+-c +1288897 big
+-c +1000000 big
+
+# --- standard input
+in:ten
+in:ten -
+in:ten -n 1
+in:ten -n 1 -
+in:ten -n 3
+in:ten -n 3 -
+in:ten -n 10
+in:ten -n 10 -
+in:ten -n 99999
+in:ten -n 99999 -
+in:ten -n +1
+in:ten -n +1 -
+in:ten -n +3
+in:ten -n +3 -
+in:ten -n +99999
+in:ten -n +99999 -
+in:ten -c 1
+in:ten -c 1 -
+in:ten -c 7
+in:ten -c 7 -
+in:ten -c +1
+in:ten -c +1 -
+in:ten -c +7
+in:ten -c +7 -
+in:ten -c 99999
+in:ten -c 99999 -
+in:lines.n
+in:lines.n -
+in:lines.n -n 1
+in:lines.n -n 1 -
+in:lines.n -n 3
+in:lines.n -n 3 -
+in:lines.n -n 10
+in:lines.n -n 10 -
+in:lines.n -n 99999
+in:lines.n -n 99999 -
+in:lines.n -n +1
+in:lines.n -n +1 -
+in:lines.n -n +3
+in:lines.n -n +3 -
+in:lines.n -n +99999
+in:lines.n -n +99999 -
+in:lines.n -c 1
+in:lines.n -c 1 -
+in:lines.n -c 7
+in:lines.n -c 7 -
+in:lines.n -c +1
+in:lines.n -c +1 -
+in:lines.n -c +7
+in:lines.n -c +7 -
+in:lines.n -c 99999
+in:lines.n -c 99999 -
+in:eol.none
+in:eol.none -
+in:eol.none -n 1
+in:eol.none -n 1 -
+in:eol.none -n 3
+in:eol.none -n 3 -
+in:eol.none -n 10
+in:eol.none -n 10 -
+in:eol.none -n 99999
+in:eol.none -n 99999 -
+in:eol.none -n +1
+in:eol.none -n +1 -
+in:eol.none -n +3
+in:eol.none -n +3 -
+in:eol.none -n +99999
+in:eol.none -n +99999 -
+in:eol.none -c 1
+in:eol.none -c 1 -
+in:eol.none -c 7
+in:eol.none -c 7 -
+in:eol.none -c +1
+in:eol.none -c +1 -
+in:eol.none -c +7
+in:eol.none -c +7 -
+in:eol.none -c 99999
+in:eol.none -c 99999 -
+in:eol.one
+in:eol.one -
+in:eol.one -n 1
+in:eol.one -n 1 -
+in:eol.one -n 3
+in:eol.one -n 3 -
+in:eol.one -n 10
+in:eol.one -n 10 -
+in:eol.one -n 99999
+in:eol.one -n 99999 -
+in:eol.one -n +1
+in:eol.one -n +1 -
+in:eol.one -n +3
+in:eol.one -n +3 -
+in:eol.one -n +99999
+in:eol.one -n +99999 -
+in:eol.one -c 1
+in:eol.one -c 1 -
+in:eol.one -c 7
+in:eol.one -c 7 -
+in:eol.one -c +1
+in:eol.one -c +1 -
+in:eol.one -c +7
+in:eol.one -c +7 -
+in:eol.one -c 99999
+in:eol.one -c 99999 -
+in:nl.only
+in:nl.only -
+in:nl.only -n 1
+in:nl.only -n 1 -
+in:nl.only -n 3
+in:nl.only -n 3 -
+in:nl.only -n 10
+in:nl.only -n 10 -
+in:nl.only -n 99999
+in:nl.only -n 99999 -
+in:nl.only -n +1
+in:nl.only -n +1 -
+in:nl.only -n +3
+in:nl.only -n +3 -
+in:nl.only -n +99999
+in:nl.only -n +99999 -
+in:nl.only -c 1
+in:nl.only -c 1 -
+in:nl.only -c 7
+in:nl.only -c 7 -
+in:nl.only -c +1
+in:nl.only -c +1 -
+in:nl.only -c +7
+in:nl.only -c +7 -
+in:nl.only -c 99999
+in:nl.only -c 99999 -
+in:nl.many
+in:nl.many -
+in:nl.many -n 1
+in:nl.many -n 1 -
+in:nl.many -n 3
+in:nl.many -n 3 -
+in:nl.many -n 10
+in:nl.many -n 10 -
+in:nl.many -n 99999
+in:nl.many -n 99999 -
+in:nl.many -n +1
+in:nl.many -n +1 -
+in:nl.many -n +3
+in:nl.many -n +3 -
+in:nl.many -n +99999
+in:nl.many -n +99999 -
+in:nl.many -c 1
+in:nl.many -c 1 -
+in:nl.many -c 7
+in:nl.many -c 7 -
+in:nl.many -c +1
+in:nl.many -c +1 -
+in:nl.many -c +7
+in:nl.many -c +7 -
+in:nl.many -c 99999
+in:nl.many -c 99999 -
+in:empty
+in:empty -
+in:empty -n 1
+in:empty -n 1 -
+in:empty -n 3
+in:empty -n 3 -
+in:empty -n 10
+in:empty -n 10 -
+in:empty -n 99999
+in:empty -n 99999 -
+in:empty -n +1
+in:empty -n +1 -
+in:empty -n +3
+in:empty -n +3 -
+in:empty -n +99999
+in:empty -n +99999 -
+in:empty -c 1
+in:empty -c 1 -
+in:empty -c 7
+in:empty -c 7 -
+in:empty -c +1
+in:empty -c +1 -
+in:empty -c +7
+in:empty -c +7 -
+in:empty -c 99999
+in:empty -c 99999 -
+in:crlf
+in:crlf -
+in:crlf -n 1
+in:crlf -n 1 -
+in:crlf -n 3
+in:crlf -n 3 -
+in:crlf -n 10
+in:crlf -n 10 -
+in:crlf -n 99999
+in:crlf -n 99999 -
+in:crlf -n +1
+in:crlf -n +1 -
+in:crlf -n +3
+in:crlf -n +3 -
+in:crlf -n +99999
+in:crlf -n +99999 -
+in:crlf -c 1
+in:crlf -c 1 -
+in:crlf -c 7
+in:crlf -c 7 -
+in:crlf -c +1
+in:crlf -c +1 -
+in:crlf -c +7
+in:crlf -c +7 -
+in:crlf -c 99999
+in:crlf -c 99999 -
+in:nul
+in:nul -
+in:nul -n 1
+in:nul -n 1 -
+in:nul -n 3
+in:nul -n 3 -
+in:nul -n 10
+in:nul -n 10 -
+in:nul -n 99999
+in:nul -n 99999 -
+in:nul -n +1
+in:nul -n +1 -
+in:nul -n +3
+in:nul -n +3 -
+in:nul -n +99999
+in:nul -n +99999 -
+in:nul -c 1
+in:nul -c 1 -
+in:nul -c 7
+in:nul -c 7 -
+in:nul -c +1
+in:nul -c +1 -
+in:nul -c +7
+in:nul -c +7 -
+in:nul -c 99999
+in:nul -c 99999 -
+in:invalid
+in:invalid -
+in:invalid -n 1
+in:invalid -n 1 -
+in:invalid -n 3
+in:invalid -n 3 -
+in:invalid -n 10
+in:invalid -n 10 -
+in:invalid -n 99999
+in:invalid -n 99999 -
+in:invalid -n +1
+in:invalid -n +1 -
+in:invalid -n +3
+in:invalid -n +3 -
+in:invalid -n +99999
+in:invalid -n +99999 -
+in:invalid -c 1
+in:invalid -c 1 -
+in:invalid -c 7
+in:invalid -c 7 -
+in:invalid -c +1
+in:invalid -c +1 -
+in:invalid -c +7
+in:invalid -c +7 -
+in:invalid -c 99999
+in:invalid -c 99999 -
+in:u8
+in:u8 -
+in:u8 -n 1
+in:u8 -n 1 -
+in:u8 -n 3
+in:u8 -n 3 -
+in:u8 -n 10
+in:u8 -n 10 -
+in:u8 -n 99999
+in:u8 -n 99999 -
+in:u8 -n +1
+in:u8 -n +1 -
+in:u8 -n +3
+in:u8 -n +3 -
+in:u8 -n +99999
+in:u8 -n +99999 -
+in:u8 -c 1
+in:u8 -c 1 -
+in:u8 -c 7
+in:u8 -c 7 -
+in:u8 -c +1
+in:u8 -c +1 -
+in:u8 -c +7
+in:u8 -c +7 -
+in:u8 -c 99999
+in:u8 -c 99999 -
+in:gaps
+in:gaps -
+in:gaps -n 1
+in:gaps -n 1 -
+in:gaps -n 3
+in:gaps -n 3 -
+in:gaps -n 10
+in:gaps -n 10 -
+in:gaps -n 99999
+in:gaps -n 99999 -
+in:gaps -n +1
+in:gaps -n +1 -
+in:gaps -n +3
+in:gaps -n +3 -
+in:gaps -n +99999
+in:gaps -n +99999 -
+in:gaps -c 1
+in:gaps -c 1 -
+in:gaps -c 7
+in:gaps -c 7 -
+in:gaps -c +1
+in:gaps -c +1 -
+in:gaps -c +7
+in:gaps -c +7 -
+in:gaps -c 99999
+in:gaps -c 99999 -
+in:tailnonl
+in:tailnonl -
+in:tailnonl -n 1
+in:tailnonl -n 1 -
+in:tailnonl -n 3
+in:tailnonl -n 3 -
+in:tailnonl -n 10
+in:tailnonl -n 10 -
+in:tailnonl -n 99999
+in:tailnonl -n 99999 -
+in:tailnonl -n +1
+in:tailnonl -n +1 -
+in:tailnonl -n +3
+in:tailnonl -n +3 -
+in:tailnonl -n +99999
+in:tailnonl -n +99999 -
+in:tailnonl -c 1
+in:tailnonl -c 1 -
+in:tailnonl -c 7
+in:tailnonl -c 7 -
+in:tailnonl -c +1
+in:tailnonl -c +1 -
+in:tailnonl -c +7
+in:tailnonl -c +7 -
+in:tailnonl -c 99999
+in:tailnonl -c 99999 -
+in:long.x
+in:long.x -
+in:long.x -n 1
+in:long.x -n 1 -
+in:long.x -n 3
+in:long.x -n 3 -
+in:long.x -n 10
+in:long.x -n 10 -
+in:long.x -n 99999
+in:long.x -n 99999 -
+in:long.x -n +1
+in:long.x -n +1 -
+in:long.x -n +3
+in:long.x -n +3 -
+in:long.x -n +99999
+in:long.x -n +99999 -
+in:long.x -c 1
+in:long.x -c 1 -
+in:long.x -c 7
+in:long.x -c 7 -
+in:long.x -c +1
+in:long.x -c +1 -
+in:long.x -c +7
+in:long.x -c +7 -
+in:long.x -c 99999
+in:long.x -c 99999 -
+in:stdin.big
+in:stdin.big -
+in:stdin.big -n 1
+in:stdin.big -n 1 -
+in:stdin.big -n 3
+in:stdin.big -n 3 -
+in:stdin.big -n 10
+in:stdin.big -n 10 -
+in:stdin.big -n 99999
+in:stdin.big -n 99999 -
+in:stdin.big -n +1
+in:stdin.big -n +1 -
+in:stdin.big -n +3
+in:stdin.big -n +3 -
+in:stdin.big -n +99999
+in:stdin.big -n +99999 -
+in:stdin.big -c 1
+in:stdin.big -c 1 -
+in:stdin.big -c 7
+in:stdin.big -c 7 -
+in:stdin.big -c +1
+in:stdin.big -c +1 -
+in:stdin.big -c +7
+in:stdin.big -c +7 -
+in:stdin.big -c 99999
+in:stdin.big -c 99999 -
+
+# --- the option-argument
+-n '01' ten
+-c '01' ten
+-n '007' ten
+-c '007' ten
+-n '+1' ten
+-c '+1' ten
+-n '-1' ten
+-c '-1' ten
+-n '+01' ten
+-c '+01' ten
+-n '-01' ten
+-c '-01' ten
+-n '0' ten
+-c '0' ten
+-n '+0' ten
+-c '+0' ten
+-n '-0' ten
+-c '-0' ten
+-n ' 1' ten
+-c ' 1' ten
+-n '1 ' ten
+-c '1 ' ten
+-n '1x' ten
+-c '1x' ten
+-n 'x' ten
+-c 'x' ten
+-n '0x1' ten
+-c '0x1' ten
+-n '1e1' ten
+-c '1e1' ten
+-n '1.5' ten
+-c '1.5' ten
+-n ',1' ten
+-c ',1' ten
+-n '' ten
+-c '' ten
+-n '+-1' ten
+-c '+-1' ten
+-n '-+1' ten
+-c '-+1' ten
+-n '--1' ten
+-c '--1' ten
+-n '++1' ten
+-c '++1' ten
+-n '4294967295' ten
+-c '4294967295' ten
+-n '4294967296' ten
+-c '4294967296' ten
+-n '9223372036854775807' ten
+-c '9223372036854775807' ten
+-n '9223372036854775808' ten
+-c '9223372036854775808' ten
+-n '+9223372036854775807' ten
+-c '+9223372036854775807' ten
+-n '+9223372036854775808' ten
+-c '+9223372036854775808' ten
+-n '-9223372036854775808' ten
+-c '-9223372036854775808' ten
+-n '-9223372036854775809' ten
+-c '-9223372036854775809' ten
+-n '18446744073709551616' ten
+-c '18446744073709551616' ten
+-n '99999999999999999999' ten
+-c '99999999999999999999' ten
+-n '+99999999999999999999' ten
+-c '+99999999999999999999' ten
+-n '-99999999999999999999' ten
+-c '-99999999999999999999' ten
+-n1 ten
+-n10 ten
+-n+3 ten
+-n-3 ten
+-c3 ten
+-c+3 ten
+-c-3 ten
+-n 3 -n 2 ten
+-n 2 -n 3 ten
+-n 3 -n +2 ten
+-n +2 -n 3 ten
+-c 3 -c 2 ten
+-n 3 -c 4 ten
+-c 4 -n 3 ten
+-n 1 -n x ten
+-n x -n 1 ten
+-n 1 -- ten
+-n 1 ten -n 2
+ten -n 2
+-- -n ten
+-- ten
+-- ./-n
+-n 1 ./-n
+-n 1 -- ./-n
+-n -- ./-n
+-n
+-c
+-n 1 -n
+-nn ten
+-cc ten
+-nc ten
+-n1c ten
+-n 3l ten
+-c 3c ten
+-n 3k ten
+-c 3b ten
+-c 1K ten
+-c 1M ten
+-q ten
+-v ten
+-z ten
+-r ten
+-s 1 ten
+--lines=2 ten
+--bytes=2 ten
+-3 ten
+-33 ten
++3 ten
++33 ten
+-0 ten
++0 ten
+-1 -2 ten
++1 -1 ten
+-3 ten -n 1
+-2c ten
+-2l ten
++2c ten
++2l ten
+-2n ten
+-3 -n 1 ten
+-h
+--help
+--version
+-x ten
+-n 2 -x ten
+-ten
+-
+-n 3 -
+-c 3 -
+-n 3 -- -
+-c +2 -
+-n +2 -
+-n 2 ten eleven
+-n 2 ten ten
+-n 2 ten nosuch
+-n 2 nosuch
+-n 2 nosuch ten
+-n 2 d
+-n 2 d ten
+-n 2 ./-n
+-n 2 'a b'
+-n 2 ''
+-n 2 /dev/null
+-c 2 /dev/null
+-n +2 /dev/null
+-n 2 ten ''

@@ -1,0 +1,229 @@
+# macOS tail does not take - for standard input (the spec allows either)
+-
+-c +2 -
+-n 3 -
+-n 3 -- -
+in:crlf -
+in:crlf -c +1 -
+in:crlf -c +7 -
+in:crlf -c 1 -
+in:crlf -c 7 -
+in:crlf -c 99999 -
+in:crlf -n +1 -
+in:crlf -n +3 -
+in:crlf -n +99999 -
+in:crlf -n 1 -
+in:crlf -n 10 -
+in:crlf -n 3 -
+in:crlf -n 99999 -
+in:empty -
+in:empty -c +1 -
+in:empty -c +7 -
+in:empty -c 1 -
+in:empty -c 7 -
+in:empty -c 99999 -
+in:empty -n +1 -
+in:empty -n +3 -
+in:empty -n +99999 -
+in:empty -n 1 -
+in:empty -n 10 -
+in:empty -n 3 -
+in:empty -n 99999 -
+in:eol.none -
+in:eol.none -c +1 -
+in:eol.none -c +7 -
+in:eol.none -c 1 -
+in:eol.none -c 7 -
+in:eol.none -c 99999 -
+in:eol.none -n +1 -
+in:eol.none -n +3 -
+in:eol.none -n +99999 -
+in:eol.none -n 1 -
+in:eol.none -n 10 -
+in:eol.none -n 3 -
+in:eol.none -n 99999 -
+in:eol.one -
+in:eol.one -c +1 -
+in:eol.one -c +7 -
+in:eol.one -c 1 -
+in:eol.one -c 7 -
+in:eol.one -c 99999 -
+in:eol.one -n +1 -
+in:eol.one -n +3 -
+in:eol.one -n +99999 -
+in:eol.one -n 1 -
+in:eol.one -n 10 -
+in:eol.one -n 3 -
+in:eol.one -n 99999 -
+in:gaps -
+in:gaps -c +1 -
+in:gaps -c +7 -
+in:gaps -c 1 -
+in:gaps -c 7 -
+in:gaps -c 99999 -
+in:gaps -n +1 -
+in:gaps -n +3 -
+in:gaps -n +99999 -
+in:gaps -n 1 -
+in:gaps -n 10 -
+in:gaps -n 3 -
+in:gaps -n 99999 -
+in:invalid -
+in:invalid -c +1 -
+in:invalid -c +7 -
+in:invalid -c 1 -
+in:invalid -c 7 -
+in:invalid -c 99999 -
+in:invalid -n +1 -
+in:invalid -n +3 -
+in:invalid -n +99999 -
+in:invalid -n 1 -
+in:invalid -n 10 -
+in:invalid -n 3 -
+in:invalid -n 99999 -
+in:lines.n -
+in:lines.n -c +1 -
+in:lines.n -c +7 -
+in:lines.n -c 1 -
+in:lines.n -c 7 -
+in:lines.n -c 99999 -
+in:lines.n -n +1 -
+in:lines.n -n +3 -
+in:lines.n -n +99999 -
+in:lines.n -n 1 -
+in:lines.n -n 10 -
+in:lines.n -n 3 -
+in:lines.n -n 99999 -
+in:long.x -
+in:long.x -c +1 -
+in:long.x -c +7 -
+in:long.x -c 1 -
+in:long.x -c 7 -
+in:long.x -c 99999 -
+in:long.x -n +1 -
+in:long.x -n +3 -
+in:long.x -n +99999 -
+in:long.x -n 1 -
+in:long.x -n 10 -
+in:long.x -n 3 -
+in:long.x -n 99999 -
+in:nl.many -
+in:nl.many -c +1 -
+in:nl.many -c +7 -
+in:nl.many -c 1 -
+in:nl.many -c 7 -
+in:nl.many -c 99999 -
+in:nl.many -n +1 -
+in:nl.many -n +3 -
+in:nl.many -n +99999 -
+in:nl.many -n 1 -
+in:nl.many -n 10 -
+in:nl.many -n 3 -
+in:nl.many -n 99999 -
+in:nl.only -
+in:nl.only -c +1 -
+in:nl.only -c +7 -
+in:nl.only -c 1 -
+in:nl.only -c 7 -
+in:nl.only -c 99999 -
+in:nl.only -n +1 -
+in:nl.only -n +3 -
+in:nl.only -n +99999 -
+in:nl.only -n 1 -
+in:nl.only -n 10 -
+in:nl.only -n 3 -
+in:nl.only -n 99999 -
+in:nul -
+in:nul -c +1 -
+in:nul -c +7 -
+in:nul -c 1 -
+in:nul -c 7 -
+in:nul -c 99999 -
+in:nul -n +1 -
+in:nul -n +3 -
+in:nul -n +99999 -
+in:nul -n 1 -
+in:nul -n 10 -
+in:nul -n 3 -
+in:nul -n 99999 -
+in:stdin.big -
+in:stdin.big -c +1 -
+in:stdin.big -c +7 -
+in:stdin.big -c 1 -
+in:stdin.big -c 7 -
+in:stdin.big -c 99999 -
+in:stdin.big -n +1 -
+in:stdin.big -n +3 -
+in:stdin.big -n +99999 -
+in:stdin.big -n 1 -
+in:stdin.big -n 10 -
+in:stdin.big -n 3 -
+in:stdin.big -n 99999 -
+in:tailnonl -
+in:tailnonl -c +1 -
+in:tailnonl -c +7 -
+in:tailnonl -c 1 -
+in:tailnonl -c 7 -
+in:tailnonl -c 99999 -
+in:tailnonl -n +1 -
+in:tailnonl -n +3 -
+in:tailnonl -n +99999 -
+in:tailnonl -n 1 -
+in:tailnonl -n 10 -
+in:tailnonl -n 3 -
+in:tailnonl -n 99999 -
+in:ten -
+in:ten -c +1 -
+in:ten -c +7 -
+in:ten -c 1 -
+in:ten -c 7 -
+in:ten -c 99999 -
+in:ten -n +1 -
+in:ten -n +3 -
+in:ten -n +99999 -
+in:ten -n 1 -
+in:ten -n 10 -
+in:ten -n 3 -
+in:ten -n 99999 -
+in:u8 -
+in:u8 -c +1 -
+in:u8 -c +7 -
+in:u8 -c 1 -
+in:u8 -c 7 -
+in:u8 -c 99999 -
+in:u8 -n +1 -
+in:u8 -n +3 -
+in:u8 -n +99999 -
+in:u8 -n 1 -
+in:u8 -n 10 -
+in:u8 -n 3 -
+in:u8 -n 99999 -
+
+# the last of -c and -n wins here; macOS refuses to have both or either twice
+-c 3 -c 2 ten
+-c 4 -n 3 ten
+-n 2 -n 3 ten
+-n 3 -c 4 ten
+-n 3 -n +2 ten
+-n 3 -n 2 ten
+
+# macOS reads the count with strtoll (0x1 and 1e1 are 1) and refuses one that does not fit; GNU and we refuse the first two, a huge count means all
+-c '+99999999999999999999' ten
+-c '-9223372036854775808' ten
+-c '-9223372036854775809' ten
+-c '-99999999999999999999' ten
+-c '0x1' ten
+-c '18446744073709551616' ten
+-c '1e1' ten
+-c '9223372036854775808' ten
+-c '99999999999999999999' ten
+-n '+99999999999999999999' ten
+-n '-99999999999999999999' ten
+-n '0x1' ten
+-n '18446744073709551616' ten
+-n '1e1' ten
+-n '99999999999999999999' ten
+
+# macOS has -r; the obsolete -number form: macOS takes it after an option too
+-3 ten -n 1
+-r ten

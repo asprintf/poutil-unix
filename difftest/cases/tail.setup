@@ -8,3 +8,8 @@ printf 'dash\n' > ./-f
 printf 'sp\n' > 'a b'
 for i in 1 2 3; do head -c 70000 /dev/zero | tr '\000' x; echo; done > long
 mkdir d
+
+# the corpus in tail.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+seq 1 200000 > big
+printf 'dash n\n' > ./-n
