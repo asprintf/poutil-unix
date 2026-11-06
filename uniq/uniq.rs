@@ -40,6 +40,9 @@ fn key<'a>(line: &'a [u8], o: &Opts) -> &'a [u8] {
     }
     let mut i = 0;
     for _ in 0..o.fields {
+        if i >= line.len() {
+            break;
+        }
         while i < line.len() {
             let (n, blank) = posix::mb::blank_at(&line[i..]);
             if !blank {
@@ -265,6 +268,8 @@ mod tests {
         /* more fields than the line has: the null string */
         assert_eq!(skip(5, 0, "a b\nc\n\n"), "a b\n");
         assert_eq!(skip(1, 0, "a\nb\n"), "a\n");
+        /* more fields than any line has is all fields: a null string, and no time spent on the rest */
+        assert_eq!(skip(usize::MAX, 0, "a b\nc\n\n"), "a b\n");
     }
 
     #[test]
