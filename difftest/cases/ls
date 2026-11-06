@@ -256,3 +256,22 @@ fut
 -l dl
 -RH dl
 
+
+# --- 2026-11-06: each case tests one rule of the spec (the trees are in .n)
+# names beyond ASCII sort by the collating sequence and those that collate equal by bytes (the "should" of DESCRIPTION); -S with equal sizes falls back to the name
+.n/u8
+-r .n/u8
+-S .n/u8
+# -q writes a non-printable character or a tab as ?, as the locale sees it: control characters, DEL, NEL and a zero width space are not printable, a joiner, a combining mark, a no-break space and an emoji are not all of them
+.n/q
+-q .n/q
+# -m fits the names within 80 columns, and an emoji or a CJK character takes two: 30 names of emoji, then of CJK
+-m .n/w
+-m .n/cj
+# date and time: within the last six months the time of day, older or in the future the year (r100 is 100 days old, r250 250, fut is in 2030)
+-l .n/r100 .n/r250 fut
+# sizes around the block, in 1024 byte units; the total line of -l counts the same blocks
+-lsk .n/sz
+-lSr .n/sz
+# a hard link: the link count is 3 for the three names of h0
+-l .n/h0 .n/h1 .n/h2

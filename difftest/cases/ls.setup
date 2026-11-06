@@ -17,3 +17,18 @@ touch -h -t 200101010101 lf ld dang d/uplink d/sublink d/sub/up 2>/dev/null
 touch -t 200001010000 .hidden .hid2 d/.dot
 touch -t 200101010101 dl/ok dl
 touch -h -t 200101010101 dl/dang 2>/dev/null
+
+# 2026-11-06: in the hidden directory .n, so the older cases do not list them: names beyond ASCII, names that are not printable, wide names, sizes around a block, recent and old times
+mkdir -p .n/u8 .n/q .n/w .n/sz
+cd .n
+for n in é e E z Z 😂 🇩🇪 日本語 ñ ß ae æ 'a b' A ä; do : > "u8/$n"; done
+: > "q/$(printf 'c\001d')"; : > "q/$(printf 'e\033f')"; : > "q/$(printf 'g\177h')"; : > "q/$(printf 'i\tj')"
+: > "q/k$(printf '\302\205')l"; : > "q/m$(printf '\342\200\213')n"; : > "q/o$(printf '\342\200\215')p"
+: > "q/a$(printf '\314\201')"; : > "q/n$(printf '\302\240')b"; : > 'q/😂'; : > q/plain
+mkdir cj
+for n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do : > "w/😂$n"; : > "cj/日本語$n"; done
+: > sz/s0; printf x > sz/s1; head -c 4095 /dev/zero > sz/s4095; head -c 4096 /dev/zero > sz/s4096; head -c 4097 /dev/zero > sz/s4097; head -c 8192 /dev/zero > sz/s8192; head -c 1048576 /dev/zero > sz/s1M
+: > r100; : > r250; : > h0; ln h0 h1; ln h0 h2
+perl -e '$n=time; utime($n-100*86400,$n-100*86400,"r100"); utime($n-250*86400,$n-250*86400,"r250")'
+touch -t 200101010101 u8 u8/* q q/* w w/* cj cj/* sz sz/* h0 h1 h2 .
+cd ..

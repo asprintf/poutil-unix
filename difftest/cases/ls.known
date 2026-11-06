@@ -89,3 +89,11 @@
 # silence and exits 0, GNU lists it with question marks.
 -RL dl
 -lL dl
+
+# --- 2026-11-06 cases
+# non-ASCII names that collate equal: macOS and GNU keep the order of the directory, here they are compared by bytes (the "should" of DESCRIPTION)
+.n/u8
+-S .n/u8
+# -m in the C locale: macOS and GNU give a byte of a multibyte character no column, here it is one; in UTF-8 GNU and we count the columns of each name, macOS breaks one name earlier (see -m above)
+-m .n/w
+-m .n/cj
