@@ -18,3 +18,6 @@ printf '   \n\t\n' > blank
 printf 'secret\tx\n' > noread
 chmod 000 noread
 mkdir dir
+
+# the corpus in expand.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .

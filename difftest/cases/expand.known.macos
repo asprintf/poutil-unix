@@ -1,0 +1,79 @@
+# macOS: non-ASCII bytes take no column in the C locale, an invalid UTF-8 sequence stops it, the operand - is a file
+-t 1 t.all256_lines
+-t 1 w.all256_lines
+-t 2 t.emoji_skin w.emoji_skin w.cjk_lines t.cjk_lines
+-t 4 t.emoji_basic w.emoji_basic t.emoji_zwj w.emoji_zwj
+-t 5,9,13 w.emoji_basic w.emoji_keycap w.emoji_tags w.emoji_vs16
+-t 6 w.combining t.combining w.mixed_scripts
+emoji_tabs
+in:t.cjk_lines -
+in:t.cjk_lines -t 3,10 -
+in:t.combining
+in:t.combining -
+in:t.combining -t 3,10 -
+in:t.combining -t 4
+in:t.emoji_basic
+in:t.emoji_basic -
+in:t.emoji_basic - t.emoji_zwj
+in:t.emoji_basic -t 3,10 -
+in:t.emoji_basic t.emoji_zwj -
+in:t.emoji_flags -
+in:t.emoji_flags -t 3,10 -
+in:t.emoji_skin -
+in:t.emoji_skin -t 3,10 -
+in:t.emoji_zwj -
+in:t.emoji_zwj -t 3,10 -
+in:t.invalid_in_emoji
+in:t.invalid_in_emoji -
+in:t.invalid_in_emoji -t 3,10 -
+in:t.invalid_in_emoji -t 4
+in:t.mixed_scripts
+in:t.mixed_scripts -
+in:t.mixed_scripts -t 3,10 -
+in:t.mixed_scripts -t 4
+in:t.space_2003 -
+in:t.space_2003 -t 3,10 -
+in:t.width_1234 -
+in:t.width_1234 -t 3,10 -
+in:w.cjk_lines
+in:w.cjk_lines -
+in:w.cjk_lines - w.cjk_lines -
+in:w.cjk_lines -t 3,10 -
+in:w.cjk_lines -t 4
+in:w.combining
+in:w.combining -
+in:w.combining -t 3,10 -
+in:w.combining -t 4
+in:w.emoji_basic
+in:w.emoji_basic -
+in:w.emoji_basic -t 3,10 -
+in:w.emoji_flags
+in:w.emoji_flags -
+in:w.emoji_flags -t 3,10 -
+in:w.emoji_skin
+in:w.emoji_skin -
+in:w.emoji_skin -t 3,10 -
+in:w.emoji_zwj
+in:w.emoji_zwj -
+in:w.emoji_zwj -t 3,10 -
+in:w.emoji_zwj -t 4
+in:w.invalid_in_emoji
+in:w.invalid_in_emoji -
+in:w.invalid_in_emoji -t 3,10 -
+in:w.invalid_in_emoji -t 4
+in:w.mixed_scripts
+in:w.mixed_scripts -
+in:w.mixed_scripts -t 3,10 -
+in:w.mixed_scripts -t 4
+in:w.space_2003
+in:w.space_2003 -
+in:w.space_2003 -t 3,10 -
+in:w.space_2003 -t 4
+in:w.width_1234
+in:w.width_1234 -
+in:w.width_1234 -t 3,10 -
+in:w.width_1234 -t 4
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+t.emoji_flags w.emoji_flags

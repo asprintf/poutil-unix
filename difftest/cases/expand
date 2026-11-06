@@ -81,3 +81,431 @@ latin1
 blank
 long
 -t 2 long
+
+# --- 2026-11-06: emoji, CJK, combining marks, Unicode spaces and invalid bytes: tabs after blanks (t.) and after every wide character (w.), and the plain files
+t.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+w.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 4 t.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 4 w.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 3,10 t.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 3,10 w.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 1 t.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 1 w.all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+all256_lines
+bom
+cjk_lines
+combining
+emoji_basic
+emoji_crlf
+emoji_flags
+emoji_keycap
+emoji_lines
+emoji_max
+emoji_noeol
+emoji_nospace
+emoji_nul
+emoji_only_newlines
+emoji_sentence
+emoji_skin
+emoji_tabs
+emoji_tags
+emoji_vs16
+emoji_zwj
+emoji_zwj2
+invalid_after_emoji
+invalid_cont
+invalid_in_emoji
+mixed_scripts
+nl_align
+nonchar_fffe
+noneol_cjk
+space_0085
+space_00a0
+space_1680
+space_2003
+space_200b
+space_2028
+space_3000
+width_1234
+-t 4 t.emoji_basic w.emoji_basic t.emoji_zwj w.emoji_zwj
+t.emoji_flags w.emoji_flags
+-t 2 t.emoji_skin w.emoji_skin w.cjk_lines t.cjk_lines
+-t 6 w.combining t.combining w.mixed_scripts
+-t 5,9,13 w.emoji_basic w.emoji_keycap w.emoji_tags w.emoji_vs16
+
+# --- standard input, alone and with "-"
+in:t.emoji_basic
+in:t.emoji_basic -t 4
+in:t.emoji_basic -
+in:t.emoji_basic -t 3,10 -
+in:w.emoji_basic
+in:w.emoji_basic -t 4
+in:w.emoji_basic -
+in:w.emoji_basic -t 3,10 -
+in:t.emoji_zwj
+in:t.emoji_zwj -t 4
+in:t.emoji_zwj -
+in:t.emoji_zwj -t 3,10 -
+in:w.emoji_zwj
+in:w.emoji_zwj -t 4
+in:w.emoji_zwj -
+in:w.emoji_zwj -t 3,10 -
+in:t.emoji_flags
+in:t.emoji_flags -t 4
+in:t.emoji_flags -
+in:t.emoji_flags -t 3,10 -
+in:w.emoji_flags
+in:w.emoji_flags -t 4
+in:w.emoji_flags -
+in:w.emoji_flags -t 3,10 -
+in:t.emoji_skin
+in:t.emoji_skin -t 4
+in:t.emoji_skin -
+in:t.emoji_skin -t 3,10 -
+in:w.emoji_skin
+in:w.emoji_skin -t 4
+in:w.emoji_skin -
+in:w.emoji_skin -t 3,10 -
+in:t.cjk_lines
+in:t.cjk_lines -t 4
+in:t.cjk_lines -
+in:t.cjk_lines -t 3,10 -
+in:w.cjk_lines
+in:w.cjk_lines -t 4
+in:w.cjk_lines -
+in:w.cjk_lines -t 3,10 -
+in:t.combining
+in:t.combining -t 4
+in:t.combining -
+in:t.combining -t 3,10 -
+in:w.combining
+in:w.combining -t 4
+in:w.combining -
+in:w.combining -t 3,10 -
+in:t.mixed_scripts
+in:t.mixed_scripts -t 4
+in:t.mixed_scripts -
+in:t.mixed_scripts -t 3,10 -
+in:w.mixed_scripts
+in:w.mixed_scripts -t 4
+in:w.mixed_scripts -
+in:w.mixed_scripts -t 3,10 -
+in:t.space_2003
+in:t.space_2003 -t 4
+in:t.space_2003 -
+in:t.space_2003 -t 3,10 -
+in:w.space_2003
+in:w.space_2003 -t 4
+in:w.space_2003 -
+in:w.space_2003 -t 3,10 -
+in:t.width_1234
+in:t.width_1234 -t 4
+in:t.width_1234 -
+in:t.width_1234 -t 3,10 -
+in:w.width_1234
+in:w.width_1234 -t 4
+in:w.width_1234 -
+in:w.width_1234 -t 3,10 -
+in:t.invalid_in_emoji
+in:t.invalid_in_emoji -t 4
+in:t.invalid_in_emoji -
+in:t.invalid_in_emoji -t 3,10 -
+in:w.invalid_in_emoji
+in:w.invalid_in_emoji -t 4
+in:w.invalid_in_emoji -
+in:w.invalid_in_emoji -t 3,10 -
+in:t.all256_lines
+in:t.all256_lines -t 4
+in:t.all256_lines -
+in:t.all256_lines -t 3,10 -
+in:w.all256_lines
+in:w.all256_lines -t 4
+in:w.all256_lines -
+in:w.all256_lines -t 3,10 -
+in:t.emoji_basic t.emoji_zwj -
+in:t.emoji_basic - t.emoji_zwj
+in:w.cjk_lines - w.cjk_lines -
+
+# --- the column after a backspace, a wide character and a tab (bs. w. t.)
+bs
+-t 4 bs
