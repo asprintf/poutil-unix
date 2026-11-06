@@ -291,16 +291,16 @@ fn field_bounds(line: &[u8], n: usize, sep: &Option<Vec<u8>>) -> (usize, usize) 
     }
 }
 
-/* The part of a line a key covers, as (start, end); empty when it ends before it starts. */
+/* The part of a line a key covers, as (start, end); positions count from the start of their field and may pass its end. */
 fn key_range(line: &[u8], k: &Key, sep: &Option<Vec<u8>>) -> (usize, usize) {
     let len = line.len();
-    let (fs, fe) = field_bounds(line, k.f1, sep);
+    let (fs, _) = field_bounds(line, k.f1, sep);
     let mut s = fs;
     if k.b1 {
-        s += blank_prefix(&line[s..fe]);
+        s += blank_prefix(&line[s..]);
     }
     if k.c1 > 1 {
-        s += mb::skip_chars(&line[s..fe], k.c1 - 1);
+        s += mb::skip_chars(&line[s..], k.c1 - 1);
     }
     let e = match k.end {
         None => len,
@@ -311,9 +311,9 @@ fn key_range(line: &[u8], k: &Key, sep: &Option<Vec<u8>>) -> (usize, usize) {
             } else {
                 let mut b = gs;
                 if k.b2 {
-                    b += blank_prefix(&line[b..ge]);
+                    b += blank_prefix(&line[b..]);
                 }
-                b + mb::skip_chars(&line[b..ge], c2)
+                b + mb::skip_chars(&line[b..], c2)
             }
         }
     };
@@ -954,6 +954,18 @@ mod tests {
         for bad in ["", "0", "1.0", "a", "1,", "1,0", "1x", "1,2x", "1.", "-1", "1 ", ",1", "1,2,3"] {
             assert!(parse_keydef(bad.as_bytes()).is_none(), "{bad:?}");
         }
+    }
+
+    #[test]
+    fn character_positions_run_on_past_the_field() {
+        /* key 1.3 of "a z" is "z", of "ab y" is " y", of "abc x" is "c x", of "b a" is "a" */
+        assert_eq!(s(&["-k", "1.3"], "a z\nab y\nabc x\nb a\n"), "ab y\nb a\nabc x\na z\n");
+        /* -k 1.1,1.3 of "ab y" is "ab " and of "ab" is "ab": two keys, so -u keeps both */
+        assert_eq!(s(&["-u", "-k", "1.1,1.3"], "ab y\nab\n"), "ab\nab y\n");
+        /* -b skips the blanks that start the key even when an empty field ends first: with -t ' ' the keys are "a" and "a  b" */
+        assert_eq!(s(&["-t", " ", "-k", "2b"], "b a\n  a  b\n"), "b a\n  a  b\n");
+        /* a start past the end of the line makes every key empty: the lines decide */
+        assert_eq!(s(&["-k", "1.9"], "b\na\n"), "a\nb\n");
     }
 
     #[test]
