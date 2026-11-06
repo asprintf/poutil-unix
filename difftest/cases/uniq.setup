@@ -11,3 +11,7 @@ printf '\303\251a\n\303\250a\n\303\250a\n\342\202\254 x\n\342\202\254 y\n' > utf
 printf 'A\na\nA\nA\n' > case
 printf 'dash\ndash\n' > ./-f
 mkdir d
+
+# the corpus in uniq.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+printf 'old\n' > out_old

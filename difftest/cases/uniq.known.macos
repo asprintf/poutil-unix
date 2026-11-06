@@ -1,0 +1,65 @@
+# macOS compares and prints a line only up to a NUL byte
+-c nul.end
+-c nul.mid
+-d nul.end
+-d nul.mid
+-f 1 nul.mid
+-s 1 nul.end
+-s 1 nul.mid
+-s 2 nul.end
+-s 2 nul.mid
+-s 3 nul.mid
+-u nul.end
+-u nul.mid
+in:nul.end -c
+in:nul.mid
+in:nul.mid -c
+nul.end
+nul.mid
+
+# macOS prints a last line without a newline as it is; GNU and we add the newline
+-c nol.diff
+-c nol.one
+-u nol.diff
+-u nol.one
+in:nol.diff
+in:nol.diff -c
+nol.diff
+nol.diff out
+nol.one
+
+# an output file named -: macOS makes a file of that name, GNU and we write to standard output (the spec leaves it open)
+- -
+-c plain -
+in:runs.len - -
+in:runs.len -c - -
+plain -
+
+# macOS refuses -f and -s from 4294967295 up
+-f 18446744073709551615 f.keys
+-f 18446744073709551616 f.keys
+-f 4294967295 f.keys
+-f 4294967296 f.keys
+-f 99999999999999999999 -c f.keys
+-f 99999999999999999999 f.keys
+-s 18446744073709551616 s.short
+-s 4294967296 s.short
+-s 99999999999999999999 s.short
+
+# obsolete -N and +N: macOS takes them
++1 -1 plain
++1 plain
++2 plain
+
+# macOS compares with strcoll (LC_COLLATE): uniq has none, lines that differ only in marks or spaces are equal there
+-c -s 1 s.u8
+-c emoji.zwj
+-d -s 1 s.u8
+-s 1 emoji.zwj
+-s 1 s.u8
+-s 2 emoji.zwj
+-s 2 f.u8blank
+-u -s 1 s.u8
+emoji.zwj
+in:s.u8 -s 1
+s.u8

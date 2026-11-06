@@ -5,3 +5,30 @@ nul
 -c nul
 # -d with -u is a usage error here; macOS and GNU accept both
 -d -u plain
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# extensions of both: -D -i and the long options
+--count plain
+--repeated plain
+--skip-fields=1 plain
+--unique plain
+-D plain
+-i plain
+
+# obsolete -N: both take them
+-1 plain
+-2 plain
+
+# -d with -u (and -c with both) is a usage error here; the references take it
+-c -d -u runs.len
+-cdu f.keys
+-d -u runs.len
+-du f.keys
+-u -d runs.len
+-ud f.keys
+
+# a field count with a leading blank: the references take it, the spec wants digits only
+-f ' 1' f.keys
+
+# the input is also the output (unspecified): the references run, we refuse
+plain plain

@@ -66,3 +66,424 @@ plain out extra
 d
 plain nosuchdir/out
 -d -u plain
+
+# --- 2026-11-06: adjacent lines only, the trailing newline is not compared
+runs.nonadj
+-c runs.nonadj
+-d runs.nonadj
+-u runs.nonadj
+runs.len
+-c runs.len
+-d runs.len
+-u runs.len
+-cd runs.len
+-cu runs.len
+cr
+-c cr
+-d cr
+-u cr
+-f 1 cr
+-s 1 cr
+nol.dup
+-c nol.dup
+-d nol.dup
+-u nol.dup
+nol.one
+-c nol.one
+-d nol.one
+-u nol.one
+nol.diff
+-c nol.diff
+-u nol.diff
+-d nol.diff
+nol.tail
+-c nol.tail
+-d nol.tail
+-u nol.tail
+nl.one
+-c nl.one
+-d nl.one
+-u nl.one
+nl.three
+-c nl.three
+-d nl.three
+-u nl.three
+nl.mixed
+-c nl.mixed
+-d nl.mixed
+-u nl.mixed
+empty.in
+-c empty.in
+-d empty.in
+-u empty.in
+one
+-c one
+-d one
+-u one
+
+# --- -f: a field is [[:blank:]]*[^[:blank:]]*, more fields than the line has = null string
+-f 1 f.keys
+-c -f 1 f.keys
+-d -f 1 f.keys
+-u -f 1 f.keys
+-f 2 f.keys
+-f 3 f.keys
+-f 1 f.blank
+-f 2 f.blank
+-f 3 f.blank
+-f 4 f.blank
+-c -f 1 f.blank
+-c -f 2 f.blank
+-u -f 2 f.blank
+-f 1 f.short
+-f 2 f.short
+-c -f 1 f.short
+-d -f 1 f.short
+-u -f 1 f.short
+-f 1 f.three
+-f 2 f.three
+-f 3 f.three
+-f 4 f.three
+-c -f 2 f.three
+-f 1 f.many
+-f 2 f.many
+-f 10 f.many
+-f 11 f.many
+-f 12 f.many
+-f 13 f.many
+-c -f 11 f.many
+-f 100 f.many
+-f 1 blanks
+-f 3 blanks
+-f 1 nl.three
+-f 1 nl.mixed
+-c -f 1 nl.mixed
+-f 1 nol.dup
+-f 1 nol.diff
+-f 1 -d f.keys
+-f 1 -u f.keys
+-f 1 -c f.keys
+-f 1 -cd f.keys
+-f 1 -cu f.keys
+
+# --- -s: characters, not bytes; after -f the characters after the fields
+-s 1 s.short
+-s 2 s.short
+-s 5 s.short
+-c -s 1 s.short
+-d -s 1 s.short
+-u -s 1 s.short
+-s 1 fs.mix
+-s 2 fs.mix
+-s 3 fs.mix
+-s 4 fs.mix
+-s 5 fs.mix
+-f 1 fs.mix
+-f 1 -s 1 fs.mix
+-f 1 -s 2 fs.mix
+-f 1 -s 3 fs.mix
+-s 1 -f 1 fs.mix
+-s 2 -f 1 fs.mix
+-c -f 1 -s 1 fs.mix
+-d -f 1 -s 1 fs.mix
+-u -f 1 -s 1 fs.mix
+-f 1 -s 99 fs.mix
+-f 99 -s 1 fs.mix
+-s 1 f.many
+-f 2 -s 1 f.many
+-f 11 -s 1 f.many
+-f 11 -s 2 f.many
+-f 1 -s 1 f.blank
+-f 1 -s 2 f.blank
+-s 1 f.blank
+-s 2 f.blank
+-s 3 f.blank
+-s 1 blanks
+-s 2 blanks
+-s 3 blanks
+-s 1 nl.mixed
+-s 1 nl.three
+-s 1 nol.dup
+-s 1 nol.diff
+-s 1 case.mix
+-f 1 case.mix
+-s 1 cr
+-s 2 cr
+
+# --- the option-arguments: positive decimal integers
+-f 01 f.keys
+-f 007 f.keys
+-f 1 -f 1 f.keys
+-s 1 -s 1 s.short
+-s 1 -s 2 s.short
+-f 1 -f 2 f.three
+-f 2 -f 1 f.three
+-f +1 f.keys
+-s +1 s.short
+-f 1x f.keys
+-s 1x s.short
+-f x f.keys
+-s x s.short
+-f 0x1 f.keys
+-f 1e0 f.keys
+-f ' 1' f.keys
+-f '1 ' f.keys
+-f '' f.keys
+-s '' s.short
+-f -1 f.keys
+-s -1 s.short
+-f 1.5 f.keys
+-s 1.5 s.short
+-f 4294967295 f.keys
+-f 4294967296 f.keys
+-s 4294967296 s.short
+-f 18446744073709551615 f.keys
+-f 18446744073709551616 f.keys
+-s 18446744073709551616 s.short
+-f 99999999999999999999 f.keys
+-s 99999999999999999999 s.short
+-f 99999999999999999999 -c f.keys
+-f1 f.keys
+-s1 s.short
+-cf1 f.keys
+-cf 1 f.keys
+-cs1 s.short
+-df1 f.keys
+-uf1 f.keys
+-f1s1 fs.mix
+-c1 f.keys
+-f 1 -- f.keys
+-f -- 1 f.keys
+-f --1 f.keys
+-s -- 1 s.short
+
+# --- -c prints "%d %s": big counts (the filter hides the padding the references add)
+big
+-c big
+-d big
+-u big
+-cd big
+-cu big
+-c -f 1 big
+-c -s 1 big
+long
+-c long
+-d long
+-u long
+-f 1 long
+-s 1 long
+-s 32999 long
+-s 33000 long
+-s 33001 long
+-s 33002 long
+-c -s 33000 long
+
+# --- -c -d -u in every order and combination (the synopsis allows one; the references take more)
+-c -d f.keys
+-d -c f.keys
+-c -u f.keys
+-u -c f.keys
+-cc f.keys
+-dd f.keys
+-uu f.keys
+-c -c f.keys
+-d -d f.keys
+-u -u f.keys
+-du f.keys
+-ud f.keys
+-cdu f.keys
+-d -u runs.len
+-u -d runs.len
+-c -d -u runs.len
+
+# --- UTF-8: blanks of the locale, characters of -s, combining marks, invalid bytes
+f.u8blank
+-f 1 f.u8blank
+-f 2 f.u8blank
+-c -f 1 f.u8blank
+-s 1 f.u8blank
+-s 2 f.u8blank
+-s 3 f.u8blank
+-s 1 -c f.u8blank
+s.u8
+-s 1 s.u8
+-s 2 s.u8
+-s 3 s.u8
+-c -s 1 s.u8
+-d -s 1 s.u8
+-u -s 1 s.u8
+-f 1 s.u8
+-f 1 -s 1 s.u8
+-f 1 -s 2 s.u8
+emoji.zwj
+-s 1 emoji.zwj
+-s 2 emoji.zwj
+-s 3 emoji.zwj
+-s 4 emoji.zwj
+-s 5 emoji.zwj
+-c emoji.zwj
+-c -s 3 emoji.zwj
+-f 1 emoji.zwj
+u8.invalid
+-c u8.invalid
+-d u8.invalid
+-u u8.invalid
+-s 1 u8.invalid
+-s 2 u8.invalid
+-f 1 u8.invalid
+u8.invalid.s
+-s 1 u8.invalid.s
+-s 2 u8.invalid.s
+-c -s 1 u8.invalid.s
+-s 3 u8.invalid.s
+-f 1 u8.invalid.s
+case.mix
+-c case.mix
+-d case.mix
+
+# --- NUL and high bytes
+nul.mid
+-c nul.mid
+-d nul.mid
+-u nul.mid
+-s 1 nul.mid
+-s 2 nul.mid
+-s 3 nul.mid
+-f 1 nul.mid
+nul.end
+-c nul.end
+-d nul.end
+-u nul.end
+-s 1 nul.end
+-s 2 nul.end
+
+# --- standard input: none, "-", with an output file, in a corpus file
+in:runs.len
+in:runs.len -
+in:runs.len -c
+in:runs.len -c -
+in:runs.len -d
+in:runs.len -u
+in:runs.len - out
+in:runs.len -c - out
+in:runs.len -d - out
+in:runs.len -u - out
+in:runs.len - -
+in:runs.len -c - -
+in:nol.dup
+in:nol.dup -c
+in:nol.diff
+in:nol.diff -c
+in:nol.tail
+in:nol.tail -d
+in:nl.mixed
+in:nl.mixed -c
+in:empty.in
+in:empty.in -c
+in:cr
+in:cr -c
+in:big
+in:big -c
+in:big -d
+in:big -u
+in:long
+in:long -c
+in:long -s 33000
+in:f.blank -f 1
+in:f.blank -c -f 2
+in:fs.mix -f 1 -s 1
+in:s.u8 -s 1
+in:s.u8 -c -s 2
+in:f.u8blank -f 1
+in:emoji.zwj -s 3
+in:u8.invalid
+in:u8.invalid -c
+in:u8.invalid.s -s 1
+in:nul.mid
+in:nul.mid -c
+in:nul.end -c
+
+# --- the output file: created, truncated, "-", an unwritable place, the same as the input
+plain out
+-c plain out
+-d plain out
+-u plain out
+-c -f 1 spec out
+plain out_old
+-d plain out_old
+-u plain out_old
+empty.in out
+empty.in out_old
+-c empty.in out
+nol.dup out
+nol.diff out
+plain -
+-c plain -
+plain ./-
+- -
+plain d
+plain nosuchdir/out
+plain /dev/null
+-c plain /dev/null
+plain /dev/stdout
+-c plain /dev/stdout
+plain out out2
+plain out extra
+plain out_old extra
+nosuch out
+nosuch out_old
+d out
+d
+plain plain
+-- plain out
+-- - out
+-- ./-f out
+./-f out
+-- -f out
+
+# --- errors and options after operands
+nosuch
+nosuch nosuch
+nosuch plain
+plain nosuch
+plain plain nosuch
+- nosuch
+d
+./d
+plain -c
+plain -d
+plain -u
+plain -f 1
+plain -s 1
+plain -c out
+-c -- plain
+-c -- -c
+-c -- ./-f
+-- -c
+-x
+-x plain
+-i plain
+-D plain
+-z plain
+-w 1 plain
+-a plain
+-h plain
+-v plain
+-1 plain
+-2 plain
++1 plain
++2 plain
++1 -1 plain
+-c1 plain
+--help
+--version
+--count plain
+--repeated plain
+--unique plain
+--skip-fields=1 plain
+-f
+-s
+-f 1 -s
+-f -s 1
+-s -f 1
+-c -f
