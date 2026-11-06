@@ -135,7 +135,7 @@ d
 -nrb words
 -bdfinr words
 
-# --- 2026-11-06: spec EXAMPLES (1..5) and APPLICATION USAGE
+# --- spec EXAMPLES (1..5) and APPLICATION USAGE
 -k 2,2 fields
 -r -o out -k 2.2,2.2 in1 in2
 -k 2.2b,2.2b ex3

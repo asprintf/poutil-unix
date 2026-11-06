@@ -5,7 +5,7 @@ nul1 nul2
 bin1 bin2
 -12 bin1 bin2
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # both files are standard input (undefined): the references read it once, we read it for file1 only
 - -
 

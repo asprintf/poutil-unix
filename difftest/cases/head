@@ -44,7 +44,7 @@ nosuch
 -x n5
 -c 3 n5
 
-# --- 2026-11-06: counts around the length of each file, with and without a final newline
+# --- counts around the length of each file, with and without a final newline
 lines.n
 -n 1 lines.n
 -n 2 lines.n

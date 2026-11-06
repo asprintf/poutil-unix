@@ -268,7 +268,7 @@ text -x
 -s -w
 -bw
 
-# --- 2026-11-06: emoji, CJK, combining marks, Unicode spaces and invalid bytes at many widths (wide characters take two columns)
+# --- emoji, CJK, combining marks, Unicode spaces and invalid bytes at many widths (wide characters take two columns)
 -w 4 all256_lines
 bom
 cjk_lines

@@ -6,7 +6,7 @@ nul
 # -d with -u is a usage error here; macOS and GNU accept both
 -d -u plain
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # extensions of both: -D -i and the long options
 --count plain
 --repeated plain

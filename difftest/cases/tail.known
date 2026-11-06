@@ -19,7 +19,7 @@
 # macOS reads a directory without complaint; we report the read error
 -n 2 d
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # the obsolete -number and +number forms and long options: both others take them
 +0 ten
 +2c ten

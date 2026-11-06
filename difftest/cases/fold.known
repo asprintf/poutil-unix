@@ -59,7 +59,7 @@ dir text
 text -
 text dir
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # all 256 byte values: invalid UTF-8 (macOS stops) and control characters (GNU counts one column)
 -s -w 10 r.all256_lines
 -s -w 17 s.all256_lines

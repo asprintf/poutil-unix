@@ -118,7 +118,7 @@ lockd
 -i lf
 -i -- -r
 
-# --- 2026-11-06: one rule of the spec per case (the root is never an operand here: it is covered by the unit test of the path check)
+# --- one rule of the spec per case (the root is never an operand here: it is covered by the unit test of the path check)
 # step 4: unlink() fails (the directory is not writable): a diagnostic, the status is not 0, the next operand is still removed, and -f does not hide it
 pt/f g
 -f pt/f g

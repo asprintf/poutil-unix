@@ -41,7 +41,7 @@ lnk
 full/sub full
 -pp e
 
-# --- 2026-11-06: why a removal fails, and what -p does after it
+# --- why a removal fails, and what -p does after it
 # rmdir() in a directory that cannot be written: EACCES, status 1; the next operand is still tried
 pt/sub e
 -p pt/sub

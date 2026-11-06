@@ -70,7 +70,7 @@ f1 f2 f1
 -1x f1 f2
 -
 
-# --- 2026-11-06: every column option on pairs of sorted files (the lead strings of STDOUT)
+# --- every column option on pairs of sorted files (the lead strings of STDOUT)
 interleave.1 interleave.2
 -1 interleave.1 interleave.2
 -2 interleave.1 interleave.2

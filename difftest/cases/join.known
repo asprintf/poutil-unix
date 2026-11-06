@@ -42,7 +42,7 @@ nul1 nul2
 # a line that has no join field has an empty one: macOS sorts those lines after the others
 -1 3 -a 1 -a 2 f1 f2
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # bytes that are not characters in en_US.UTF-8, and a join field the files are not sorted on: unspecified
 -a 1 -a 2 -o 0,1.2,2.2 -e X invalid.1 invalid.2
 -a 1 -a 2 invalid.1 invalid.2

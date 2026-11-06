@@ -18,7 +18,7 @@ touch -t 200001010000 .hidden .hid2 d/.dot
 touch -t 200101010101 dl/ok dl
 touch -h -t 200101010101 dl/dang 2>/dev/null
 
-# 2026-11-06: in the hidden directory .n, so the older cases do not list them: names beyond ASCII, names that are not printable, wide names, sizes around a block, recent and old times
+# in the hidden directory .n, so the older cases do not list them: names beyond ASCII, names that are not printable, wide names, sizes around a block, recent and old times
 mkdir -p .n/u8 .n/q .n/w .n/sz
 cd .n
 for n in é e E z Z 😂 🇩🇪 日本語 ñ ß ae æ 'a b' A ä; do : > "u8/$n"; done

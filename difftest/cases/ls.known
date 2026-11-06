@@ -90,7 +90,7 @@
 -RL dl
 -lL dl
 
-# --- 2026-11-06 cases
+# --- cases added later
 # non-ASCII names that collate equal: macOS and GNU keep the order of the directory, here they are compared by bytes (the "should" of DESCRIPTION)
 .n/u8
 -S .n/u8

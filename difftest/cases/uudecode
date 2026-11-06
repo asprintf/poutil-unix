@@ -79,7 +79,7 @@ i.plain i.plain
 -o x i.plain nosuch
 i.fifoname
 
-# --- 2026-11-06: valid data from the reference encoder, every size, both algorithms (written to out and to standard output)
+# --- valid data from the reference encoder, every size, both algorithms (written to out and to standard output)
 i.e.b_emoji_basic
 -o /dev/stdout i.e.b_emoji_basic
 i.e.b_emoji_crlf

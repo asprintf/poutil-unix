@@ -20,7 +20,7 @@ bin
 # neither macOS nor GNU take a multibyte character as the separator here
 -t é utf8
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # UTF-8: non-ASCII collates equal in macOS libc, refs keep input order; we tie-break bytewise; GNU also fails in strcoll
 -b u8.spaces
 -c -r u8.scripts

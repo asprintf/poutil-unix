@@ -67,7 +67,7 @@ d
 plain nosuchdir/out
 -d -u plain
 
-# --- 2026-11-06: adjacent lines only, the trailing newline is not compared
+# --- adjacent lines only, the trailing newline is not compared
 runs.nonadj
 -c runs.nonadj
 -d runs.nonadj

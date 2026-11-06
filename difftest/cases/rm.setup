@@ -15,7 +15,7 @@ line'
 touch 'new
 line/in'
 
-# 2026-11-06: the corpus in rm.in (answers for -i) and the trees the new cases need
+# the corpus in rm.in (answers for -i) and the trees the new cases need
 [ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
 mkdir -p pt/sub && touch pt/f pt/sub/g && chmod 555 pt
 mkdir -p c1/c2/c3 && touch c1/c2/c3/f

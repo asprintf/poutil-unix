@@ -257,7 +257,7 @@ fut
 -RH dl
 
 
-# --- 2026-11-06: each case tests one rule of the spec (the trees are in .n)
+# --- each case tests one rule of the spec (the trees are in .n)
 # names beyond ASCII sort by the collating sequence and those that collate equal by bytes (the "should" of DESCRIPTION); -S with equal sizes falls back to the name
 .n/u8
 -r .n/u8

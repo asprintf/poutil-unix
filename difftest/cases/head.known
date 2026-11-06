@@ -18,7 +18,7 @@
 -n 2 n5 -
 -n 2 'a b' n5
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # - as a file operand: macOS does not take it for standard input; GNU quotes the name in the header
 - -
 - ten

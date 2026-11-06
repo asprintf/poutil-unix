@@ -68,7 +68,7 @@ d1 file/x
 -mm
 -m u+rwx,g+rx,o+rx d1
 
-# --- 2026-11-06: the umask (none of the cases above set one)
+# --- the umask (none of the cases above set one)
 # DESCRIPTION: mkdir() with rwxrwxrwx, so the mode is 777 minus the umask
 umask:022 d1
 umask:077 d1

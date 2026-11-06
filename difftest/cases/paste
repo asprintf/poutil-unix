@@ -187,7 +187,7 @@ f1 -x
 --help
 --
 
-# --- 2026-11-06: files with emoji, CJK, empty lines and different lengths, with delimiter lists of one or more characters (also multibyte)
+# --- files with emoji, CJK, empty lines and different lengths, with delimiter lists of one or more characters (also multibyte)
 p1 p2
 -s p1 p2
 -d ',' p1 p2

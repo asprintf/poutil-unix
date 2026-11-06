@@ -55,7 +55,7 @@ f1 -x
 -- -- f1
 -h
 
-# --- 2026-11-06: every length from 0 to 70 (the length octets are part of the CRC), bytes and text
+# --- every length from 0 to 70 (the length octets are part of the CRC), bytes and text
 len0
 len1
 len2

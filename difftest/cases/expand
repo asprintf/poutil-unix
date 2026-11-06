@@ -82,7 +82,7 @@ blank
 long
 -t 2 long
 
-# --- 2026-11-06: emoji, CJK, combining marks, Unicode spaces and invalid bytes: tabs after blanks (t.) and after every wide character (w.), and the plain files
+# --- emoji, CJK, combining marks, Unicode spaces and invalid bytes: tabs after blanks (t.) and after every wide character (w.), and the plain files
 t.all256_lines
 bom
 cjk_lines

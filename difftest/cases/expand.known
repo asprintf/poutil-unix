@@ -35,7 +35,7 @@ noread plain
 nosuch plain
 plain nosuch many
 
-# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# --- cases added later: every line below differs from both macOS and GNU
 # bytes that are not characters and control characters (their width is not specified)
 -t 3,10 t.all256_lines
 -t 3,10 w.all256_lines

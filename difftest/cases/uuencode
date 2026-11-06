@@ -80,7 +80,7 @@ text name extra
 -m -z text name
 text name -m
 
-# --- 2026-11-06: every length from 0 to 100, both algorithms (line breaks at 45 bytes, padding at 76 characters)
+# --- every length from 0 to 100, both algorithms (line breaks at 45 bytes, padding at 76 characters)
 len0 n
 -m len0 n
 len1 n
