@@ -17,3 +17,47 @@
 -n 2 -
 -n 2 n5 -
 -n 2 'a b' n5
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# - as a file operand: macOS does not take it for standard input; GNU quotes the name in the header
+- -
+- ten
+-n 0 - -
+-n 0 - ten
+-n 0 ten - eleven
+-n 1 - ten
+-n 1 ten -
+-n 100 - ten
+-n 100 ten -
+-n 3 - -
+-n 3 -- - ten
+-n 3 ten -
+-n 3 ten - eleven
+in:empty - -
+in:empty - ten
+in:empty -n 2 - empty
+in:eol.none - ten
+in:eol.none -n 2 - eleven -
+in:eol.none -n 2 - empty
+in:eol.none ten -
+in:ten - -
+in:ten -n 2 - eleven -
+in:ten ten -
+ten - eleven
+
+# the obsolete -number form and long options: both others take them
+--lines 2 ten
+--lines=2 ten
+-22 ten
+
+# -c is not in the spec; both others have it
+-c 3 ten
+-c3 ten
+
+# the spec wants a positive decimal integer: no sign, no blank; both others accept them
+-n ' 1' ten
+-n '+1' ten
+
+# names with a blank in the header, and a count of 0: macOS rejects 0, GNU quotes the name
+-n 0 'a b' ten
+-n 0 'trailing ' ten

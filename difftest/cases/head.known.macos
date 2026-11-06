@@ -1,0 +1,76 @@
+# macOS rejects a count of 0 and one that does not fit; GNU and we take them (a huge count means all)
+-n '0' ten
+-n '18446744073709551616' ten
+-n '4294967295' ten
+-n '9223372036854775807' ten
+-n '9223372036854775808' ten
+-n '99999999999999999999' ten
+-n 0 crlf ten
+-n 0 d ten
+-n 0 eleven ten
+-n 0 empty empty
+-n 0 empty ten
+-n 0 eol.none eol.one
+-n 0 eol.none ten
+-n 0 tailnonl ten
+-n 0 ten ./-n twelve
+-n 0 ten d
+-n 0 ten eleven
+-n 0 ten nosuch
+-n 0 ten nosuch eleven
+-n 0 ten tailnonl
+-n 0 ten ten
+-n 0 ten ten ten
+-n 0 u8 invalid nul
+
+# macOS head does not take - for standard input
+in:crlf -
+in:crlf -n 10 -
+in:crlf -n 3 -
+in:empty -n 1 -
+in:empty -n 3 -
+in:empty -n 99999 -
+in:eol.none -n 1 -
+in:eol.none -n 3 -
+in:eol.none -n 99999 -
+in:eol.one -
+in:eol.one -n 10 -
+in:eol.one -n 3 -
+in:gaps -
+in:gaps -n 1 -
+in:gaps -n 10 -
+in:gaps -n 99999 -
+in:invalid -n 1 -
+in:invalid -n 3 -
+in:invalid -n 99999 -
+in:lines.n -
+in:lines.n -n 1 -
+in:lines.n -n 10 -
+in:lines.n -n 99999 -
+in:long.x -n 1 -
+in:long.x -n 3 -
+in:long.x -n 99999 -
+in:nl.only -
+in:nl.only -n 1 -
+in:nl.only -n 10 -
+in:nl.only -n 99999 -
+in:nul -
+in:nul -n 1 -
+in:nul -n 10 -
+in:nul -n 99999 -
+in:stdin.big -
+in:stdin.big -n 10 -
+in:stdin.big -n 3 -
+in:tailnonl -
+in:tailnonl -n 1 -
+in:tailnonl -n 10 -
+in:tailnonl -n 99999 -
+in:ten -
+in:ten -n 10 -
+in:ten -n 3 -
+in:u8 -
+in:u8 -n 10 -
+in:u8 -n 3 -
+
+# the obsolete -number form: macOS takes it
+-1 -2 ten

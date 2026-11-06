@@ -43,3 +43,640 @@ nosuch
 -3 n5
 -x n5
 -c 3 n5
+
+# --- 2026-11-06: counts around the length of each file, with and without a final newline
+lines.n
+-n 1 lines.n
+-n 2 lines.n
+-n 5 lines.n
+-n 10 lines.n
+-n 11 lines.n
+-n 12 lines.n
+-n 99 lines.n
+-n 100 lines.n
+-n 101 lines.n
+-n 100000 lines.n
+-n 200000 lines.n
+-n 200001 lines.n
+ten
+-n 1 ten
+-n 2 ten
+-n 5 ten
+-n 10 ten
+-n 11 ten
+-n 12 ten
+-n 99 ten
+-n 100 ten
+-n 101 ten
+-n 100000 ten
+-n 200000 ten
+-n 200001 ten
+eleven
+-n 1 eleven
+-n 2 eleven
+-n 5 eleven
+-n 10 eleven
+-n 11 eleven
+-n 12 eleven
+-n 99 eleven
+-n 100 eleven
+-n 101 eleven
+-n 100000 eleven
+-n 200000 eleven
+-n 200001 eleven
+twelve
+-n 1 twelve
+-n 2 twelve
+-n 5 twelve
+-n 10 twelve
+-n 11 twelve
+-n 12 twelve
+-n 99 twelve
+-n 100 twelve
+-n 101 twelve
+-n 100000 twelve
+-n 200000 twelve
+-n 200001 twelve
+eol.none
+-n 1 eol.none
+-n 2 eol.none
+-n 5 eol.none
+-n 10 eol.none
+-n 11 eol.none
+-n 12 eol.none
+-n 99 eol.none
+-n 100 eol.none
+-n 101 eol.none
+-n 100000 eol.none
+-n 200000 eol.none
+-n 200001 eol.none
+eol.one
+-n 1 eol.one
+-n 2 eol.one
+-n 5 eol.one
+-n 10 eol.one
+-n 11 eol.one
+-n 12 eol.one
+-n 99 eol.one
+-n 100 eol.one
+-n 101 eol.one
+-n 100000 eol.one
+-n 200000 eol.one
+-n 200001 eol.one
+nl.only
+-n 1 nl.only
+-n 2 nl.only
+-n 5 nl.only
+-n 10 nl.only
+-n 11 nl.only
+-n 12 nl.only
+-n 99 nl.only
+-n 100 nl.only
+-n 101 nl.only
+-n 100000 nl.only
+-n 200000 nl.only
+-n 200001 nl.only
+nl.many
+-n 1 nl.many
+-n 2 nl.many
+-n 5 nl.many
+-n 10 nl.many
+-n 11 nl.many
+-n 12 nl.many
+-n 99 nl.many
+-n 100 nl.many
+-n 101 nl.many
+-n 100000 nl.many
+-n 200000 nl.many
+-n 200001 nl.many
+empty
+-n 1 empty
+-n 2 empty
+-n 5 empty
+-n 10 empty
+-n 11 empty
+-n 12 empty
+-n 99 empty
+-n 100 empty
+-n 101 empty
+-n 100000 empty
+-n 200000 empty
+-n 200001 empty
+crlf
+-n 1 crlf
+-n 2 crlf
+-n 5 crlf
+-n 10 crlf
+-n 11 crlf
+-n 12 crlf
+-n 99 crlf
+-n 100 crlf
+-n 101 crlf
+-n 100000 crlf
+-n 200000 crlf
+-n 200001 crlf
+nul
+-n 1 nul
+-n 2 nul
+-n 5 nul
+-n 10 nul
+-n 11 nul
+-n 12 nul
+-n 99 nul
+-n 100 nul
+-n 101 nul
+-n 100000 nul
+-n 200000 nul
+-n 200001 nul
+invalid
+-n 1 invalid
+-n 2 invalid
+-n 5 invalid
+-n 10 invalid
+-n 11 invalid
+-n 12 invalid
+-n 99 invalid
+-n 100 invalid
+-n 101 invalid
+-n 100000 invalid
+-n 200000 invalid
+-n 200001 invalid
+u8
+-n 1 u8
+-n 2 u8
+-n 5 u8
+-n 10 u8
+-n 11 u8
+-n 12 u8
+-n 99 u8
+-n 100 u8
+-n 101 u8
+-n 100000 u8
+-n 200000 u8
+-n 200001 u8
+u8.one
+-n 1 u8.one
+-n 2 u8.one
+-n 5 u8.one
+-n 10 u8.one
+-n 11 u8.one
+-n 12 u8.one
+-n 99 u8.one
+-n 100 u8.one
+-n 101 u8.one
+-n 100000 u8.one
+-n 200000 u8.one
+-n 200001 u8.one
+gaps
+-n 1 gaps
+-n 2 gaps
+-n 5 gaps
+-n 10 gaps
+-n 11 gaps
+-n 12 gaps
+-n 99 gaps
+-n 100 gaps
+-n 101 gaps
+-n 100000 gaps
+-n 200000 gaps
+-n 200001 gaps
+long.x
+-n 1 long.x
+-n 2 long.x
+-n 5 long.x
+-n 10 long.x
+-n 11 long.x
+-n 12 long.x
+-n 99 long.x
+-n 100 long.x
+-n 101 long.x
+-n 100000 long.x
+-n 200000 long.x
+-n 200001 long.x
+tailnonl
+-n 1 tailnonl
+-n 2 tailnonl
+-n 5 tailnonl
+-n 10 tailnonl
+-n 11 tailnonl
+-n 12 tailnonl
+-n 99 tailnonl
+-n 100 tailnonl
+-n 101 tailnonl
+-n 100000 tailnonl
+-n 200000 tailnonl
+-n 200001 tailnonl
+big
+-n 1 big
+-n 2 big
+-n 5 big
+-n 10 big
+-n 11 big
+-n 12 big
+-n 99 big
+-n 100 big
+-n 101 big
+-n 100000 big
+-n 200000 big
+-n 200001 big
+
+# --- several files: the header "
+==> %s <==
+" without the first newline, even for empty and failing files
+ten eleven
+-n 1 ten eleven
+-n 3 ten eleven
+-n 0 ten eleven
+-n 100 ten eleven
+eleven ten
+-n 1 eleven ten
+-n 3 eleven ten
+-n 0 eleven ten
+-n 100 eleven ten
+ten empty eleven
+-n 1 ten empty eleven
+-n 3 ten empty eleven
+-n 0 ten empty eleven
+-n 100 ten empty eleven
+empty empty
+-n 1 empty empty
+-n 3 empty empty
+-n 0 empty empty
+-n 100 empty empty
+empty ten
+-n 1 empty ten
+-n 3 empty ten
+-n 0 empty ten
+-n 100 empty ten
+ten empty
+-n 1 ten empty
+-n 3 ten empty
+-n 0 ten empty
+-n 100 ten empty
+eol.none eol.one
+-n 1 eol.none eol.one
+-n 3 eol.none eol.one
+-n 0 eol.none eol.one
+-n 100 eol.none eol.one
+eol.none ten
+-n 1 eol.none ten
+-n 3 eol.none ten
+-n 0 eol.none ten
+-n 100 eol.none ten
+nl.only nl.many
+-n 1 nl.only nl.many
+-n 3 nl.only nl.many
+-n 0 nl.only nl.many
+-n 100 nl.only nl.many
+ten ten
+-n 1 ten ten
+-n 3 ten ten
+-n 0 ten ten
+-n 100 ten ten
+ten ten ten
+-n 1 ten ten ten
+-n 3 ten ten ten
+-n 0 ten ten ten
+-n 100 ten ten ten
+eol.one eol.one
+-n 1 eol.one eol.one
+-n 3 eol.one eol.one
+-n 0 eol.one eol.one
+-n 100 eol.one eol.one
+u8 invalid nul
+-n 1 u8 invalid nul
+-n 3 u8 invalid nul
+-n 0 u8 invalid nul
+-n 100 u8 invalid nul
+ten nosuch eleven
+-n 1 ten nosuch eleven
+-n 3 ten nosuch eleven
+-n 0 ten nosuch eleven
+-n 100 ten nosuch eleven
+nosuch ten
+-n 1 nosuch ten
+-n 3 nosuch ten
+-n 0 nosuch ten
+-n 100 nosuch ten
+ten nosuch
+-n 1 ten nosuch
+-n 3 ten nosuch
+-n 0 ten nosuch
+-n 100 ten nosuch
+nosuch nosuch
+-n 1 nosuch nosuch
+-n 3 nosuch nosuch
+-n 0 nosuch nosuch
+-n 100 nosuch nosuch
+ten d eleven
+-n 1 ten d eleven
+-n 3 ten d eleven
+-n 0 ten d eleven
+-n 100 ten d eleven
+d ten
+-n 1 d ten
+-n 3 d ten
+-n 0 d ten
+-n 100 d ten
+ten d
+-n 1 ten d
+-n 3 ten d
+-n 0 ten d
+-n 100 ten d
+d d
+-n 1 d d
+-n 3 d d
+-n 0 d d
+-n 100 d d
+ten - eleven
+-n 1 ten - eleven
+-n 3 ten - eleven
+-n 0 ten - eleven
+-n 100 ten - eleven
+- ten
+-n 1 - ten
+-n 3 - ten
+-n 0 - ten
+-n 100 - ten
+ten -
+-n 1 ten -
+-n 3 ten -
+-n 0 ten -
+-n 100 ten -
+- -
+-n 1 - -
+-n 3 - -
+-n 0 - -
+-n 100 - -
+ten ./-n twelve
+-n 1 ten ./-n twelve
+-n 3 ten ./-n twelve
+-n 0 ten ./-n twelve
+-n 100 ten ./-n twelve
+ten '==>' eleven
+-n 1 ten '==>' eleven
+-n 3 ten '==>' eleven
+-n 0 ten '==>' eleven
+-n 100 ten '==>' eleven
+'trailing ' ten
+-n 1 'trailing ' ten
+-n 3 'trailing ' ten
+-n 0 'trailing ' ten
+-n 100 'trailing ' ten
+'a b' ten
+-n 1 'a b' ten
+-n 3 'a b' ten
+-n 0 'a b' ten
+-n 100 'a b' ten
+'==>' '==>'
+-n 1 '==>' '==>'
+-n 3 '==>' '==>'
+-n 0 '==>' '==>'
+-n 100 '==>' '==>'
+tailnonl ten
+-n 1 tailnonl ten
+-n 3 tailnonl ten
+-n 0 tailnonl ten
+-n 100 tailnonl ten
+ten tailnonl
+-n 1 ten tailnonl
+-n 3 ten tailnonl
+-n 0 ten tailnonl
+-n 100 ten tailnonl
+eol.none tailnonl
+-n 1 eol.none tailnonl
+-n 3 eol.none tailnonl
+-n 0 eol.none tailnonl
+-n 100 eol.none tailnonl
+crlf ten
+-n 1 crlf ten
+-n 3 crlf ten
+-n 0 crlf ten
+-n 100 crlf ten
+-n 1 big big
+-n 100000 ten big ten
+
+# --- standard input: none, "-", mixed with files (a pipe or a file is the same here: the harness redirects a file)
+in:ten
+in:ten -
+in:ten -n 1
+in:ten -n 1 -
+in:ten -n 3
+in:ten -n 3 -
+in:ten -n 10
+in:ten -n 10 -
+in:ten -n 99999
+in:ten -n 99999 -
+in:lines.n
+in:lines.n -
+in:lines.n -n 1
+in:lines.n -n 1 -
+in:lines.n -n 3
+in:lines.n -n 3 -
+in:lines.n -n 10
+in:lines.n -n 10 -
+in:lines.n -n 99999
+in:lines.n -n 99999 -
+in:eol.none
+in:eol.none -
+in:eol.none -n 1
+in:eol.none -n 1 -
+in:eol.none -n 3
+in:eol.none -n 3 -
+in:eol.none -n 10
+in:eol.none -n 10 -
+in:eol.none -n 99999
+in:eol.none -n 99999 -
+in:eol.one
+in:eol.one -
+in:eol.one -n 1
+in:eol.one -n 1 -
+in:eol.one -n 3
+in:eol.one -n 3 -
+in:eol.one -n 10
+in:eol.one -n 10 -
+in:eol.one -n 99999
+in:eol.one -n 99999 -
+in:nl.only
+in:nl.only -
+in:nl.only -n 1
+in:nl.only -n 1 -
+in:nl.only -n 3
+in:nl.only -n 3 -
+in:nl.only -n 10
+in:nl.only -n 10 -
+in:nl.only -n 99999
+in:nl.only -n 99999 -
+in:empty
+in:empty -
+in:empty -n 1
+in:empty -n 1 -
+in:empty -n 3
+in:empty -n 3 -
+in:empty -n 10
+in:empty -n 10 -
+in:empty -n 99999
+in:empty -n 99999 -
+in:crlf
+in:crlf -
+in:crlf -n 1
+in:crlf -n 1 -
+in:crlf -n 3
+in:crlf -n 3 -
+in:crlf -n 10
+in:crlf -n 10 -
+in:crlf -n 99999
+in:crlf -n 99999 -
+in:nul
+in:nul -
+in:nul -n 1
+in:nul -n 1 -
+in:nul -n 3
+in:nul -n 3 -
+in:nul -n 10
+in:nul -n 10 -
+in:nul -n 99999
+in:nul -n 99999 -
+in:invalid
+in:invalid -
+in:invalid -n 1
+in:invalid -n 1 -
+in:invalid -n 3
+in:invalid -n 3 -
+in:invalid -n 10
+in:invalid -n 10 -
+in:invalid -n 99999
+in:invalid -n 99999 -
+in:u8
+in:u8 -
+in:u8 -n 1
+in:u8 -n 1 -
+in:u8 -n 3
+in:u8 -n 3 -
+in:u8 -n 10
+in:u8 -n 10 -
+in:u8 -n 99999
+in:u8 -n 99999 -
+in:gaps
+in:gaps -
+in:gaps -n 1
+in:gaps -n 1 -
+in:gaps -n 3
+in:gaps -n 3 -
+in:gaps -n 10
+in:gaps -n 10 -
+in:gaps -n 99999
+in:gaps -n 99999 -
+in:long.x
+in:long.x -
+in:long.x -n 1
+in:long.x -n 1 -
+in:long.x -n 3
+in:long.x -n 3 -
+in:long.x -n 10
+in:long.x -n 10 -
+in:long.x -n 99999
+in:long.x -n 99999 -
+in:stdin.big
+in:stdin.big -
+in:stdin.big -n 1
+in:stdin.big -n 1 -
+in:stdin.big -n 3
+in:stdin.big -n 3 -
+in:stdin.big -n 10
+in:stdin.big -n 10 -
+in:stdin.big -n 99999
+in:stdin.big -n 99999 -
+in:tailnonl
+in:tailnonl -
+in:tailnonl -n 1
+in:tailnonl -n 1 -
+in:tailnonl -n 3
+in:tailnonl -n 3 -
+in:tailnonl -n 10
+in:tailnonl -n 10 -
+in:tailnonl -n 99999
+in:tailnonl -n 99999 -
+in:ten ten -
+in:ten - ten
+in:ten - -
+in:ten -n 2 - eleven -
+in:ten -n 2 - empty
+in:eol.none ten -
+in:eol.none - ten
+in:eol.none - -
+in:eol.none -n 2 - eleven -
+in:eol.none -n 2 - empty
+in:empty ten -
+in:empty - ten
+in:empty - -
+in:empty -n 2 - eleven -
+in:empty -n 2 - empty
+
+# --- the option-argument: positive decimal integer (the references take more)
+-n '01' ten
+-n '007' ten
+-n '+1' ten
+-n '-1' ten
+-n '-0' ten
+-n '0' ten
+-n ' 1' ten
+-n '1 ' ten
+-n '1x' ten
+-n 'x' ten
+-n '0x1' ten
+-n '1e1' ten
+-n '1.5' ten
+-n ',1' ten
+-n '' ten
+-n '4294967295' ten
+-n '4294967296' ten
+-n '9223372036854775807' ten
+-n '9223372036854775808' ten
+-n '18446744073709551615' ten
+-n '18446744073709551616' ten
+-n '99999999999999999999' ten
+-n1 ten
+-n10 ten
+-n 1 -n 2 ten
+-n 2 -n 1 ten
+-n 1 -n x ten
+-n x -n 1 ten
+-n 1 -- ten
+-n 1 ten -n 2
+ten -n 2
+-- -n ten
+-- ten
+-- ./-n
+-n 1 ./-n
+-n 1 -- ./-n
+-n -- ./-n
+-n 1 -n
+-nn ten
+-n1n ten
+-n 2 --n ten
+--lines=2 ten
+--lines 2 ten
+--bytes=2 ten
+-q ten eleven
+-v ten
+-z ten
+-c 3 ten
+-c3 ten
+-c -3 ten
+-c 3 -n 2 ten
+-n 2 -c 3 ten
+-2 ten
+-22 ten
+-0 ten
++2 ten
+-1 -2 ten
+-q
+-h
+--help
+--version
+-n 2 -x ten
+-ten
+-n 3 -- - ten
+-n 3 -- -
+
