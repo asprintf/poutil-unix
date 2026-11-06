@@ -40,3 +40,18 @@ lnk
 -p p/q/r p/q
 full/sub full
 -pp e
+
+# --- 2026-11-06: why a removal fails, and what -p does after it
+# rmdir() in a directory that cannot be written: EACCES, status 1; the next operand is still tried
+pt/sub e
+-p pt/sub
+# only dot files inside: not empty
+hid
+# an empty directory with mode 000 goes: rmdir() needs the parent's permissions only
+unl
+# -p stops at the first directory that fails (w still has z), after removing y and x
+-p w/x/y
+-p w/x/y w/z
+# multibyte names, -p removes all three
+-p '😂/🇩🇪/👍🏽'
+'😂'

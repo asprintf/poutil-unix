@@ -1,3 +1,8 @@
 mkdir -p a/b/c e f full/sub p/q/r
 touch g full/x
 ln -s e lnk
+mkdir -p pt/sub && chmod 555 pt
+mkdir hid && touch hid/.x
+mkdir unl && chmod 000 unl
+mkdir -p w/x/y w/z
+mkdir -p '😂/🇩🇪/👍🏽'
