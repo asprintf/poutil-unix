@@ -119,6 +119,8 @@ struct Frame {
     plen: usize,
     /* some entry is still there: cancelled, or it could not be removed */
     left: bool,
+    /* an error was reported for what is still there (a plain "no" is none) */
+    err_left: bool,
     /* the directory had no entries: one prompt covers steps 2b and 2d */
     was_empty: bool,
 }
@@ -133,6 +135,8 @@ struct Rm<'a> {
     status: i32,
     ask: Ask<'a>,
     root: Option<Id>,
+    /* the last "no" came from the user, not from an error */
+    declined: bool,
     /* the unit tests collect diagnostics here instead of writing them */
     log: Option<Vec<String>>,
 }
@@ -140,7 +144,7 @@ struct Rm<'a> {
 impl<'a> Rm<'a> {
     fn new(prog: &[u8], opts: Opts, tty: bool, ask: Ask<'a>) -> Self {
         let root = lstat_at(libc::AT_FDCWD, c"/").ok().map(|s| id_of(&s));
-        Rm { prog: prog.to_vec(), opts, tty, status: 0, ask, root, log: None }
+        Rm { prog: prog.to_vec(), opts, tty, status: 0, ask, root, declined: false, log: None }
     }
 
     fn err(&mut self, path: &[u8], msg: &str) {
@@ -169,7 +173,9 @@ impl<'a> Rm<'a> {
         p.extend_from_slice(format!(": {what} '").as_bytes());
         p.extend_from_slice(path);
         p.extend_from_slice(b"'? ");
-        (self.ask)(&p)
+        let yes = (self.ask)(&p);
+        self.declined = !yes;
+        yes
     }
 
     /* Step 3 and step 4 for something that is not a directory; true if it is gone. */
@@ -280,7 +286,7 @@ impl<'a> Rm<'a> {
                 return None;
             }
         }
-        Some(Frame { fd: Some(fd), id: id_of(st), entries, next: 0, name: Vec::new(), plen: display.len(), left: false, was_empty })
+        Some(Frame { fd: Some(fd), id: id_of(st), entries, next: 0, name: Vec::new(), plen: display.len(), left: false, err_left: false, was_empty })
     }
 
     /*
@@ -315,9 +321,12 @@ impl<'a> Rm<'a> {
                         if !self.ignorable(&e) {
                             self.err_io(&path, &e);
                             stack[ti].left = true;
+                            stack[ti].err_left = true;
                         }
                     }
-                    Ok(cst) if is_dir(&cst) => match self.enter(pfd, &cname, &path, &cst, &mut stack) {
+                    Ok(cst) if is_dir(&cst) => {
+                        self.declined = false;
+                        match self.enter(pfd, &cname, &path, &cst, &mut stack) {
                         Some(mut f) => {
                             f.name = name;
                             f.plen = path.len();
@@ -327,11 +336,17 @@ impl<'a> Rm<'a> {
                             }
                             stack.push(f);
                         }
-                        None => stack[ti].left = true,
-                    },
+                        None => {
+                            stack[ti].left = true;
+                            stack[ti].err_left |= !self.declined;
+                        }
+                        }
+                    }
                     Ok(cst) => {
+                        self.declined = false;
                         if !self.remove_file(pfd, &cname, &path, &cst) {
                             stack[ti].left = true;
+                            stack[ti].err_left |= !self.declined;
                         }
                     }
                 }
@@ -343,12 +358,14 @@ impl<'a> Rm<'a> {
             path.truncate(frame.plen);
             /*
              * Step 2d asks even when an entry was left behind (PCTS 13 expects
-             * the prompt); then the directory is only removed if nothing is
-             * left in it, without a second "not empty" diagnostic on top of
-             * the reason it is not empty.
+             * the prompt). A "yes" leads to step 4, rmdir(): when what is left
+             * is only there because the user said no, it fails and says so.
+             * When an error was reported for it already, no second "not empty"
+             * is added on top of that reason.
              */
             let cancelled = self.opts.interactive && !frame.was_empty && !self.confirm("remove directory", &path);
-            let keep = cancelled || frame.left;
+            let blocked = frame.err_left;
+            let keep = cancelled || blocked;
             if stack.is_empty() {
                 if !keep {
                     drop(frame.fd);
@@ -366,6 +383,7 @@ impl<'a> Rm<'a> {
             let pi = stack.len() - 1;
             if keep {
                 stack[pi].left = true;
+                stack[pi].err_left |= blocked;
                 continue;
             }
             let pfd = stack[pi].fd.as_ref().unwrap().as_raw_fd();
@@ -376,6 +394,7 @@ impl<'a> Rm<'a> {
                 Err(e) => {
                     self.err_io(&path, &e);
                     stack[pi].left = true;
+                    stack[pi].err_left = true;
                 }
             }
         }
@@ -724,6 +743,25 @@ mod tests {
         let (st, _, pr) = run(opts(false, true, true), false, &[true; 8], &[t.p("d")]);
         assert_eq!((st, pr.len()), (0, 3));
         assert!(!t.path("d").exists());
+    }
+
+    #[test]
+    fn a_yes_for_a_directory_with_a_refused_entry_tries_rmdir_and_fails() {
+        /* step 2d "yes" is followed by step 4: rmdir() fails, a diagnostic and status 1 */
+        let t = Tmp::new();
+        std::fs::create_dir(t.path("d")).unwrap();
+        std::fs::write(t.path("d/a"), b"").unwrap();
+        std::fs::write(t.path("d/b"), b"").unwrap();
+        /* yes to examine d, no to the first file, yes to the second, yes to remove d */
+        let (st, log, pr) = run(opts(false, true, true), false, &[true, false, true, true], &[t.p("d")]);
+        assert_eq!((st, log.len(), pr.len()), (1, 1, 4), "{log:?}");
+        assert!(log[0].starts_with(&String::from_utf8_lossy(&t.p("d")).to_string()));
+        assert_eq!(std::fs::read_dir(t.path("d")).unwrap().count(), 1);
+        /* a subdirectory that was refused counts the same: c/s is declined, c is asked and says yes */
+        std::fs::create_dir_all(t.path("c/s")).unwrap();
+        let (st, log, pr) = run(opts(false, true, true), false, &[true, false, true], &[t.p("c")]);
+        assert_eq!((st, log.len(), pr.len()), (1, 1, 3), "{log:?}");
+        assert!(t.path("c/s").exists());
     }
 
     #[test]
