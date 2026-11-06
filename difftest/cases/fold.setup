@@ -34,3 +34,6 @@ printf 'secret\n' > noread
 chmod 000 noread
 printf 'dash\n' > ./-f
 printf 'sp\n' > 'a b'
+
+# the corpus in fold.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .

@@ -1,0 +1,72 @@
+# macOS reads UTF-8 in the C locale (we and GNU see bytes), stops at a NUL byte or an invalid sequence, and has no - for standard input
+-b -w 10 r.all256_lines
+-b -w 8 all256_lines
+-bs -w 15 r.all256_lines
+-s -w 9 r.cjk_lines r.combining s.cjk_lines
+-w 7 r.emoji_basic r.emoji_zwj r.emoji_flags
+emoji_nul
+in:cjk_lines -s -w 11 -
+in:cjk_lines -w 6
+in:combining -s -w 11 -
+in:combining -w 6
+in:emoji_basic -s -w 11 -
+in:emoji_basic -w 6
+in:emoji_flags -s -w 11 -
+in:emoji_flags -w 6
+in:emoji_keycap -s -w 11 -
+in:emoji_keycap -w 6
+in:emoji_skin -s -w 11 -
+in:emoji_skin -w 6
+in:emoji_zwj -s -w 11 -
+in:emoji_zwj -w 6
+in:invalid_in_emoji -s -w 11 -
+in:invalid_in_emoji -w 6
+in:mixed_scripts -s -w 11 -
+in:mixed_scripts -w 6
+in:r.cjk_lines - -w 5 r.cjk_lines -
+in:r.cjk_lines -s -w 11 -
+in:r.cjk_lines -w 6
+in:r.combining -s -w 11 -
+in:r.combining -w 6
+in:r.emoji_basic -s -w 11 -
+in:r.emoji_basic -w 6
+in:r.emoji_basic -w 7 s.emoji_basic -
+in:r.emoji_flags -s -w 11 -
+in:r.emoji_flags -w 6
+in:r.emoji_keycap -s -w 11 -
+in:r.emoji_keycap -w 6
+in:r.emoji_skin -s -w 11 -
+in:r.emoji_skin -w 6
+in:r.emoji_zwj -s -w 11 -
+in:r.emoji_zwj -w 6
+in:r.invalid_in_emoji -s -w 11 -
+in:r.invalid_in_emoji -w 6
+in:r.mixed_scripts -s -w 11 -
+in:r.mixed_scripts -w 6
+in:r.width_1234 -s -w 11 -
+in:r.width_1234 -w 6
+in:s.cjk_lines -s -w 11 -
+in:s.cjk_lines -w 6
+in:s.combining -s -w 11 -
+in:s.combining -w 6
+in:s.emoji_basic -s -w 11 -
+in:s.emoji_basic -w 6
+in:s.emoji_flags -s -w 11 -
+in:s.emoji_flags -w 6
+in:s.emoji_keycap -s -w 11 -
+in:s.emoji_keycap -w 6
+in:s.emoji_skin -s -w 11 -
+in:s.emoji_skin -w 6
+in:s.emoji_zwj -s -w 11 -
+in:s.emoji_zwj -w 6
+in:s.invalid_in_emoji -s -w 11 -
+in:s.invalid_in_emoji -w 6
+in:s.mixed_scripts -s -w 11 -
+in:s.mixed_scripts -w 6
+in:s.width_1234 -s -w 11 -
+in:s.width_1234 -w 6
+in:width_1234 -s -w 11 -
+in:width_1234 -w 6
+invalid_cont
+invalid_in_emoji
+width_1234
