@@ -117,3 +117,45 @@ lockd
 -ir ld
 -i lf
 -i -- -r
+
+# --- 2026-11-06: one rule of the spec per case (the root is never an operand here: it is covered by the unit test of the path check)
+# step 4: unlink() fails (the directory is not writable): a diagnostic, the status is not 0, the next operand is still removed, and -f does not hide it
+pt/f g
+-f pt/f g
+# step 2c/4: below an unwritable directory the files in a writable subdirectory go, the subdirectory and the files in pt stay
+-rf pt
+-r pt g
+# step 2d: with -i the directory is asked after its contents; a "no" at the file leaves the directory non-empty and its rmdir() fails
+in:alt -ir c1
+in:alt2 -ir c1
+in:no -ir c1
+in:yes -ir c1
+in:eof -ir c1
+# step 2c: every entry is asked in turn; all "yes" removes it all, all "no" and a missing answer remove nothing
+in:yes -ir mix
+in:no -ir mix
+in:eof -ir mix
+# the answer is "affirmative" in the locale: Y, Yes, yes, YES, y are, yup and yeah are not (they start with y), "y " and " y" are not (or are: both references say)
+in:words -i w1 w2 w3 w4 w5 w6 w7 w8 w9 w10
+# the prompt is for a file that cannot be written only on a terminal, or with -i; -f never asks
+ro
+in:yes -i ro
+in:no -i ro
+in:yes -if ro
+in:no -fi ro
+# step 2c: a link met inside the hierarchy is removed, never followed: d and f stay
+-r sl
+-rf sl
+d sl/in/ld
+# a hard link is only an entry: f stays
+hf
+-r hf
+# step 1: nothing exists, with -f nothing is said and the status is 0, without it a diagnostic and the status is not; the other operands go on
+nosuch w1
+-f nosuch w1
+-f nosuch
+-f
+# step 2a: a directory without -r is refused, the other operands go on
+d w1 e
+# names with multibyte characters are removed whole
+-r '😂dir' '😂'

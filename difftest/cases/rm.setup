@@ -14,3 +14,13 @@ mkdir 'new
 line'
 touch 'new
 line/in'
+
+# 2026-11-06: the corpus in rm.in (answers for -i) and the trees the new cases need
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+mkdir -p pt/sub && touch pt/f pt/sub/g && chmod 555 pt
+mkdir -p c1/c2/c3 && touch c1/c2/c3/f
+mkdir -p mix/a mix/b && touch mix/a/f mix/b/f mix/x mix/y
+mkdir -p sl/in && ln -s ../d sl/in/ld && ln -s ../../f sl/in/lf
+touch w1 w2 w3 w4 w5 w6 w7 w8 w9 w10
+ln f hf
+mkdir -p '😂dir/👨‍👩‍👧' && touch '😂dir/👨‍👩‍👧/🇩🇪' '😂'
