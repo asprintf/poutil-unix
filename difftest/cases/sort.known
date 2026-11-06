@@ -19,3 +19,56 @@ bin
 -k 1.1,1.1 utf8
 # neither macOS nor GNU take a multibyte character as the separator here
 -t é utf8
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# UTF-8: non-ASCII collates equal in macOS libc, refs keep input order; we tie-break bytewise; GNU also fails in strcoll
+-b u8.spaces
+-c -r u8.scripts
+-c u8.scripts
+-d u8.scripts
+-d u8.spaces
+-d u8.symbols
+-f u8.combining
+-f u8.invalid
+-f u8.scripts
+-f u8.spaces
+-f u8.symbols
+-fr u8.scripts
+-i u8.scripts
+-i u8.spaces
+-i u8.symbols
+-k 1,1 u8.invalid
+-k 1.1,1.1 u8.invalid
+-k 1.2 u8.invalid
+-k 1.2 u8.symbols
+-k 1.2,1.2 u8.scripts
+-k 1.2,1.2 u8.symbols
+-k 1.2,1.3 u8.combining
+-n u8.invalid
+-n u8.symbols
+-r u8.invalid
+-r u8.scripts
+-r u8.spaces
+-u u8.invalid
+in:u8.invalid
+in:u8.invalid -C
+u8.combining
+u8.invalid
+u8.scripts
+u8.spaces
+u8.symbols
+
+# extensions (-g -h -M -R -s -S -T -V -z), refused on purpose
+-g nums
+-h nums
+-M words
+-R words
+-S 1M words
+-s words
+-T /tmp words
+-V words
+-z words
+
+# a multibyte -t is taken here, both references refuse it
+-t é words
+

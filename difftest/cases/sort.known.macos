@@ -1,0 +1,39 @@
+# an empty -t: macOS takes it as no separator
+-t '' u8.invalid
+
+# -u: macOS keeps e and e+U+0301 apart, GNU and we merge them
+-u u8.combining
+-u u8.spaces
+
+# old +POS keys: macOS takes them, GNU and we read +1 as a file name
++0 -1 words
++1 words
++1n words
+
+# -c -C -m -o do not combine and -c takes one file (synopsis); the references differ
+-c - -
+-c -C words words
+-C m1 m2
+-C words words
+-co out sorted
+-Co out words
+-o out -c sorted
+-o out -C unsorted
+
+# a position too large for a number: macOS fails, GNU and we clamp
+-k 1,1.99999999999999999999 words
+-k 1,99999999999999999999 words
+-k 1.99999999999999999999 words
+-k 99999999999999999999 words
+
+# -t , with -n: macOS stops the number at the comma, GNU and we read thousands separators
+-t , -k 1n num.sep
+-t , -k 2n num.sep
+-t, -k 2n num.sep
+
+# -t - with -n: macOS loses the minus sign
+-t - -n num.edge
+
+# macOS creates the empty output file before it finds an unreadable input; GNU and we do not
+-o out -m m1 nosuch
+

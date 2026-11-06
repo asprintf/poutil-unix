@@ -134,3 +134,706 @@ d
 -r -n words
 -nrb words
 -bdfinr words
+
+# --- 2026-11-06: spec EXAMPLES (1..5) and APPLICATION USAGE
+-k 2,2 fields
+-r -o out -k 2.2,2.2 in1 in2
+-k 2.2b,2.2b ex3
+-k 2.2,2.2 ex3
+-t : -k 3,3n passwd
+-t : -k 3,3 passwd
+-um -k 3.1,3.0 ex5
+-m -u -k 1,1 ex5
+-c -k 2 tabspace
+-C -k 2 tabspace
+-t '|' -k 2n cities
+-t '|' -k 2,2nr cities
+-t ' ' -k 3 blank.trail
+-k 3 blank.trail
+-k 2 blank.lead
+-t ' ' -k 2 blank.lead
+
+# --- ties: equal keys fall back to the whole line (the -r direction stays), -u keeps one line per key
+-f tie.f
+-fr tie.f
+-fu tie.f
+-n tie.n
+-nr tie.n
+-nu tie.n
+-d tie.d
+-dr tie.d
+-du tie.d
+-i tie.i
+-ir tie.i
+-iu tie.i
+-k 1,2 tie.k
+-k 1,2 -r tie.k
+-k 1,2 -u tie.k
+-k 1,2n tie.k
+-k 2,2n tie.k
+-k 2,2n -r tie.k
+-k 2,2n -u tie.k
+-k 2,2nr tie.k
+-r -k 2,2n tie.k
+-k 1,1 -k 2,2n tie.k
+-k 3,3 tie.k
+
+# --- -n: zeros and signs do not matter, empty digit string is zero, only an initial numeric string counts
+-n num.edge
+-nr num.edge
+-nu num.edge
+-nk 1,1 num.edge
+-n num.sep
+-nr num.sep
+-nu num.sep
+-n num.big
+-nr num.big
+-nu num.big
+-n num.junk
+-nu num.junk
+-n -k 1b num.edge
+-n -b num.edge
+-nb num.edge
+-k 1n num.edge
+-k 1,1nr num.edge
+-n -c num.edge
+-cn num.big
+-Cn num.big
+-cu num.edge
+-cnu num.edge
+-cnu tie.n
+
+# --- -b and the b modifier: first_character and last_character count from the first non-blank
+-b -k 1 blank.lead
+-k 1b blank.lead
+-k 1,1b blank.lead
+-k 1b,1b blank.lead
+-k 1,1 blank.lead
+-k 1.2 blank.lead
+-k 1.2b blank.lead
+-k 1.2b,1.2b blank.lead
+-k 1.2,1.2b blank.lead
+-b -k 1.2,1.2 blank.lead
+-b -k 1.2 blank.lead
+-k 2.1b,2.1b blank.lead
+-k 2b blank.lead
+-k 2.1 blank.lead
+-k 2,2 -b blank.lead
+-k 2b,2 blank.lead
+-k 2,2b blank.lead
+-t : -k 2b sep.colon
+-t : -k 2.2b sep.colon
+-b -t : -k 2 sep.colon
+
+# --- last_character 0 or missing means the end of the field; a start past the end or after the end makes an empty key
+-k 1.1,1.0 chars
+-k 1.2,1.0 chars
+-k 1.2,1.3 chars
+-k 1.3,1.2 chars
+-k 1.7 chars
+-k 1.8 chars
+-k 1.1,1.7 chars
+-k 1.7,1.7 chars
+-k 2 chars
+-k 2,2 chars
+-k 2.1 chars
+-k 1.4,1.2 -u chars
+-k 1.3,1.2 -u chars
+-k 1,1.0 chars
+-k 1,1.1 chars
+-k 1.2b chars.b
+-k 1.2b,1.3b chars.b
+-k 1.2,1.3 chars.b
+-b -k 1.2,1.3 chars.b
+-k 2.3 chars.b
+-k 2b.3 chars.b
+-k 1.1,1.1 -k 1.2,1.2 chars
+
+# --- modifiers on a key replace every global option for that key (field_start or field_end alike)
+-n -k 2,2r fields
+-n -k 2r,2 fields
+-n -k 2,2r -k 3 fields
+-r -k 2,2n fields
+-r -k 2n,2 fields
+-r -k 2,2n -k 1,1 fields
+-f -k 1,1 mixed
+-f -k 1,1d mixed
+-f -k 1,1r mixed
+-f -k 1r,1 mixed
+-d -k 1,1f mixed
+-d -k 1f,1f mixed
+-d -k 1,1i dict
+-i -k 1,1d dict
+-bf -k 1,1 mixed
+-k 1,1fr mixed
+-k 1,1rf mixed
+-k 1,1fd mixed
+-k 1,1dfi nonprint
+-k 1,1bfdinr mixed
+-k 1fd,1 mixed
+-k 1,1f -k 1,1 mixed
+-k 1,1 -k 1,1f mixed
+-k 1,1f -k 1,1r mixed
+-k 1,1r -k 1,1 mixed
+-k 1,1r -k 1,1 -u mixed
+-k 1,1f -u mixed
+-k 1,1fr -u mixed
+
+# --- nine and more -k options, significant in command line order
+-k 1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 -k 9,9 keys12
+-k 1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 -k 9,9 -k 10,10 -k 11,11 -k 12,12 keys12
+-k 12,12 -k 11,11 -k 1,1 keys12
+-k 12 -k 1 keys12
+-k 1,1r -k 2,2 -k 3,3r -k 4,4 -k 5,5r -k 6,6 -k 7,7r -k 8,8 -k 9,9r keys12
+-u -k 1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 -k 9,9 -k 10,10 -k 11,11 keys12
+-u -k 1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 -k 9,9 -k 10,10 -k 11,11 -k 12,12 keys12
+-k 1,1 -k 1,1 keys12
+-k 1,1 -k 1,1r keys12
+-k 5 -k 1,1 keys12
+
+# --- field separators: the default separator belongs to the following field, -t does not and every -t char counts
+-k 2 blank.lead
+-k 1 blank.lead
+-k 2,2 blank.lead
+-k 3,3 blank.lead
+-k 3 blank.lead
+-k 4 blank.lead
+-k 2 blank.trail
+-k 2,2 blank.trail
+-k 3 blank.trail
+-k 2n blank.trail
+-t : -k 1 sep.colon
+-t : -k 2 sep.colon
+-t : -k 3 sep.colon
+-t : -k 4 sep.colon
+-t : -k 1,1 sep.colon
+-t : -k 2,2 sep.colon
+-t : -k 3,3 sep.colon
+-t : -k 4,4 sep.colon
+-t : -k 2,3 sep.colon
+-t : -k 2.1,2.1 sep.colon
+-t : -k 3.1 sep.colon
+-t : -k 1,1 -k 2,2 -k 3,3 sep.colon
+-t : -k 3,3 -k 2,2r sep.colon
+-t : -u -k 2,2 sep.colon
+-t : -u -k 3,3 sep.colon
+-t : -c -k 2,2 sep.colon
+-t : -c -k 3,3 sep.colon
+-t ':' sep.colon
+-t : sep.colon
+-t : -r sep.colon
+-t ' ' -k 1,1 blank.lead
+-t ' ' -k 2,2 blank.lead
+-t ' ' -k 3,3 blank.lead
+-t ' ' -k 2 blank.lead
+-t ' ' -k 2b blank.lead
+-t ' ' -k 2n blank.lead
+-t 'a' -k 2 words
+-t 'a' -k 2 chars
+-t 'b' -k 2 chars
+-t 'c' -k 2,2 chars
+-t '\' -k 2 words
+-t '	' -k 2 tabs
+-t '	' -k 1,1 -k 2,2 tabs
+-t '	' -k 2,2 blank.lead
+-t - -k 2 num.edge
+-t . -k 2 num.edge
+-t . -k 2n num.edge
+-t , -k 2n num.sep
+-t , -k 1n num.sep
+-t 0 -k 2n num.edge
+-t = -k 1 words
+-t - -n num.edge
+-tx -k 1 words
+-t x -k 1 words
+-t : -t : -k 2 sep.colon
+-t : -t , -k 2 sep.colon
+-t, -k 2n num.sep
+
+# --- -d -f -i alone and together, in C and a UTF-8 locale
+-d tie.d
+-i tie.i
+-f tie.f
+-df tie.d
+-di tie.d
+-fi tie.i
+-dr tie.d
+-f u8.accents
+-fu u8.accents
+-fr u8.accents
+-u u8.accents
+-r u8.accents
+u8.accents
+-f u8.sharp
+-fu u8.sharp
+u8.sharp
+-r u8.sharp
+-f u8.turk
+-fu u8.turk
+u8.turk
+-r u8.turk
+-f u8.combining
+u8.combining
+-r u8.combining
+-u u8.combining
+-f u8.scripts
+u8.scripts
+-r u8.scripts
+-fr u8.scripts
+-f u8.spaces
+u8.spaces
+-r u8.spaces
+-b u8.spaces
+-u u8.spaces
+-d u8.spaces
+-i u8.spaces
+-f u8.symbols
+u8.symbols
+-r u8.symbols
+-u u8.symbols
+-d u8.symbols
+-i u8.symbols
+-d u8.accents
+-i u8.accents
+-d u8.sharp
+-i u8.sharp
+-d u8.scripts
+-i u8.scripts
+-n u8.symbols
+-n u8.accents
+-k 1.1,1.1 u8.accents
+-k 1.2 u8.accents
+-k 1.1,1.2 u8.accents
+-k 1.2,1.2 u8.scripts
+-k 1.2,1.3 u8.combining
+-k 1.2 u8.symbols
+-k 1.2,1.2 u8.symbols
+-k 1.2,1.2 u8.sharp
+-c u8.accents
+-C u8.accents
+-cu u8.accents
+-c -f u8.accents
+-cf u8.sharp
+-c -r u8.scripts
+-c u8.scripts
+-cu u8.symbols
+-C u8.symbols
+-m u8.accents u8.scripts
+-m u8.scripts u8.symbols
+-mu u8.symbols u8.symbols
+-mf u8.accents u8.accents
+-mr u8.accents u8.accents
+-mu u8.accents u8.sharp
+-m -f u8.accents u8.sharp
+
+# --- bytes that are no characters: C keeps them, UTF-8 locales may do as they like (see sort.known)
+u8.invalid
+-r u8.invalid
+-u u8.invalid
+-f u8.invalid
+-c u8.invalid
+-C u8.invalid
+-n u8.invalid
+-k 1,1 u8.invalid
+-k 1.1,1.1 u8.invalid
+-k 1.2 u8.invalid
+-t '' u8.invalid
+
+# --- no final newline, one newline, empty lines, CRLF, NUL inside a line
+noeol.3
+noeol.1
+nl.1
+blank.lines
+-u blank.lines
+-r blank.lines
+-n blank.lines
+-b blank.lines
+-k 2 blank.lines
+-k 1,1 blank.lines
+-c blank.lines
+-cu blank.lines
+-C blank.lines
+-u nl.1
+-c nl.1
+-c noeol.1
+-c noeol.3
+-C noeol.3
+-cu noeol.1
+-r noeol.3
+-u noeol.3
+-n noeol.3
+-o out noeol.3
+-o out noeol.1
+-o out nl.1
+-m noeol.3 noeol.1
+-m noeol.1 noeol.3
+-m noeol.3 m2
+-m m1 noeol.1
+-m nl.1 noeol.1
+-mu nl.1 nl.1
+noeol.3 noeol.1
+noeol.1 noeol.3
+noeol.1 noeol.1
+noeol.3 nl.1
+crlf
+-u crlf
+-r crlf
+-c crlf
+-k 1,1 crlf
+-b crlf
+-n crlf
+-f crlf
+-d crlf
+-i crlf
+-t "$(printf '\r')" -k 1 crlf
+nul.mid
+-u nul.mid
+-r nul.mid
+-c nul.mid
+-k 1,1 nul.mid
+-k 2 nul.mid
+-f nul.mid
+-n nul.mid
+-d nul.mid
+-i nul.mid
+-m nul.mid nul.mid
+-mu nul.mid nul.mid
+
+# --- long lines and many lines
+long
+-r long
+-u long
+-c long
+-C long
+-k 1,1 long
+-k 1.69999 long
+-k 1.70000,1.70001 long
+-k 1.70001 long
+-f long
+-n long
+-m long long
+-mu long long
+many
+-r many
+-u many
+-n many
+-nr many
+-nu many
+-k 2 many
+-k 2,2 many
+-k 2,2 -k 1,1n many
+-k 2,2r -k 1,1 many
+-k 2,2 -u many
+-k 1,1 -u many
+-k 1,1n -u many
+-k 2,2 -k 1,1 -u many
+-k 1,1n -k 2,2 many
+-k 1,1n -k 2,2r many
+-c many
+-C many
+-cu many
+-cn many
+-c -k 2,2 many
+-c -k 1,1 many
+-c -k 1,1n many
+-k 1,1n many - many
+-o out many
+-o out -u many
+-o out -k 2,2 many
+-m sorted.even sorted.three
+-m sorted.three sorted.even
+-mu sorted.even sorted.three
+-mu -k 1,1 sorted.even sorted.three
+-m -k 1,1 sorted.even sorted.three
+-m -k 2,2 sorted.even sorted.three
+-m sorted.even sorted.three sorted.three.c
+-m sorted.three.c sorted.three sorted.even
+-mu -k 1,1 sorted.three sorted.three.c
+-mu -k 1,1n sorted.three sorted.three.c
+-mn sorted.even sorted.three
+-mr sorted.even sorted.three
+-m -n -r sorted.even sorted.three
+-mu sorted.three sorted.three
+-mu sorted.three.c sorted.three
+-c sorted.even
+-c sorted.three
+-C sorted.three
+-cu sorted.three
+-cn sorted.three
+-cu -k 1,1 sorted.three
+-cu -k 2,2 sorted.three
+-c -r sorted.three
+-C -r sorted.three
+-cn -r sorted.three
+
+# --- stdin: no operand, "-" and "-" mixed with files, -m with "-", -c with "-"
+in:words
+in:words -
+in:words -r
+in:words -u
+in:words - words
+in:words words -
+in:words - -
+in:words -o out
+in:words -o out -
+in:words -c
+in:words -C
+in:words -c -
+in:words -cu
+in:m1 -m - m2
+in:m2 -m m1 -
+in:m1 -mu - m1
+in:s1 -m - s2
+in:s1 -m s2 -
+in:sorted -c
+in:unsorted -c
+in:unsorted -C
+in:unsorted -c -
+in:sorted -cu
+in:sdup -cu
+in:sdup -Cu
+in:noeol.3
+in:noeol.3 -
+in:noeol.3 - noeol.1
+in:noeol.1 - noeol.3
+in:noeol.3 -m - m2
+in:noeol.3 -c
+in:nl.1
+in:nl.1 -u
+in:empty
+in:empty -c
+in:empty -m - -
+in:crlf
+in:crlf -u
+in:crlf -c
+in:nul.mid
+in:nul.mid -u
+in:nul.mid -c
+in:u8.accents
+in:u8.accents -f
+in:u8.accents -u
+in:u8.accents -r
+in:u8.accents -c
+in:u8.accents -fu
+in:u8.invalid
+in:u8.invalid -c
+in:u8.invalid -C
+in:tie.n -n
+in:tie.n -nu
+in:tie.f -fu
+in:tie.k -k 1,2 -u
+in:num.edge -n
+in:num.edge -nu
+in:num.big -n
+in:fields -k 2,2n
+in:cities -t '|' -k 2n
+in:passwd -t : -k 3,3n
+in:ex5 -um -k 3.1,3.0 -
+in:ex5 -m -u -k 1,1 -
+in:many
+in:many -u
+in:many -k 2,2
+in:many -k 1,1n -u
+in:many -c
+in:long
+in:long -u
+in:long -c
+
+# --- -o: the output may be an input, a new file, or one of several inputs; the old data stays until read
+-o out_in out_in
+-o out_in -u out_in
+-o out_in -r out_in
+-o out_in out_in out_in
+-o out_in out_in words
+-o out_in words out_in
+-o out_in - out_in
+-o out_in -m out_in out_in
+-o out_in -mu out_in out_in
+-o out_in -k 1,1 out_in
+-o out_in -n out_in
+-o words words
+-o words -u words
+-o words -r words
+-o words -o words words
+-o out -o out2 words
+-o out2 -o out words
+-o out words -o out2
+-o out words words
+-o out -m m1 m2
+-o out -mu s1 s2
+-o out - words
+-o ./-f words
+-o ./-f ./-f
+-o ./-f -u ./-f
+-o /dev/null words
+-o /dev/null -c words
+-o /dev/stdout words
+-o out empty
+-o out nosuch
+-o out words nosuch
+-o out -c sorted
+-o out -c unsorted
+-o out -C unsorted
+-o out -m m1 nosuch
+-o out_in -c out_in
+-o d
+-o d d
+-o d words
+-o '' words
+-o out_in out_in nosuch
+
+# --- operands and options in odd places (options after operands are optional in the spec)
+words -r
+words -u
+-r words -u
+words -o out
+words m1 m2 -r
+m1 m2 -m
+m1 m2 -mu
+sorted -c
+-- words
+-- -f
+-- -r words
+-r -- words
+-r -- -f
+-u -- -f
+-- ./-f
+-- -
+-- - -
+-
+- -
+- - -
+- - words
+- words -
+words - words
+./-f -
+./-f ./-f
+-u ./-f ./-f
+-k 1 -- ./-f
+-t : -- ./-f
+-m -- ./-f ./-f
+-c -- ./-f
+-m m1 m1
+-m m1 s1 m2
+-m -u m1 m1 m1
+-mu m1 m1 m1
+-mr m2 m1
+-mr m1 m2
+-m -r m1 m2
+-m m1 empty
+-m empty m1
+-m empty empty
+-mu empty
+-m empty
+-m -k 1 empty
+-mc m1
+-cm m1
+-cum m1
+-mc m1 m2
+-co out sorted
+-Cm sorted
+-c -C sorted
+-C -c sorted
+-c -C unsorted
+-C -c unsorted
+-cC unsorted
+-Cc unsorted
+-cc unsorted
+-CC unsorted
+-c -c sorted
+-m -m m1 m2
+-uu words
+-u -u words
+-rr words
+-r -r words
+-nn nums
+-ff mixed
+-dd dict
+-ii nonprint
+-bb blanks
+-ruru words
+-nrnr nums
+-k 1 -k 1 words
+-t a -t b words
+-r -n -r nums
+-n -r -n nums
+
+# --- options this implementation must not take (undefined by the spec; the references take extensions)
+-s words
+-z words
+-M words
+-V words
+-g nums
+-h nums
+-R words
+-S 1M words
+-T /tmp words
+-y words
+-e words
+-+1 words
++1 words
++0 -1 words
+-1 words
++1n words
+-x
+-k
+-k ''
+-k ,
+-k ,1 words
+-k 1,, words
+-k 1,2, words
+-k 1,2,3 words
+-k 1. words
+-k .1 words
+-k 1.1. words
+-k 0.1 words
+-k 1.0 words
+-k 1,0.1 words
+-k 1,1.-1 words
+-k -1 words
+-k +1 words
+-k 1 2 words
+-k 1n2 words
+-k 1nn words
+-k 1,1nn words
+-k 1rr words
+-k 1,1rr words
+-k 1x words
+-k 1,1x words
+-k 1,x words
+-k 1.x words
+-k x words
+-k 1bb words
+-k 1b2 words
+-k 1 , 2 words
+-k 1.1b.1 words
+-k 4294967296 words
+-k 99999999999999999999 words
+-k 1.99999999999999999999 words
+-k 1,99999999999999999999 words
+-k 1,1.99999999999999999999 words
+-k 2147483648 words
+-k 2147483647 words
+-k 1.2147483647 words
+-k 1,2147483647 words
+-t
+-t ab words
+-t é words
+-t -k words
+-t -- words
+-t '' words
+-o
+-o -u words
+-m -o
+-c -c
+-c -m
+-cm words
+-co out words
+-Co out words
+-c words words
+-C words words
+-c m1 m2
+-C m1 m2
+-c - -
+-c -C words words
+-cu words words

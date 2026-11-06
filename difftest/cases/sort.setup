@@ -26,3 +26,20 @@ printf '\303\251\ne\n\303\211\nE\nz\n\303\250\n' > utf8
 printf 'dash\nb\n' > ./-f
 printf 'z\ny\n' > out_in
 mkdir d
+
+# the corpus in sort.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+
+# sorted halves for -m (long and many come from the corpus: a 70000-byte line, 3000 lines with equal keys)
+awk 'BEGIN{for(i=0;i<1500;i++) printf "%06d a\n", i*2}' > sorted.even
+awk 'BEGIN{for(i=0;i<1000;i++) printf "%06d b\n", i*3}' > sorted.three
+awk 'BEGIN{for(i=0;i<1000;i++) printf "%06d c\n", i*3}' > sorted.three.c
+
+# the lines of the SUSv4 EXAMPLES and APPLICATION USAGE
+printf 'Atlanta|425022|Georgia\nBirmingham|284413|Alabama\nColumbia|100385|South Carolina\n' > cities
+printf 'root:x:0:0:r:/root:/bin/sh\nbin:x:2:2:b:/bin:/bin/sh\ndaemon:x:1:1:d:/usr:/bin/sh\nnobody:x:65534:65534:n:/:/bin/sh\nmario:x:501:20:m:/home:/bin/zsh\n' > passwd
+printf 'y\tb\nx a\n' > tabspace
+printf 'one 1x\ntwo 2 \nthree\tx\nfour  y\n' > ex3
+printf 'k1 a 9\nk2 b 8\nk1 c 7\nk3 d 6\nk2 e 5\n' > ex5
+printf 'z b\ny a\n' > in1
+printf 'x d\nw c\n' > in2
