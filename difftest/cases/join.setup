@@ -35,3 +35,10 @@ printf 'a;c\n' > semi2
 printf 'a\303\251b 1\n' > eacute1
 printf 'a\303\251b 2\n' > eacute2
 mkdir dir
+
+# the corpus in join.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+awk 'BEGIN{for(i=0;i<20000;i++) printf "%06d a%d\n", i*2, i}' > big.1
+awk 'BEGIN{for(i=0;i<20000;i++) printf "%06d b%d\n", i*3, i}' > big.2
+awk 'BEGIN{for(i=0;i<100;i++) print "k x" i; for(i=0;i<100;i++) print "m x" i}' > cross.1
+awk 'BEGIN{for(i=0;i<100;i++) print "k y" i; for(i=0;i<50;i++) print "n y" i}' > cross.2
