@@ -69,3 +69,402 @@ f1 f2 f1
 -4 f1 f2
 -1x f1 f2
 -
+
+# --- 2026-11-06: every column option on pairs of sorted files (the lead strings of STDOUT)
+interleave.1 interleave.2
+-1 interleave.1 interleave.2
+-2 interleave.1 interleave.2
+-3 interleave.1 interleave.2
+-12 interleave.1 interleave.2
+-13 interleave.1 interleave.2
+-23 interleave.1 interleave.2
+-123 interleave.1 interleave.2
+disjoint.1 disjoint.2
+-1 disjoint.1 disjoint.2
+-2 disjoint.1 disjoint.2
+-3 disjoint.1 disjoint.2
+-12 disjoint.1 disjoint.2
+-13 disjoint.1 disjoint.2
+-23 disjoint.1 disjoint.2
+-123 disjoint.1 disjoint.2
+subset.1 subset.2
+-1 subset.1 subset.2
+-2 subset.1 subset.2
+-3 subset.1 subset.2
+-12 subset.1 subset.2
+-13 subset.1 subset.2
+-23 subset.1 subset.2
+-123 subset.1 subset.2
+same.1 same.2
+-1 same.1 same.2
+-2 same.1 same.2
+-3 same.1 same.2
+-12 same.1 same.2
+-13 same.1 same.2
+-23 same.1 same.2
+-123 same.1 same.2
+multi.1 multi.2
+-1 multi.1 multi.2
+-2 multi.1 multi.2
+-3 multi.1 multi.2
+-12 multi.1 multi.2
+-13 multi.1 multi.2
+-23 multi.1 multi.2
+-123 multi.1 multi.2
+tabs.1 tabs.2
+-1 tabs.1 tabs.2
+-2 tabs.1 tabs.2
+-3 tabs.1 tabs.2
+-12 tabs.1 tabs.2
+-13 tabs.1 tabs.2
+-23 tabs.1 tabs.2
+-123 tabs.1 tabs.2
+nl.1 nl.2
+-1 nl.1 nl.2
+-2 nl.1 nl.2
+-3 nl.1 nl.2
+-12 nl.1 nl.2
+-13 nl.1 nl.2
+-23 nl.1 nl.2
+-123 nl.1 nl.2
+nl1.1 nl1.2
+-1 nl1.1 nl1.2
+-2 nl1.1 nl1.2
+-3 nl1.1 nl1.2
+-12 nl1.1 nl1.2
+-13 nl1.1 nl1.2
+-23 nl1.1 nl1.2
+-123 nl1.1 nl1.2
+eol1.1 eol1.2
+-1 eol1.1 eol1.2
+-2 eol1.1 eol1.2
+-3 eol1.1 eol1.2
+-12 eol1.1 eol1.2
+-13 eol1.1 eol1.2
+-23 eol1.1 eol1.2
+-123 eol1.1 eol1.2
+eol2.1 eol2.2
+-1 eol2.1 eol2.2
+-2 eol2.1 eol2.2
+-3 eol2.1 eol2.2
+-12 eol2.1 eol2.2
+-13 eol2.1 eol2.2
+-23 eol2.1 eol2.2
+-123 eol2.1 eol2.2
+eol3.1 eol3.2
+-1 eol3.1 eol3.2
+-2 eol3.1 eol3.2
+-3 eol3.1 eol3.2
+-12 eol3.1 eol3.2
+-13 eol3.1 eol3.2
+-23 eol3.1 eol3.2
+-123 eol3.1 eol3.2
+eol4.1 eol4.2
+-1 eol4.1 eol4.2
+-2 eol4.1 eol4.2
+-3 eol4.1 eol4.2
+-12 eol4.1 eol4.2
+-13 eol4.1 eol4.2
+-23 eol4.1 eol4.2
+-123 eol4.1 eol4.2
+crlf.1 crlf.2
+-1 crlf.1 crlf.2
+-2 crlf.1 crlf.2
+-3 crlf.1 crlf.2
+-12 crlf.1 crlf.2
+-13 crlf.1 crlf.2
+-23 crlf.1 crlf.2
+-123 crlf.1 crlf.2
+nul.1 nul.2
+-1 nul.1 nul.2
+-2 nul.1 nul.2
+-3 nul.1 nul.2
+-12 nul.1 nul.2
+-13 nul.1 nul.2
+-23 nul.1 nul.2
+-123 nul.1 nul.2
+invalid.1 invalid.2
+-1 invalid.1 invalid.2
+-2 invalid.1 invalid.2
+-3 invalid.1 invalid.2
+-12 invalid.1 invalid.2
+-13 invalid.1 invalid.2
+-23 invalid.1 invalid.2
+-123 invalid.1 invalid.2
+utf8.1 utf8.2
+-1 utf8.1 utf8.2
+-2 utf8.1 utf8.2
+-3 utf8.1 utf8.2
+-12 utf8.1 utf8.2
+-13 utf8.1 utf8.2
+-23 utf8.1 utf8.2
+-123 utf8.1 utf8.2
+collate.1 collate.2
+-1 collate.1 collate.2
+-2 collate.1 collate.2
+-3 collate.1 collate.2
+-12 collate.1 collate.2
+-13 collate.1 collate.2
+-23 collate.1 collate.2
+-123 collate.1 collate.2
+collate2.1 collate2.2
+-1 collate2.1 collate2.2
+-2 collate2.1 collate2.2
+-3 collate2.1 collate2.2
+-12 collate2.1 collate2.2
+-13 collate2.1 collate2.2
+-23 collate2.1 collate2.2
+-123 collate2.1 collate2.2
+case.1 case.2
+-1 case.1 case.2
+-2 case.1 case.2
+-3 case.1 case.2
+-12 case.1 case.2
+-13 case.1 case.2
+-23 case.1 case.2
+-123 case.1 case.2
+one.1 one.2
+-1 one.1 one.2
+-2 one.1 one.2
+-3 one.1 one.2
+-12 one.1 one.2
+-13 one.1 one.2
+-23 one.1 one.2
+-123 one.1 one.2
+empty.1 empty.2
+-1 empty.1 empty.2
+-2 empty.1 empty.2
+-3 empty.1 empty.2
+-12 empty.1 empty.2
+-13 empty.1 empty.2
+-23 empty.1 empty.2
+-123 empty.1 empty.2
+sp.1 sp.2
+-1 sp.1 sp.2
+-2 sp.1 sp.2
+-3 sp.1 sp.2
+-12 sp.1 sp.2
+-13 sp.1 sp.2
+-23 sp.1 sp.2
+-123 sp.1 sp.2
+interleave.2 interleave.1
+-12 interleave.2 interleave.1
+-3 interleave.2 interleave.1
+-123 interleave.2 interleave.1
+disjoint.2 disjoint.1
+-12 disjoint.2 disjoint.1
+-3 disjoint.2 disjoint.1
+-123 disjoint.2 disjoint.1
+subset.2 subset.1
+-12 subset.2 subset.1
+-3 subset.2 subset.1
+-123 subset.2 subset.1
+multi.2 multi.1
+-12 multi.2 multi.1
+-3 multi.2 multi.1
+-123 multi.2 multi.1
+tabs.2 tabs.1
+-12 tabs.2 tabs.1
+-3 tabs.2 tabs.1
+-123 tabs.2 tabs.1
+nl.2 nl.1
+-12 nl.2 nl.1
+-3 nl.2 nl.1
+-123 nl.2 nl.1
+eol1.2 eol1.1
+-12 eol1.2 eol1.1
+-3 eol1.2 eol1.1
+-123 eol1.2 eol1.1
+eol2.2 eol2.1
+-12 eol2.2 eol2.1
+-3 eol2.2 eol2.1
+-123 eol2.2 eol2.1
+eol3.2 eol3.1
+-12 eol3.2 eol3.1
+-3 eol3.2 eol3.1
+-123 eol3.2 eol3.1
+case.2 case.1
+-12 case.2 case.1
+-3 case.2 case.1
+-123 case.2 case.1
+
+# --- one side empty, both sides the same file, a file against itself
+empty.1 interleave.1
+interleave.1 empty.1
+-1 empty.1 interleave.1
+-2 interleave.1 empty.1
+-3 empty.1 interleave.1
+-12 interleave.1 empty.1
+-123 interleave.1 empty.1
+interleave.1 interleave.1
+-3 interleave.1 interleave.1
+-12 interleave.1 interleave.1
+multi.1 multi.1
+-12 multi.1 multi.1
+nl.1 nl.1
+-3 nl.1 nl.1
+eol1.1 eol1.1
+-12 eol1.1 eol1.1
+empty.1 empty.2
+-123 empty.1 empty.2
+
+# --- the last line without a newline is the same line with one (both files, either file)
+eol4.1 eol4.2
+eol4.2 eol4.1
+-12 eol4.1 eol4.2
+-3 eol4.1 eol4.2
+eol3.1 eol3.2
+-3 eol3.1 eol3.2
+
+# --- the EXAMPLES: three sorted lists (the pipeline reads the first result on stdin)
+-23 xcu xpg3
+-12 xcu xpg3
+-12 xpg3 svid89
+-23 xpg3 svid89
+-23 xcu svid89
+-12 xcu svid89
+-13 xcu xpg3
+in:xcu -23 - xpg3
+in:xcu -12 - xpg3
+in:xpg3 -12 - svid89
+in:xpg3 -23 - xcu
+in:xcu -23 xpg3 -
+in:xpg3 -12 xcu -
+
+# --- large and long
+big.1 big.2
+-12 big.1 big.2
+-3 big.1 big.2
+-13 big.1 big.2
+-23 big.1 big.2
+bigdup.1 bigdup.2
+-3 bigdup.1 bigdup.2
+-12 bigdup.1 bigdup.2
+long1 long2
+-12 long1 long2
+-3 long1 long2
+long1 long1
+-12 long1 long1
+in:stdin.big - big.2
+in:stdin.big big.2 -
+in:stdin.long - long2
+
+# --- standard input as either operand, with every option
+in:interleave.1 - interleave.2
+in:interleave.2 interleave.1 -
+in:interleave.1 -1 - interleave.2
+in:interleave.1 -2 - interleave.2
+in:interleave.1 -3 - interleave.2
+in:interleave.1 -12 - interleave.2
+in:interleave.1 -13 - interleave.2
+in:interleave.1 -23 - interleave.2
+in:interleave.1 -123 - interleave.2
+in:interleave.2 -1 interleave.1 -
+in:interleave.2 -2 interleave.1 -
+in:interleave.2 -3 interleave.1 -
+in:interleave.2 -12 interleave.1 -
+in:interleave.2 -13 interleave.1 -
+in:interleave.2 -23 interleave.1 -
+in:eol1.1 - eol1.2
+in:eol2.2 eol2.1 -
+in:eol3.1 - eol3.2
+in:eol4.1 - eol4.2
+in:eol4.2 eol4.1 -
+in:crlf.1 - crlf.2
+in:nul.1 - nul.2
+in:nul.2 nul.1 -
+in:invalid.1 - invalid.2
+in:utf8.1 - utf8.2
+in:utf8.2 utf8.1 -
+in:collate.1 - collate.2
+in:tabs.1 - tabs.2
+in:nl.1 - nl.2
+in:nl1.1 - nl1.2
+in:multi.1 - multi.2
+in:empty.1 - interleave.2
+in:empty.1 interleave.2 -
+in:empty.1 - empty.2
+in:interleave.1 - empty.2
+in:interleave.1 empty.2 -
+
+# --- operands that fail or are odd
+- empty.1
+empty.1 -
+interleave.1 nosuch
+nosuch interleave.1
+nosuch nosuch
+-12 interleave.1 nosuch
+-3 nosuch interleave.1
+dir interleave.1
+interleave.1 dir
+dir dir
+noread interleave.1
+interleave.1 noread
+noread noread
+/dev/null interleave.1
+interleave.1 /dev/null
+/dev/null /dev/null
+-12 /dev/null /dev/null
+-123 /dev/null /dev/null
+'' interleave.1
+interleave.1 ''
+'' ''
+./-3 interleave.1
+-- ./-3 interleave.1
+-- -3 interleave.1
+-12 interleave.1 ./-3
+-- interleave.1 interleave.2
+-- -12 interleave.1 interleave.2
+-12 -- interleave.1 interleave.2
+interleave.1 interleave.2 --
+interleave.1 interleave.2 interleave.1
+interleave.1
+interleave.1 interleave.2 -12
+-12 interleave.1
+-12
+@
+-
+- -
+-- -
+
+# --- the option syntax: grouped, repeated, unknown (the references take extensions)
+-321 interleave.1 interleave.2
+-213 interleave.1 interleave.2
+-1 -2 -3 interleave.1 interleave.2
+-1 -1 interleave.1 interleave.2
+-11 interleave.1 interleave.2
+-122 interleave.1 interleave.2
+-1233 interleave.1 interleave.2
+-1 -23 interleave.1 interleave.2
+-12 -3 interleave.1 interleave.2
+-0 interleave.1 interleave.2
+-4 interleave.1 interleave.2
+-9 interleave.1 interleave.2
+-12x interleave.1 interleave.2
+-x12 interleave.1 interleave.2
+-i interleave.1 interleave.2
+-z interleave.1 interleave.2
+-u interleave.1 interleave.2
+-c interleave.1 interleave.2
+-a interleave.1 interleave.2
+-v interleave.1 interleave.2
+-d interleave.1 interleave.2
+--check-order interleave.1 interleave.2
+--nocheck-order interleave.1 interleave.2
+--output-delimiter=: interleave.1 interleave.2
+--total interleave.1 interleave.2
+--help
+--version
+interleave.1 -1 interleave.2
+interleave.1 interleave.2 -3
+interleave.1 -- -1 interleave.2
++1 interleave.1 interleave.2
+
+# --- input that is not sorted: unspecified, the references warn or stop
+unsorted.1 unsorted.2
+-12 unsorted.1 unsorted.2
+-3 unsorted.1 unsorted.2
+unsorted.1 interleave.2
+interleave.1 unsorted.2
+-12 unsorted.1 interleave.1
+-3 unsorted.2 unsorted.1

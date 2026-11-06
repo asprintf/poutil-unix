@@ -1,0 +1,13 @@
+# macOS compares and prints a line only up to a NUL byte
+-1 nul.1 nul.2
+-12 nul.1 nul.2
+-13 nul.1 nul.2
+-2 nul.1 nul.2
+-23 nul.1 nul.2
+-3 nul.1 nul.2
+in:nul.1 - nul.2
+in:nul.2 nul.1 -
+nul.1 nul.2
+
+# macOS -i folds case; the spec has no -i
+-i interleave.1 interleave.2

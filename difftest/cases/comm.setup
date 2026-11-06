@@ -23,3 +23,10 @@ cp f1 ./-3
 mkdir dir
 printf 'secret\n' > noread
 chmod 000 noread
+
+# the corpus in comm.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+awk 'BEGIN{for(i=0;i<30000;i++) printf "%06d\n", i*2}' > big.1
+awk 'BEGIN{for(i=0;i<20000;i++) printf "%06d\n", i*3}' > big.2
+awk 'BEGIN{for(i=0;i<20000;i++) print "dup"; print "z"}' > bigdup.1
+awk 'BEGIN{for(i=0;i<19999;i++) print "dup"; print "y"; print "z"}' > bigdup.2

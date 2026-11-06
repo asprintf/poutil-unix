@@ -4,3 +4,25 @@ nul1 nul2
 # bytes that are not characters in en_US.UTF-8: the order is unspecified (GNU rejects them)
 bin1 bin2
 -12 bin1 bin2
+
+# --- 2026-11-06 cases: every line below differs from both macOS and GNU
+# both files are standard input (undefined): the references read it once, we read it for file1 only
+- -
+
+# lines that collate equal without being identical: macOS and GNU may treat them as the same line, we do not (the spec's should); GNU also warns that the input is not sorted
+-1 collate2.1 collate2.2
+-1 utf8.1 utf8.2
+-12 collate2.1 collate2.2
+-12 utf8.1 utf8.2
+-13 collate2.1 collate2.2
+-13 utf8.1 utf8.2
+-2 collate2.1 collate2.2
+-2 utf8.1 utf8.2
+-23 collate2.1 collate2.2
+-23 utf8.1 utf8.2
+-3 collate2.1 collate2.2
+-3 utf8.1 utf8.2
+collate2.1 collate2.2
+in:utf8.1 - utf8.2
+in:utf8.2 utf8.1 -
+utf8.1 utf8.2
