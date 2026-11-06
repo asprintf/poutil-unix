@@ -27,3 +27,7 @@ printf 'x' > 'a b'
 mkdir dir
 ln -s text link
 ln -s nosuch dangling
+
+# the corpus in uuencode.in (see difftest.sh: CORPUS)
+[ -d "${CORPUS-}" ] && cp "$CORPUS"/* .
+mkdir -p '😂'

@@ -1,0 +1,6 @@
+# a directory as input: both write the begin line and fail, macOS -m also writes the end line
+-m '😂' '😂'
+-m '😂' name
+# macOS options the spec does not have: -o (output file) and -r (raw)
+-o len45 n
+-r len45 n

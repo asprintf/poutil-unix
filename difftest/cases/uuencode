@@ -79,3 +79,444 @@ text name extra
 -z text name
 -m -z text name
 text name -m
+
+# --- 2026-11-06: every length from 0 to 100, both algorithms (line breaks at 45 bytes, padding at 76 characters)
+len0 n
+-m len0 n
+len1 n
+-m len1 n
+len2 n
+-m len2 n
+len3 n
+-m len3 n
+len4 n
+-m len4 n
+len5 n
+-m len5 n
+len6 n
+-m len6 n
+len7 n
+-m len7 n
+len8 n
+-m len8 n
+len9 n
+-m len9 n
+len10 n
+-m len10 n
+len11 n
+-m len11 n
+len12 n
+-m len12 n
+len13 n
+-m len13 n
+len14 n
+-m len14 n
+len15 n
+-m len15 n
+len16 n
+-m len16 n
+len17 n
+-m len17 n
+len18 n
+-m len18 n
+len19 n
+-m len19 n
+len20 n
+-m len20 n
+len21 n
+-m len21 n
+len22 n
+-m len22 n
+len23 n
+-m len23 n
+len24 n
+-m len24 n
+len25 n
+-m len25 n
+len26 n
+-m len26 n
+len27 n
+-m len27 n
+len28 n
+-m len28 n
+len29 n
+-m len29 n
+len30 n
+-m len30 n
+len31 n
+-m len31 n
+len32 n
+-m len32 n
+len33 n
+-m len33 n
+len34 n
+-m len34 n
+len35 n
+-m len35 n
+len36 n
+-m len36 n
+len37 n
+-m len37 n
+len38 n
+-m len38 n
+len39 n
+-m len39 n
+len40 n
+-m len40 n
+len41 n
+-m len41 n
+len42 n
+-m len42 n
+len43 n
+-m len43 n
+len44 n
+-m len44 n
+len45 n
+-m len45 n
+len46 n
+-m len46 n
+len47 n
+-m len47 n
+len48 n
+-m len48 n
+len49 n
+-m len49 n
+len50 n
+-m len50 n
+len51 n
+-m len51 n
+len52 n
+-m len52 n
+len53 n
+-m len53 n
+len54 n
+-m len54 n
+len55 n
+-m len55 n
+len56 n
+-m len56 n
+len57 n
+-m len57 n
+len58 n
+-m len58 n
+len59 n
+-m len59 n
+len60 n
+-m len60 n
+len61 n
+-m len61 n
+len62 n
+-m len62 n
+len63 n
+-m len63 n
+len64 n
+-m len64 n
+len65 n
+-m len65 n
+len66 n
+-m len66 n
+len67 n
+-m len67 n
+len68 n
+-m len68 n
+len69 n
+-m len69 n
+len70 n
+-m len70 n
+len71 n
+-m len71 n
+len72 n
+-m len72 n
+len73 n
+-m len73 n
+len74 n
+-m len74 n
+len75 n
+-m len75 n
+len76 n
+-m len76 n
+len77 n
+-m len77 n
+len78 n
+-m len78 n
+len79 n
+-m len79 n
+len80 n
+-m len80 n
+len81 n
+-m len81 n
+len82 n
+-m len82 n
+len83 n
+-m len83 n
+len84 n
+-m len84 n
+len85 n
+-m len85 n
+len86 n
+-m len86 n
+len87 n
+-m len87 n
+len88 n
+-m len88 n
+len89 n
+-m len89 n
+len90 n
+-m len90 n
+len91 n
+-m len91 n
+len92 n
+-m len92 n
+len93 n
+-m len93 n
+len94 n
+-m len94 n
+len95 n
+-m len95 n
+len96 n
+-m len96 n
+len97 n
+-m len97 n
+len98 n
+-m len98 n
+len99 n
+-m len99 n
+len100 n
+-m len100 n
+
+# --- other byte patterns, emoji, and larger files
+rev256 n
+-m rev256 n
+ff3k n
+-m ff3k n
+zero3k n
+-m zero3k n
+lcg n
+-m lcg n
+utf8 n
+-m utf8 n
+crlf n
+-m crlf n
+nonl n
+-m nonl n
+stdin.big n
+-m stdin.big n
+emoji.basic
+emoji.crlf
+emoji.flags
+emoji.keycap
+emoji.lines
+emoji.max
+emoji.noeol
+emoji.nospace
+emoji.nul
+emoji.only_newlines
+emoji.sentence
+emoji.skin
+emoji.tabs
+emoji.tags
+emoji.vs16
+emoji.zwj
+emoji.zwj2 n
+-m emoji.basic
+emoji.crlf
+emoji.flags
+emoji.keycap
+emoji.lines
+emoji.max
+emoji.noeol
+emoji.nospace
+emoji.nul
+emoji.only_newlines
+emoji.sentence
+emoji.skin
+emoji.tabs
+emoji.tags
+emoji.vs16
+emoji.zwj
+emoji.zwj2 n
+
+# --- emoji and odd names for decode_pathname (written as given, in the begin line)
+text '😂'
+-m text '😂'
+text 'a😂b'
+-m text 'a😂b'
+text '👨‍👩‍👧'
+-m text '👨‍👩‍👧'
+text '🇩🇪'
+-m text '🇩🇪'
+text '👍🏽'
+-m text '👍🏽'
+text '😂 😂'
+-m text '😂 😂'
+text /tmp/😂/x
+-m text /tmp/😂/x
+text 😂/🇩🇪
+-m text 😂/🇩🇪
+text 'sp ace'
+-m text 'sp ace'
+text '%d'
+-m text '%d'
+text '%s%s'
+-m text '%s%s'
+text '
+'
+-m text '
+'
+text 'a"b'
+-m text 'a"b'
+text -
+-m text -
+text --
+-m text --
+text -m
+-m text -m
+text "$(awk 'BEGIN{for(i=0;i<200;i++)printf "n"}')"
+-m text "$(awk 'BEGIN{for(i=0;i<200;i++)printf "n"}')"
+text "$(awk 'BEGIN{for(i=0;i<1100;i++)printf "n"}')"
+-m text "$(awk 'BEGIN{for(i=0;i<1100;i++)printf "n"}')"
+text /dev/stdout
+-m text /dev/stdout
+text /dev/null
+-m text /dev/null
+text .
+-m text .
+text ..
+-m text ..
+text ./
+-m text ./
+text a/
+-m text a/
+text a//b
+-m text a//b
+text $HOME
+-m text $HOME
+text ~
+-m text ~
+emoji.zwj '😂'
+-m emoji.zwj '👨‍👩‍👧'
+'😂' name
+-m '😂' name
+'😂' '😂'
+-m '😂' '😂'
+emoji.basic emoji.basic
+len45 len45
+
+# --- standard input: the mode is not the file's, and -m, - and /dev/stdout
+in:len0 n
+in:len0 -m n
+in:len1 n
+in:len1 -m n
+in:len2 n
+in:len2 -m n
+in:len3 n
+in:len3 -m n
+in:len44 n
+in:len44 -m n
+in:len45 n
+in:len45 -m n
+in:len46 n
+in:len46 -m n
+in:len90 n
+in:len90 -m n
+in:len100 n
+in:len100 -m n
+in:rev256 n
+in:rev256 -m n
+in:ff3k n
+in:ff3k -m n
+in:lcg n
+in:lcg -m n
+in:utf8 n
+in:utf8 -m n
+in:crlf n
+in:crlf -m n
+in:nonl n
+in:nonl -m n
+in:stdin.big n
+in:stdin.big -m n
+in:emoji.basic
+emoji.crlf
+emoji.flags
+emoji.keycap
+emoji.lines
+emoji.max
+emoji.noeol
+emoji.nospace
+emoji.nul
+emoji.only_newlines
+emoji.sentence
+emoji.skin
+emoji.tabs
+emoji.tags
+emoji.vs16
+emoji.zwj
+emoji.zwj2 n
+in:emoji.basic
+emoji.crlf
+emoji.flags
+emoji.keycap
+emoji.lines
+emoji.max
+emoji.noeol
+emoji.nospace
+emoji.nul
+emoji.only_newlines
+emoji.sentence
+emoji.skin
+emoji.tabs
+emoji.tags
+emoji.vs16
+emoji.zwj
+emoji.zwj2 -m n
+in:len45 /dev/stdout
+in:len45 -m /dev/stdout
+in:len45 -
+in:len45 - n
+in:len45 -m - n
+in:len45 -- n
+in:len45 -- - n
+in:emoji.zwj /dev/stdout
+in:emoji.zwj -m /dev/stdout
+in:emoji.zwj -
+in:emoji.zwj - n
+in:emoji.zwj -m - n
+in:emoji.zwj -- n
+in:emoji.zwj -- - n
+in:stdin.big /dev/stdout
+in:stdin.big -m /dev/stdout
+in:stdin.big -
+in:stdin.big - n
+in:stdin.big -m - n
+in:stdin.big -- n
+in:stdin.big -- - n
+
+# --- files that are not plain: /dev/null, a directory with an emoji name, links
+/dev/null n
+-m /dev/null n
+'😂' n
+-m link n
+link '😂'
+dangling '😂'
+len45 n n
+-m -m len45 n
+-mm len45 n
+-mm -- len45 n
+-- -m len45 n
+len45 -m n
+len45 n -m
+-m
+-m len45
+--
+-- len45
+-m --
+-m -- len45
+-o len45 n
+-r len45 n
+-u len45 n
+-b len45 n
+--base64 len45 n
+--help
+--version
+-x
+len45 -x n
