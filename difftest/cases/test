@@ -177,6 +177,10 @@ a -eq 1
 1 -eq ' 1'
 '' -eq ''
 --1 -eq 1
+# one sign only: '+-5' is no integer (it was read as -5)
++-5 -eq -5
+-5 -eq +-5
++ -eq 0
 a == a
 a '<' b
 a -nt b

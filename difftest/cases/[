@@ -184,6 +184,8 @@ a -eq 1 ']'
 1 -eq ' 1' ']'
 '' -eq '' ']'
 --1 -eq 1 ']'
+# one sign only: '+-5' is no integer
++-5 -eq -5 ']'
 a == a ']'
 a '<' b ']'
 a -nt b ']'

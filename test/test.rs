@@ -87,7 +87,11 @@ fn unary(op: &[u8], arg: &[u8]) -> R {
 
 /* An operand of -eq and friends: an integer, with or without a sign. */
 fn integer(a: &[u8]) -> Result<posix::num::Int<'_>, Error> {
-    let digits = a.strip_prefix(b"+").unwrap_or(a);
+    /* one sign only: "+-5" is not an integer */
+    let digits = match a.strip_prefix(b"+") {
+        Some(r) if r.first() != Some(&b'-') => r,
+        _ => a,
+    };
     int(digits).ok_or_else(|| err("integer expression expected"))
 }
 
@@ -386,6 +390,9 @@ mod tests {
         assert_eq!(t(&["1.5", "-eq", "1"]), None);
         assert_eq!(t(&[" 1", "-eq", "1"]), None);
         assert_eq!(t(&["--1", "-eq", "1"]), None);
+        assert_eq!(t(&["+-1", "-eq", "-1"]), None);
+        assert_eq!(t(&["-1", "-eq", "+-1"]), None);
+        assert_eq!(t(&["+", "-eq", "0"]), None);
     }
 
     #[test]
