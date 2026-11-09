@@ -433,6 +433,44 @@ pub fn ignore_signal(sig: libc::c_int) {
     unsafe { libc::signal(sig, libc::SIG_IGN) };
 }
 
+/*
+ * SIGINT is noted and not acted on: sigint_seen() tells, and a blocked read
+ * returns EINTR (no SA_RESTART), so that the program can write its status first.
+ */
+static SIGINT_SEEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+extern "C" fn note_sigint(_: libc::c_int) {
+    SIGINT_SEEN.store(true, std::sync::atomic::Ordering::SeqCst);
+}
+
+pub fn catch_sigint() {
+    unsafe {
+        let mut sa: libc::sigaction = std::mem::zeroed();
+        sa.sa_sigaction = note_sigint as extern "C" fn(libc::c_int) as usize;
+        libc::sigemptyset(&mut sa.sa_mask);
+        sa.sa_flags = 0;
+        libc::sigaction(libc::SIGINT, &sa, std::ptr::null_mut());
+    }
+}
+
+pub fn sigint_seen() -> bool {
+    SIGINT_SEEN.load(std::sync::atomic::Ordering::SeqCst)
+}
+
+/* End as if SIGINT had killed the process: the default action, then the signal again. */
+pub fn die_by_sigint() -> ! {
+    unsafe {
+        libc::signal(libc::SIGINT, libc::SIG_DFL);
+        libc::raise(libc::SIGINT);
+    }
+    std::process::exit(130)
+}
+
+/* ftruncate(2) */
+pub fn ftruncate(fd: RawFd, len: i64) -> libc::c_int {
+    unsafe { libc::ftruncate(fd, len as libc::off_t) }
+}
+
 /* fork(2). Single thread only (see above): the child may then do anything before it execs. */
 pub fn fork() -> libc::pid_t {
     unsafe { libc::fork() }

@@ -25,6 +25,7 @@ extern "C" {
     fn iswalnum(wc: libc::c_uint) -> libc::c_int;
     fn iswprint(wc: libc::c_uint) -> libc::c_int;
     fn towupper(wc: libc::c_uint) -> libc::c_uint;
+    fn towlower(wc: libc::c_uint) -> libc::c_uint;
     fn wcrtomb(s: *mut libc::c_char, wc: libc::wchar_t, ps: *mut MbState) -> libc::size_t;
 }
 
@@ -179,6 +180,11 @@ pub fn is_print(wc: u32) -> bool {
 /* The uppercase equivalent of a wide character (towupper(3)). */
 pub fn to_upper(wc: u32) -> u32 {
     unsafe { towupper(wc) }
+}
+
+/* The lowercase equivalent of a wide character (towlower(3)). */
+pub fn to_lower(wc: u32) -> u32 {
+    unsafe { towlower(wc) }
 }
 
 /* Append the bytes of the wide character to out; false if it has none here. */
