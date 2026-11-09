@@ -1,0 +1,175 @@
+# tr: one spec rule per group of lines
+# EXAMPLES: words one per line, case conversion, an equivalence class
+in:words -cs '[:alpha:]' '[\n*]'
+in:text '[:lower:]' '[:upper:]'
+in:accents '[=e=]' '[e*]'
+# NUL is an ordinary character in the input; tr -d '\000' strips it
+in:nulbytes -d '\000'
+in:nulbytes a X
+in:nulbytes -c a X
+# string2 shorter than string1 (padding with the last character is allowed), longer, or [c*]
+in:text 0123456789 '[d*]'
+in:text 0123456789 d
+in:text abc xy
+in:text a xyz
+in:text abcde '[x*2]yz'
+in:text abcde 'z[x*]'
+# [c*n]: a leading zero is octal, otherwise decimal
+in:text abcdefghij '[x*010]'
+in:text abcdefghij '[x*10]'
+# a character that occurs twice in string1: the last wins in all three
+in:text aa xy
+# the System V brackets around a range are ordinary characters
+in:text '[a-z]' '[A-Z]'
+in:text a-z A-Z
+# a dash at either end is itself
+in:text -a xy
+in:text a- xy
+# a range given by octal sequences is a range of coded values
+in:bytes '\000-\037' '[.*]'
+in:bytes '\200-\377' '[.*]'
+in:bytes '\101-\132' '\141-\172'
+# backslash escapes
+in:ctl '\a\b\f\r\t\v' 123456
+in:ctl '\n' '\\'
+in:text '\\' x
+in:text 'a\' xy
+# longest octal sequence of up to three digits
+in:text '\1011' xy
+in:text '\0011' xy
+# classes in string1, mapped to one character
+in:text '[:alnum:]' '[x*]'
+in:text '[:alpha:]' '[x*]'
+in:text '[:blank:]' '[x*]'
+in:ctl '[:cntrl:]' '[x*]'
+in:text '[:digit:]' '[x*]'
+in:text '[:graph:]' '[x*]'
+in:text '[:lower:]' '[x*]'
+in:text '[:print:]' '[x*]'
+in:text '[:punct:]' '[x*]'
+in:ctl '[:space:]' '[x*]'
+in:text '[:upper:]' '[x*]'
+in:text '[:xdigit:]' '[x*]'
+# case conversion both ways, and in the same position as the other class
+in:case '[:upper:]' '[:lower:]'
+in:case '[:lower:]' '[:upper:]'
+in:text '1[:lower:]' '2[:upper:]'
+# translation with -s squeezes the characters of string2 after the translation
+in:repeats -s abcdef xxxxxx
+in:repeats -s abc xyz
+in:repeats -s a b
+in:text -s '[:upper:]' '[:lower:]'
+# -s alone: only the characters of the operand, and the complement with -c
+in:repeats -s a
+in:repeats -s abcdefxyz
+in:repeats -s '[:space:]'
+in:repeats -cs a
+in:repeats -s '\n'
+# -d, and the complement with -c and -C
+in:text -d aeiou
+in:text -d '[:digit:]'
+in:text -d a-m
+in:text -cd a-m
+in:text -Cd a-m
+in:text -cd '[:alpha:]\n'
+in:nulbytes -cd '\n'
+# -d and -s together: delete string1, squeeze string2; the complement is not applied to string2
+in:repeats -ds ' ' '\n'
+in:repeats -ds 'xz' ' '
+in:repeats -cds 'a\n' 'x\n'
+in:repeats -c -d -s 'a\n' 'x\n'
+in:repeats -s -c -d 'a\n' 'x\n'
+in:repeats -d -s -c 'a\n' 'x\n'
+in:words -ds '[:digit:]' '[:alpha:]'
+# -c and -C in a translation, the complement in ascending order against string2
+in:text -c a-z x
+in:text -C a-z x
+in:text -cs a-zA-Z '\n'
+in:text -c '\000-\140' 12
+in:text -C '\000-\140' 12
+# options in a group or apart, in any order
+in:repeats -cs '\n' x
+in:repeats -c -s '\n' x
+in:repeats -sc '\n' x
+# an operand that starts with a dash after an operand is an operand
+in:text 12 -d
+in:text 1 --
+in:text -- a-z A-Z
+in:text -s -- -a
+# equivalence class, in string1 and in string2 of -d -s
+in:accents '[=e=]' x
+in:accents -ds '[=e=]' x
+in:text '[=a=]' 1
+# the input: empty, no final newline, long
+in:empty a b
+in:empty -d a
+in:nonl a-c A-C
+in:nonl -s abc
+# invalid usage: missing and extra operands, a lone option, -d with two operands, -d -s with one
+@
+a
+a b c
+-d
+-d a b
+-ds a
+-s
+-s a b c
+-c
+-c a
+-x a b
+# invalid strings
+a ''
+'' a
+-d ''
+-s ''
+'[:foo:]' x
+'[:alpha:]' '[:upper:]'
+'[:lower:]' '[:lower:]'
+'[:lower:]' '[:alpha:]'
+abc '[:upper:]'
+z-a x
+a-c-e 12345
+'\400' x
+abc '[x*]y[z*]'
+abc '[x*08]'
+'[=ab=]' x
+'[:alpha' x
+'[a*' xyz
+'[a*3b]' abcdef
+# characters of more than one byte
+in:emoji '\360\237\230\200' x
+in:emoji x '\360\237\230\200'
+in:emoji -d x
+in:emoji -s x
+in:emoji -c x y
+in:emoji.zwj -d x
+in:emoji.skin -cd '\n'
+in:cjk -d '[:alpha:]'
+in:cjk -c '\n' x
+in:accents 'é' e
+in:accents 'éè' 'ee'
+in:accents -d 'é'
+in:accents -s 'é'
+in:accents 'à-ÿ' '[?*]'
+in:accents '[:lower:]' '[:upper:]'
+in:accents '[:upper:]' '[:lower:]'
+in:accents -d '[:alpha:]'
+in:accents -c '[:alpha:]' '_'
+in:accents -cd '[:alpha:]'
+# a multibyte character spelled in octal
+in:accents '\303\251' e
+in:accents -d '\303\251'
+# bytes that are no character in UTF-8
+in:invalid a x
+in:invalid '\377' x
+in:invalid -d '\377'
+in:invalid -c a x
+in:invalid -cd a
+in:invalid -s a
+in:bytes -d '\000-\177'
+in:bytes -dc '\000-\177'
+# a repeat count too big to count: string2 caps it, in string1 it is an error here
+in:text abc '[x*18446744073709551615]'
+in:text -c a '[x*18446744073709551615]'
+in:text abc '[x*99999999999999999999999]'
+'[x*18446744073709551615]' a

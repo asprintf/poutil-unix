@@ -1,0 +1,6 @@
+# a class in string2 only for a case conversion: both references accept the same class on both sides
+'[:lower:]' '[:lower:]'
+# [a*3b] is no construct, so ours takes the characters; both references refuse it as a bad repeat count
+'[a*3b]' abcdef
+# a three-digit octal over 377 names no byte: ours refuses it, macOS and GNU read it their own way
+'\400' x
