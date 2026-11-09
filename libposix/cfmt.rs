@@ -9,6 +9,7 @@ use std::ffi::CStr;
 extern "C" {
     /* the libc crate does not have it on every target */
     fn strtod(s: *const libc::c_char, end: *mut *mut libc::c_char) -> f64;
+    fn strtof(s: *const libc::c_char, end: *mut *mut libc::c_char) -> f32;
 }
 
 /*
@@ -76,6 +77,12 @@ pub fn parse_f64(s: &CStr) -> (f64, usize) {
     let mut end: *mut libc::c_char = std::ptr::null_mut();
     let v = unsafe { strtod(s.as_ptr(), &mut end) };
     (v, end as usize - s.as_ptr() as usize)
+}
+
+/* strtof(3): the value as a float, rounded once. */
+pub fn parse_f32(s: &CStr) -> f32 {
+    let mut end: *mut libc::c_char = std::ptr::null_mut();
+    unsafe { strtof(s.as_ptr(), &mut end) }
 }
 
 #[cfg(test)]
