@@ -26,3 +26,13 @@ in:utf8 -t c
 -t xuofdca bytes256
 -t a -t c -t d -t f -t o -t u -t x bytes256
 -t x -t u -t o -t f -t d -t c -t a bytes256
+# -A n: the offset after the last byte is written as an empty line (the standard says "shall be written", the PCTS
+# expects the line, macOS writes it); GNU writes nothing.
+-A n text
+-v -A n -t x1 zeros
+-A n -t x1 -t o1 short
+-j 3 -N 4 -A n text
+-A n -t a text
+# The same for empty input (GNU writes nothing, as for the other bases).
+-A n empty
+in:empty -A n

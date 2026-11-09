@@ -2,12 +2,6 @@
 -A x text
 -A x bytes256
 -A d -A x text
-# -A n: macOS writes an empty line where the last offset would be.
--A n text
--v -A n -t x1 zeros
--A n -t x1 -t o1 short
--j 3 -N 4 -A n text
--A n -t a text
 # Empty input: the offset after the last byte is written (0000000), macOS writes nothing.
 empty
 in:empty
@@ -16,6 +10,8 @@ in:empty -A d
 -j 0 empty
 -N 5 empty
 -N 5 -A d empty
+-A n empty
+in:empty -A n
 # -t a: only the seven low bits count and each is named; macOS writes the hexadecimal value for a byte over 127.
 -t a bytes256
 # Items of 8 bytes (d8 o8 x8 dL): macOS does not read them as 8 bytes, and it does not extend the last one with

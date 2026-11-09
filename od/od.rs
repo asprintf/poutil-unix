@@ -376,6 +376,13 @@ impl Radix {
     }
 }
 
+/* The line after the data: the offset of the next byte, an empty line for -A n (the PCTS and macOS write it). */
+fn last_line(radix: Radix, off: u64) -> Vec<u8> {
+    let mut v = radix.text(off).into_bytes();
+    v.push(b'\n');
+    v
+}
+
 /* The concatenation of the input files, read as far as it is asked for. */
 struct Input {
     prog: Vec<u8>,
@@ -566,9 +573,8 @@ fn dump(prog: &[u8], o: &Opts, files: Vec<Vec<u8>>) -> i32 {
         off += n as u64;
     }
     /* the offset after the last byte, unless no file could be read at all */
-    if o.radix != Radix::None && (input.opened || !input.failed) {
-        out.put(o.radix.text(off).as_bytes());
-        out.put(b"\n");
+    if input.opened || !input.failed {
+        out.put(&last_line(o.radix, off));
     }
     out.flush();
     i32::from(input.failed)
@@ -659,6 +665,14 @@ mod tests {
     fn lines(t: &[Spec], data: &[u8]) -> Vec<String> {
         let mut c = Chars { carry: Default::default() };
         render(t, &mut c, data, data.len().min(block_size(t))).into_iter().map(|l| String::from_utf8_lossy(&l).into_owned()).collect()
+    }
+
+    #[test]
+    fn last_line_of_each_base() {
+        assert_eq!(last_line(Radix::Octal, 20), b"0000024\n");
+        assert_eq!(last_line(Radix::Decimal, 20), b"0000020\n");
+        assert_eq!(last_line(Radix::Hex, 20), b"000014\n");
+        assert_eq!(last_line(Radix::None, 20), b"\n");
     }
 
     #[test]
