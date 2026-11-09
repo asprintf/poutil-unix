@@ -1,0 +1,5 @@
+# group as the standard has it: a group name or a numeric group ID, nothing else. Both GNU and macOS also take
+# an empty operand (GNU: no change), a sign or a blank in front of a number; these are errors here.
+'' f
+" $(id -g)" f
++$(id -g) f

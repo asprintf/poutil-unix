@@ -1,0 +1,18 @@
+# -H, -L and -P belong to -R; alone they change nothing here (as GNU); macOS warns "only useful with -R".
+-H "$(othergroup)" sl
+-L "$(othergroup)" sl
+-P "$(othergroup)" sl
+# A dangling link as an operand (dang) or a link loop (loop): chown() fails (ENOENT, ELOOP) and so does ours; macOS
+# changes the link itself and succeeds.
+"$(othergroup)" dang
+"$(othergroup)" loop
+# -L and a dangling link met in the hierarchy (tree/dl): the same. Ours also reports the link back to a directory
+# above (tree/s/up: "directory causes a cycle"); the listings differ in tree/dl alone.
+-RL "$(othergroup)" tree
+-RL "$(othergroup)" treelink
+-RPL "$(othergroup)" treelink
+-RPHL "$(othergroup)" treelink
+# -h with -R -L or -R -H: the spec does not forbid it; macOS refuses ("the -RL and -h options may not be specified together").
+-hRL "$(othergroup)" tree
+-RhL "$(othergroup)" treelink
+-RhH "$(othergroup)" treelink

@@ -50,6 +50,13 @@
 # SHARD=K/N (run only every
 # Nth case line, those with number mod N equal to K: start N copies with
 # K = 0 .. N-1 at the same time to use all the processors)
+#
+# A case line is run by eval in this shell, so it can call othergroup: a group of the user other than the
+# primary one (the primary one if there is none), "$(othergroup)": no group name is assumed.
+
+othergroup() {
+	id -G | tr ' ' '\n' | awk -v e="$(id -g)" 'BEGIN { o = e } $1 != e { o = $1; exit } END { print o }'
+}
 
 here=$(cd "$(dirname "$0")" && pwd)
 OURS=${OURS:-$here/../target/release}

@@ -1,0 +1,17 @@
+touch f g
+mkdir d
+touch d/x
+ln -s f sl; ln -s d dl; ln -s nowhere dang; ln -s loop loop
+mkdir -p tree/s tree/e out
+touch tree/a tree/s/b tree/e/c out/o
+ln -s ../out tree/lo; ln -s a tree/la; ln -s nowhere tree/dl; ln -s .. tree/s/up
+ln -s tree treelink
+chmod 000 tree/e
+touch sg sd
+chmod 6755 sg
+chmod 4755 sd
+touch ./-dash
+printf 'x\n' > 'ü ñ 😀.txt'
+mkdir 'dir 😀'
+touch 'dir 😀/in' 'dir 😀/🇩🇪 flag'
+ln -s 'ü ñ 😀.txt' 'l😀'

@@ -1,0 +1,98 @@
+# group: a name, digits, the primary group, a supplementary one; every file operand is changed
+"$(id -gn)" f
+"$(id -g)" f
+"$(othergroup)" f
+"$(othergroup)" f g
+# the owner stays; an error on one file does not stop the next and the status is not 0
+"$(othergroup)" f nosuch g
+"$(othergroup)" nosuch f
+# the operand is a group name or digits and nothing else (no owner, no colon)
+nosuchgroup-poutil f
+'' f
++$(id -g) f
+"0$(id -g)" f
+4294967295 f
+4294967296 f
+99999999999999999999999 f
+0x1f4 f
+1.5 f
+" $(id -g)" f
+"$(id -g) " f
+"$(id -gn):$(id -gn)" f
+":$(id -g)" f
+"$(id -gn):" f
+# a plain user may not give a group it is not in
+0 f
+"$(id -gn root)" f
+# the set-user-ID and set-group-ID bits of a regular file are cleared (see .show)
+"$(othergroup)" sg
+"$(othergroup)" sd
+"$(othergroup)" d
+# usage
+@
+"$(id -g)"
+-h
+-R
+-h "$(id -g)"
+-z "$(id -g)" f
+-hz "$(id -g)" f
+-- "$(id -g)" f
+"$(id -g)" -- f
+"$(id -g)" f -R
+-hh "$(id -g)" f
+-RR "$(id -g)" f
+-- "$(othergroup)" -dash
+"$(othergroup)" -dash
+# symbolic links: without -h the file behind the link; with -h the link
+"$(othergroup)" sl
+"$(othergroup)" dl
+"$(othergroup)" dang
+"$(othergroup)" loop
+-h "$(othergroup)" sl
+-h "$(othergroup)" dl
+-h "$(othergroup)" dang
+-h "$(othergroup)" loop
+-h "$(othergroup)" sl f
+-h "$(othergroup)" f
+# -H -L -P mean nothing without -R
+-H "$(othergroup)" sl
+-L "$(othergroup)" sl
+-P "$(othergroup)" sl
+# -R: the tree; each of -H -L -P on a link to a directory and on a tree with links inside
+-RP "$(othergroup)" tree
+-RH "$(othergroup)" tree
+-RL "$(othergroup)" tree
+-RP "$(othergroup)" treelink
+-RH "$(othergroup)" treelink
+-RL "$(othergroup)" treelink
+# the last of -H -L -P decides
+-RHP "$(othergroup)" treelink
+-RPH "$(othergroup)" treelink
+-RLP "$(othergroup)" treelink
+-RPL "$(othergroup)" treelink
+-R -H -L -P "$(othergroup)" treelink
+-RPHL "$(othergroup)" treelink
+# -h with -R: links themselves, none followed, whatever -H or -L say
+-Rh "$(othergroup)" tree
+-RhL "$(othergroup)" treelink
+-RhH "$(othergroup)" treelink
+-hRL "$(othergroup)" tree
+# a directory without -R: itself only
+"$(othergroup)" tree
+"$(othergroup)" .
+-R "$(othergroup)" .
+-R "$(othergroup)" d d
+-R "$(othergroup)" d/ f
+# names that are not ASCII
+"$(othergroup)" 'ü ñ 😀.txt'
+"$(othergroup)" 'l😀'
+-h "$(othergroup)" 'l😀'
+-R "$(othergroup)" 'dir 😀'
+"$(othergroup)" 'dir 😀/🇩🇪 flag' 'dir 😀/nosuch😀'
+# operand forms
+"$(othergroup)" ''
+"$(othergroup)" f/
+"$(othergroup)" sl/
+"$(othergroup)" d//
+"$(othergroup)" ./f
+"$(othergroup)" d/../f

@@ -1,0 +1,2 @@
+. "$DIFFTEST_LIB/stat.sh"
+st_tree chown nodot
