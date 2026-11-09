@@ -23,6 +23,14 @@ extern "C" {
     fn iswspace(wc: libc::c_uint) -> libc::c_int;
     fn wcwidth(wc: libc::wchar_t) -> libc::c_int;
     fn iswalnum(wc: libc::c_uint) -> libc::c_int;
+    fn iswalpha(wc: libc::c_uint) -> libc::c_int;
+    fn iswcntrl(wc: libc::c_uint) -> libc::c_int;
+    fn iswdigit(wc: libc::c_uint) -> libc::c_int;
+    fn iswgraph(wc: libc::c_uint) -> libc::c_int;
+    fn iswlower(wc: libc::c_uint) -> libc::c_int;
+    fn iswpunct(wc: libc::c_uint) -> libc::c_int;
+    fn iswupper(wc: libc::c_uint) -> libc::c_int;
+    fn iswxdigit(wc: libc::c_uint) -> libc::c_int;
     fn iswprint(wc: libc::c_uint) -> libc::c_int;
     fn towupper(wc: libc::c_uint) -> libc::c_uint;
     fn towlower(wc: libc::c_uint) -> libc::c_uint;
@@ -33,7 +41,7 @@ extern "C" {
  * Do the ASCII bytes stand for themselves in this locale? True for every
  * locale in use; checked once so that the common case can skip mbrtowc.
  */
-fn ascii_is_identity() -> bool {
+pub fn ascii_is_identity() -> bool {
     static IDENT: OnceLock<bool> = OnceLock::new();
     *IDENT.get_or_init(|| {
         (1..0x80u8).all(|b| unsafe {
@@ -177,6 +185,65 @@ pub fn is_print(wc: u32) -> bool {
     unsafe { iswprint(wc) != 0 }
 }
 
+/* Is the wide character alphabetic (iswalpha(3))? */
+pub fn is_alpha(wc: u32) -> bool {
+    unsafe { iswalpha(wc) != 0 }
+}
+
+/* Is the wide character a control character (iswcntrl(3))? */
+pub fn is_cntrl(wc: u32) -> bool {
+    unsafe { iswcntrl(wc) != 0 }
+}
+
+/* Is the wide character a digit (iswdigit(3))? */
+pub fn is_digit(wc: u32) -> bool {
+    unsafe { iswdigit(wc) != 0 }
+}
+
+/* Is the wide character printable and not a space (iswgraph(3))? */
+pub fn is_graph(wc: u32) -> bool {
+    unsafe { iswgraph(wc) != 0 }
+}
+
+/* Is the wide character lowercase (iswlower(3))? */
+pub fn is_lower(wc: u32) -> bool {
+    unsafe { iswlower(wc) != 0 }
+}
+
+/* Is the wide character punctuation (iswpunct(3))? */
+pub fn is_punct(wc: u32) -> bool {
+    unsafe { iswpunct(wc) != 0 }
+}
+
+/* Is the wide character uppercase (iswupper(3))? */
+pub fn is_upper(wc: u32) -> bool {
+    unsafe { iswupper(wc) != 0 }
+}
+
+/* Is the wide character a hexadecimal digit (iswxdigit(3))? */
+pub fn is_xdigit(wc: u32) -> bool {
+    unsafe { iswxdigit(wc) != 0 }
+}
+
+/* The test for the character class called name (alnum, alpha, ...), if the name is one of the twelve. */
+pub fn class_test(name: &[u8]) -> Option<fn(u32) -> bool> {
+    Some(match name {
+        b"alnum" => is_alnum,
+        b"alpha" => is_alpha,
+        b"blank" => is_blank,
+        b"cntrl" => is_cntrl,
+        b"digit" => is_digit,
+        b"graph" => is_graph,
+        b"lower" => is_lower,
+        b"print" => is_print,
+        b"punct" => is_punct,
+        b"space" => is_space,
+        b"upper" => is_upper,
+        b"xdigit" => is_xdigit,
+        _ => return None,
+    })
+}
+
 /* The uppercase equivalent of a wide character (towupper(3)). */
 pub fn to_upper(wc: u32) -> u32 {
     unsafe { towupper(wc) }
@@ -189,6 +256,10 @@ pub fn to_lower(wc: u32) -> u32 {
 
 /* Append the bytes of the wide character to out; false if it has none here. */
 pub fn encode(wc: u32, out: &mut Vec<u8>) -> bool {
+    if wc < 0x80 && ascii_is_identity() {
+        out.push(wc as u8);
+        return true;
+    }
     let mut st = MbState([0; 128]);
     /* MB_LEN_MAX is 16 on macOS and 16 on glibc */
     let mut buf = [0 as libc::c_char; 32];
@@ -197,6 +268,25 @@ pub fn encode(wc: u32, out: &mut Vec<u8>) -> bool {
         return false;
     }
     out.extend(buf[..n].iter().map(|&c| c as u8));
+    true
+}
+
+/* Does the wide character have a multibyte form in this locale (not a lone surrogate, not out of range)? */
+pub fn is_valid(wc: u32) -> bool {
+    let mut st = MbState([0; 128]);
+    let mut buf = [0 as libc::c_char; 32];
+    unsafe { wcrtomb(buf.as_mut_ptr(), wc as libc::wchar_t, &mut st) != usize::MAX }
+}
+
+/* Is every character of the locale a single byte? Looks for one that is longer. */
+pub fn is_single_byte() -> bool {
+    let mut v = Vec::new();
+    for wc in 0x80..0x3200u32 {
+        v.clear();
+        if encode(wc, &mut v) && v.len() > 1 {
+            return false;
+        }
+    }
     true
 }
 
