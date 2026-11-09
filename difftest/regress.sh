@@ -3294,5 +3294,207 @@ eq "xargs under an ignored SIGCHLD: the utility's failure is seen" 123 $?
 perl -e '$SIG{CHLD} = "IGNORE"; exec @ARGV' "$OURS/time" false 2> /dev/null
 eq "time under an ignored SIGCHLD: the utility's status" 1 $?
 
+#------------------------------------------------- tr nl iconv
+# Inputs larger than a read, characters cut by a read, closed descriptors and a closed pipe.
+fresh
+yes 'Hello World' | head -n 400000 > hw
+yes 'HELLO WORLD' | head -n 400000 > hw.up
+"$OURS/tr" a-z A-Z < hw > out
+cmp -s out hw.up
+eq "tr a-z A-Z on 4.8MB" 0 $?
+"$OURS/tr" -d 'lo' < hw > out
+eq "tr -d on 4.8MB" "$(yes 'He Wrd' | head -n 400000 | md5)" "$(md5 < out)"
+{ printf 'aaa'; sleep 0.2; printf 'aab\n'; } | "$OURS/tr" -s a > out
+eq "tr -s: a run cut by a read is squeezed across the cut" "ab" "$(cat out)"
+yes '€' | tr -d '\n' | head -c 90000 > euros
+LC_ALL=$U8 "$OURS/tr" '€' e < euros > out
+eq "tr: 30000 three-byte characters in 64KB reads" "$(yes e | tr -d '\n' | head -c 30000 | md5)" "$(md5 < out)"
+LC_ALL=$U8 "$OURS/tr" -s '€' < euros > out
+eq "tr -s: 30000 three-byte characters squeezed to one" "€" "$(cat out)"
+{ printf 'ab\303'; sleep 0.2; printf '\251c\n'; } | LC_ALL=$U8 "$OURS/tr" '€é' 'xy' > out
+eq "tr: a character cut by a read is one character" "abyc" "$(cat out)"
+{ "$OURS/tr" a b < hw; echo $? > st; } | head -c 10 > /dev/null
+eq "tr into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+echo a | "$OURS/tr" a b >&- 2> err
+eq "tr with stdout closed: status" 1 $?
+eq "tr with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/tr" a b <&- 2> err
+eq "tr with stdin closed: status" 1 $?
+eq "tr with stdin closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/tr" < /dev/null 2> /dev/null
+eq "tr without operands: usage status" 2 $?
+"$OURS/tr" a-z A-Z . 2> /dev/null < /dev/null
+eq "tr with three operands: usage status" 2 $?
+"$OURS/tr" '[x*18446744073709551615]' a < /dev/null > /dev/null 2>&1
+eq "tr: a huge repeat count in string1 is an error, not memory" 1 $?
+echo ab | "$OURS/tr" abcdefgh '[x*18446744073709551615]' > out 2> /dev/null
+eq "tr: a huge repeat count in string2 is capped" "xx" "$(cat out)"
+printf 'a\0b\0' | "$OURS/tr" -d '\000' > out
+eq "tr -d '\\000' strips NUL" ab "$(cat out)"
+
+for n in 100000; do
+	yes x | head -n $n | "$OURS/nl" > out
+	eq "nl numbers $n lines" "$(printf '%6d\tx' $n)" "$(tail -1 out)"
+done
+{ "$OURS/nl" hw; echo $? > st; } | head -c 10 > /dev/null
+eq "nl into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+echo a | "$OURS/nl" >&- 2> err
+eq "nl with stdout closed: status" 1 $?
+eq "nl with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/nl" <&- 2> /dev/null
+eq "nl with stdin closed: status" 1 $?
+"$OURS/nl" . 2> /dev/null
+eq "nl of a directory: status" 1 $?
+"$OURS/nl" nosuch 2> /dev/null
+eq "nl of a missing file: status" 1 $?
+echo a | "$OURS/nl" -w 99999999999 | head -c 5 > out
+eq "nl: a huge width is written, not allocated" 5 "$(wc -c < out | tr -d ' ')"
+printf 'a\nb\n' | "$OURS/nl" -v 9223372036854775807 > out 2> /dev/null
+eq "nl: the number past the largest is an error after the line before it" "1 9223372036854775807	a" "$? $(cat out)"
+printf '\n\n' | "$OURS/nl" -b a -l 0 > out
+eq "nl -l 0 numbers every blank line" "     1	
+     2	" "$(cat out)"
+
+yes 'café €uro 😀' | head -n 300000 > u8big
+"$OURS/iconv" -f UTF-8 -t UTF-16LE u8big > u16big
+eq "iconv: 5.4MB UTF-8 to UTF-16LE: size" 7800000 "$(wc -c < u16big | tr -d ' ')"
+"$OURS/iconv" -f UTF-16LE -t UTF-8 u16big > u8back
+cmp -s u8big u8back
+eq "iconv: 5.4MB UTF-8 to UTF-16LE and back is the same" 0 $?
+"$OURS/iconv" -f UTF-8 -t UTF-32BE euros | "$OURS/iconv" -f UTF-32BE -t UTF-8 > out
+cmp -s euros out
+eq "iconv: 30000 characters cut by 64KB reads and back" 0 $?
+{ printf 'ab\303'; sleep 0.2; printf '\251c'; } | "$OURS/iconv" -f UTF-8 -t UTF-16BE > out
+eq "iconv: a character cut by a read" "$(printf '\0a\0b\0\351\0c' | md5)" "$(md5 < out)"
+{ "$OURS/iconv" -f UTF-8 -t UTF-16LE u8big; echo $? > st; } | head -c 10 > /dev/null
+eq "iconv into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+echo a | "$OURS/iconv" -f ASCII -t UTF-8 >&- 2> err
+eq "iconv with stdout closed: status" 1 $?
+eq "iconv with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/iconv" -f ASCII -t UTF-8 <&- 2> /dev/null
+eq "iconv with stdin closed: status" 1 $?
+"$OURS/iconv" -f ASCII -t UTF-8 . 2> /dev/null
+eq "iconv of a directory: status" 1 $?
+{ cat euros; printf '\377x\n'; } | "$OURS/iconv" -c -f UTF-8 -t UTF-8 > out 2> /dev/null
+eq "iconv -c: an invalid byte after 90000 good ones is dropped" "1 90002" "$? $(wc -c < out | tr -d ' ')"
+{ cat euros; printf '\377x\n'; } | "$OURS/iconv" -f UTF-8 -t UTF-8 > out 2> /dev/null
+eq "iconv: an invalid byte after 90000 good ones stops it, the good ones are written" "1 90000" "$? $(wc -c < out | tr -d ' ')"
+
+#------------------------------------------------- od dd chgrp mv
+fresh
+head -c 5000000 /dev/zero > zbig
+eq "od -An -v of 5MB: a line for every 16 bytes and the empty last line" 312501 "$("$OURS/od" -An -v -t x1 zbig | wc -l | tr -d ' ')"
+eq "od of 5MB of zeros: three lines (a star for the rest)" 3 "$("$OURS/od" -t x1 zbig | wc -l | tr -d ' ')"
+{ printf ab; sleep 0.2; printf cd; } | "$OURS/od" -An -t x1 > out
+eq "od: input in two pieces is one line" " 61 62 63 64" "$(cat out)"
+{ "$OURS/od" -v zbig; echo $? > st; } | head -c 10 > /dev/null
+eq "od into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+echo a | "$OURS/od" >&- 2> err
+eq "od with stdout closed: status" 1 $?
+eq "od with stdout closed: diagnostic" 1 "$(wc -l < err | tr -d ' ')"
+"$OURS/od" <&- 2> /dev/null
+eq "od with stdin closed: status" 1 $?
+"$OURS/od" . > /dev/null 2>&1
+eq "od of a directory: status" 1 $?
+
+"$OURS/dd" if=zbig of=ddout bs=1000000 2> err
+eq "dd 5MB: status and report" "0 5+0 records in 5+0 records out" "$? $(tr '\n' ' ' < err | sed 's/ $//')"
+cmp -s zbig ddout
+eq "dd 5MB: identical" 0 $?
+"$OURS/dd" if=zbig of=/dev/null bs=1000 count=3 2> err
+eq "dd: the report on standard error" "3+0 records in
+3+0 records out" "$(cat err)"
+"$OURS/dd" if=zbig of=/dev/null ibs=3000000 2> err
+eq "dd: a whole block and a partial one" "1+1 records in" "$(head -1 err)"
+{ "$OURS/dd" if=zbig bs=1000 2> /dev/null; echo $? > st; } | head -c 10 > /dev/null
+eq "dd into a closed pipe dies of SIGPIPE" 141 "$(cat st)"
+"$OURS/dd" if=zbig bs=1000 count=1 >&- 2> err
+eq "dd with stdout closed: status" 1 $?
+"$OURS/dd" <&- 2> /dev/null
+eq "dd with stdin closed: status" 1 $?
+"$OURS/dd" if=nosuch of=/dev/null 2> err
+eq "dd of a missing file: status and one diagnostic" "1 1" "$? $(wc -l < err | tr -d ' ')"
+"$OURS/dd" bs=0 < /dev/null > /dev/null 2>&1
+eq "dd bs=0: an error" nonzero "$([ $? -ne 0 ] && echo nonzero)"
+"$tmp/dfl_int" "$OURS/dd" if=/dev/zero of=/dev/null 2> err &
+p=$!
+sleep 0.5
+kill -INT $p
+reap $p
+st=$?
+eq "dd under SIGINT with the default action: dies of the signal after the report" "130 2" "$st $(grep -c 'records' err)"
+
+mkdir deep
+deeptree deep 300 1
+(ulimit -n 12 2> /dev/null && "$OURS/chgrp" -R "$(id -g)" deep 2> e; echo $? > st)
+eq "chgrp -R with 12 descriptors allowed, 300 levels deep" 0 "$(cat st)"
+rm -rf deep
+"$OURS/chgrp" 2> /dev/null
+eq "chgrp without operands: usage status" 2 $?
+mkdir -p tree/locked
+: > tree/a
+: > tree/locked/b
+chmod 000 tree/locked
+"$OURS/chgrp" -R "$(id -g)" tree 2> /dev/null
+eq "chgrp -R over a directory it cannot enter: status 1" 1 $?
+chmod 755 tree/locked
+
+# mv between file systems needs a second one: the case-sensitive disk image of the PCTS setup
+XD=/Volumes/vscrw/scratch
+if [ -d "$XD" ] && [ -w "$XD" ] && [ "$(df -P "$XD" | tail -1 | cut -d ' ' -f 1)" != "$(df -P . | tail -1 | cut -d ' ' -f 1)" ]; then
+	fresh
+	X="$XD/regress.$$"
+	rm -rf "$X"
+	mkdir "$X"
+	echo data > f
+	chmod 755 f
+	touch -t 202001020304.05 f
+	t0=$(st_mtime_s f)
+	"$OURS/mv" f "$X/f" 2> err
+	eq "mv across file systems: file: status, content, mode, source gone" "0 data -rwxr-xr-x gone" "$? $(cat "$X/f") $(st_mode "$X/f") $([ -e f ] || echo gone)"
+	eq "mv across file systems: the modification time is kept" "$t0" "$(st_mtime_s "$X/f")"
+	eq "mv across file systems: file: no diagnostic" 0 "$(wc -c < err | tr -d ' ')"
+	echo secret > s
+	chmod 600 s
+	"$OURS/mv" s "$X/s" 2> /dev/null
+	eq "mv across file systems: mode 600 is kept" "-rw-------" "$(st_mode "$X/s")"
+	ln -s target dang
+	ln -s f lf
+	"$OURS/mv" dang lf "$X/" 2> err
+	eq "mv across file systems: links stay links, status 0" "0 target f" "$? $(readlink "$X/dang") $(readlink "$X/lf")"
+	eq "mv across file systems: links: sources gone, no diagnostic" "gone 0" "$([ -e dang ] || [ -L dang ] || echo gone) $(wc -c < err | tr -d ' ')"
+	mkdir -p tree/sub/deeper tree/empty
+	echo a > tree/a
+	echo b > tree/sub/b
+	chmod 600 tree/sub/b
+	ln -s ../a tree/sub/link
+	mkfifo tree/fifo
+	chmod 555 tree/sub/deeper
+	"$OURS/mv" tree "$X/tree" 2> err
+	eq "mv across file systems: a tree: status, source gone" "0 gone" "$? $([ -e tree ] || echo gone)"
+	eq "mv across file systems: a tree: files, modes and the link" "a b -rw------- ../a dr-xr-xr-x" "$(cat "$X/tree/a") $(cat "$X/tree/sub/b") $(st_mode "$X/tree/sub/b") $(readlink "$X/tree/sub/link") $(st_mode "$X/tree/sub/deeper" | sed 's/^\(.\{10\}\).*/\1/')"
+	eq "mv across file systems: a tree: the empty directory and the fifo" "d p" "$(st_mode "$X/tree/empty" | cut -c1) $(st_mode "$X/tree/fifo" | cut -c1)"
+	echo x > un
+	chmod 000 un
+	"$OURS/mv" un "$X/un" 2> /dev/null
+	eq "mv across file systems: an unreadable file: status 1, it stays, nothing made" "1 stays none" "$? $([ -e un ] && echo stays) $([ -e "$X/un" ] || echo none)"
+	chmod 600 un
+	echo new > n1
+	echo old > "$X/n1"
+	echo n | "$OURS/mv" -i n1 "$X/n1" > /dev/null 2>&1
+	eq "mv -i across file systems, answer n: both stay" "new old" "$(cat n1) $(cat "$X/n1")"
+	echo y | "$OURS/mv" -i n1 "$X/n1" > /dev/null 2>&1
+	eq "mv -i across file systems, answer y: replaced" "new gone" "$(cat "$X/n1") $([ -e n1 ] || echo gone)"
+	mkdir d1
+	echo q > d1/q
+	mkdir -p "$X/d1"
+	"$OURS/mv" d1 "$X/d1" 2> /dev/null
+	eq "mv of a directory onto a directory of another file system: it goes inside" "0 q" "$? $(cat "$X/d1/d1/q")"
+	chmod -R u+rwx "$X"
+	rm -rf "$X"
+else
+	echo "skip: no second file system for mv"
+fi
+
 echo "regress: $((pass + fail)) checks, $fail failed"
 [ "$fail" -eq 0 ]
