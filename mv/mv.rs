@@ -395,12 +395,14 @@ impl Mv {
         }
     }
 
-    /* A symbolic link has no mode of its own. */
+    /* A symbolic link has no mode of its own; an owner that cannot be given is no error, as for a file. */
     fn characteristics_of_link(&mut self, dest: &[u8], st: &libc::stat) {
         let cd = posix::cstr(dest);
         if posix::sys::lchown(&cd, st.st_uid, st.st_gid) < 0 {
             let e = last_err();
-            self.note_io(dest, &e);
+            if e.raw_os_error() != Some(libc::EPERM) {
+                self.note_io(dest, &e);
+            }
         }
         if posix::sys::utimensat(libc::AT_FDCWD, &cd, &timespecs(st), libc::AT_SYMLINK_NOFOLLOW) < 0 {
             let e = last_err();
