@@ -5,3 +5,4 @@ in:eof -i f g
 in:no -fi f g
 in:no -f -i f g
 in:no -i -i f g
+in:no -i f xd/exist

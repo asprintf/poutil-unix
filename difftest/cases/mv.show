@@ -1,3 +1,13 @@
 . "$DIFFTEST_LIB/stat.sh"
 chmod -R u+rwx nowrite 2>/dev/null
-st_tree cp nodot
+if [ -L xd ]; then
+	x=$(readlink xd)
+	rm -f xd
+	st_tree cp nodot
+	echo "--- the other file system"
+	chmod -R u+rwx "$x" 2>/dev/null
+	(cd "$x" && st_tree cp nodot)
+	rm -rf "$x"
+else
+	st_tree cp nodot
+fi

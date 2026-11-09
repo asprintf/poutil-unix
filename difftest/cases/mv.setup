@@ -13,3 +13,14 @@ echo U > 'ü ñ 😀.txt'; mkdir 'dir 😀'; echo I > 'dir 😀/in 🇩🇪'
 ln -s 'ü ñ 😀.txt' 'l😀'
 mkdir nowrite; echo W > nowrite/w; chmod 555 nowrite
 mkdir noexec; chmod 000 noexec
+# xd: a directory on another file system (the PCTS disk image) for the cases that move across; without it they fail alike.
+# One shared directory: do not run the mv difftest with -j or SHARD.
+XDEV=${MV_XDEV:-/Volumes/vscrw/scratch}
+if [ -d "$XDEV" ] && [ -w "$XDEV" ]; then
+	chmod -R u+rwx "$XDEV/mvcase" 2>/dev/null
+	rm -rf "$XDEV/mvcase"
+	mkdir "$XDEV/mvcase" "$XDEV/mvcase/edir"
+	echo old > "$XDEV/mvcase/exist"
+	echo Z > "$XDEV/mvcase/edir/z"
+	ln -s "$XDEV/mvcase" xd
+fi

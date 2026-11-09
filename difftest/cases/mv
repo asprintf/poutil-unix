@@ -122,3 +122,33 @@ f g -i
 -fi -- f new
 -- -f new
 ./-dash new
+# step 6, another file system: the file is copied with its mode and times, then the source is removed
+f xd/new
+f g xd
+ro xd/ro
+hl xd/hl
+f hl xd
+'ü ñ 😀.txt' 'xd/ü 😀'
+# the links are copied as links, not followed
+sl xd/new
+dl xd/new
+dang xd/new
+# a directory is copied with everything in it, its links and its times
+d xd/new
+tree xd/new
+'dir 😀' 'xd/new 😀'
+d tree xd
+# an existing destination: replaced; with -i asked first
+f xd/exist
+in:no -i f xd/exist
+in:yes -i f xd/exist
+-f ro xd/exist
+d xd/edir
+# the source on the other file system
+xd/exist new
+xd/edir new
+# a copy that cannot be finished: the source cannot be read, or cannot be removed after the copy
+noexec xd/ne
+nowrite xd/nw
+# a directory over a file of another file system
+d xd/exist
