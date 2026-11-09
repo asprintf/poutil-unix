@@ -259,5 +259,9 @@ name = "mv"
 path = "mv/mv.rs"
 
 [[bin]]
+name = "od"
+path = "od/od.rs"
+
+[[bin]]
 name = "xargs"
 path = "xargs/xargs.rs"
