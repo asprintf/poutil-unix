@@ -18,7 +18,7 @@ difftest: all
 	fi; \
 	sh difftest/difftest.sh $$utils
 
-# which lines the difftest and regress checks run (needs llvm-tools); output in target/cov/html
+# which lines the difftest cases run (needs llvm-tools); output in target/cov/html
 coverage:
 	sh difftest/coverage.sh $(U)
 
