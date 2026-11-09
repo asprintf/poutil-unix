@@ -1,0 +1,6 @@
+cp "$CORPUS"/* .
+yes 'caf'"$(printf '\303\251')"' '"$(printf '\342\202\254')" | head -n 12000 > big
+yes "$(printf '\342\202\254')" | tr -d '\n' | head -c 90000 > euros
+(cat euros; printf '\377x\n') > euros_bad
+printf -- 'dashc' > ./-c
+printf -- 'dashdash' > ./--

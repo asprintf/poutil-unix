@@ -1,0 +1,24 @@
+# macOS exits 0 when -c left out an invalid input byte; the spec says -c does not change the exit status
+-c -f UTF-8 -t UTF-16BE bad_cont
+-c -f UTF-8 -t UTF-16BE bad_in_emoji
+-c -f UTF-8 -t UTF-16BE bad_mid
+-c -f UTF-8 -t UTF-16BE euros_bad
+-c -f UTF-8 -t UTF-8 bad_mid
+-c -f UTF-8 -t UTF-8 bad_mid ascii bad_mid
+-c -s -f UTF-8 -t UTF-8 bad_mid
+-sc -f UTF-8 -t UTF-8 bad_mid
+# macOS says nothing and exits 0 for a directory; ours reports the read error
+-f ISO8859-1 -t UTF-8 .
+# with one codeset left out macOS passes the bytes on in the C locale; ours uses the codeset of the locale, as the spec says
+-f UTF-8 utf8
+-t UTF-8 utf8
+# macOS lists the codesets whatever else is on the line; ours takes -l alone
+-l -f UTF-8
+-l ascii
+# macOS writes its message even with -s, which should silence messages about invalid characters
+-s -f UTF-8 -t ASCII utf8
+-s -f UTF-8 -t UTF-16BE bad_mid
+-s -f UTF-8 -t UTF-16BE incomplete
+# macOS needs -f and -t (the spec leaves out both open); ours uses the codeset of the locale for both
+ascii
+utf8

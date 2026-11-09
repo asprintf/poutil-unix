@@ -1,0 +1,113 @@
+# iconv: one spec rule per group of lines
+# -f fromcode -t tocode, in either order, joined to the option or apart
+-f ISO8859-1 -t UTF-8 latin1
+-t UTF-8 -f ISO8859-1 latin1
+-fISO8859-1 -tUTF-8 latin1
+-f ISO8859-1 -t UTF-8 -- latin1
+-f UTF-8 -t ISO8859-1 utf8
+-f UTF-8 -t UTF-16BE utf8
+-f UTF-8 -t UTF-16LE utf8
+-f UTF-16LE -t UTF-8 utf16le
+-f UTF-8 -t UTF-32BE emoji
+-f UTF-8 -t UCS-2BE hiragana
+-f UTF-8 -t ASCII ascii
+-f ASCII -t UTF-8 ascii
+-f UTF-8 -t UTF-8 utf8
+-f ISO8859-1 -t UTF-8 bytes256
+-f UTF-8 -t UTF-16 hiragana
+-f UTF-16 -t UTF-8 utf16be_bom
+-f UTF-16 -t UTF-8 utf16le_bom
+-f UTF-8 -t ISO-2022-JP hiragana
+-f ISO-2022-JP -t UTF-8 hiragana
+# the codeset of the locale when -f or -t is left out
+-f ISO8859-1 ascii
+-t UTF-8 ascii
+-t UTF-16BE ascii
+-f UTF-8 utf8
+-t UTF-8 utf8
+ascii
+utf8
+# no file operand and "-": standard input; several files in order
+-f ISO8859-1 -t UTF-8
+in:latin1 -f ISO8859-1 -t UTF-8
+in:latin1 -f ISO8859-1 -t UTF-8 -
+in:latin1 -f ISO8859-1 -t UTF-8 ascii - ascii
+-f ISO8859-1 -t UTF-8 ascii latin1 ascii
+-f UTF-8 -t UTF-16BE utf8 ascii emoji
+# a file that is not there: said, the others converted, status not 0
+-f ISO8859-1 -t UTF-8 ascii nosuch ascii
+-f ISO8859-1 -t UTF-8 nosuch
+-f ISO8859-1 -t UTF-8 .
+# an operand that starts with a dash after the first operand is an operand
+-f ASCII -t UTF-8 ascii ./-c
+-f ASCII -t UTF-8 ascii -c
+-f ASCII -t UTF-8 ascii --
+-f ASCII -t UTF-8 ascii ./--
+# empty input, no final newline, NUL, long input
+-f UTF-8 -t UTF-16BE empty
+-f UTF-8 -t UTF-16BE nonl
+-f UTF-8 -t UTF-16BE nulbytes
+-f UTF-8 -t ISO8859-1 nulbytes
+-f UTF-8 -t UTF-16BE big
+-f UTF-8 -t UTF-16BE euros
+-f UTF-16BE -t UTF-8 euros
+-f UTF-8 -t UTF-32LE euros
+# input that is no character of the codeset: what came before is written, status not 0
+-f UTF-8 -t UTF-16BE bad_mid
+-f UTF-8 -t UTF-8 bad_mid
+-f UTF-8 -t UTF-16BE bad_cont
+-f UTF-8 -t UTF-16BE bad_trunc4
+-f UTF-8 -t UTF-16BE bad_overlong
+-f UTF-8 -t UTF-16BE bad_surrogate
+-f UTF-8 -t UTF-16BE bad_in_emoji
+-f UTF-8 -t UTF-16BE euros_bad
+-f UTF-8 -t UTF-16BE bad_mid ascii
+# a character with no form in the output codeset
+-f UTF-8 -t ASCII utf8
+-f UTF-8 -t ASCII accent_mid
+-f UTF-8 -t ISO8859-1 emoji
+-f UTF-8 -t ISO8859-1 hiragana
+# the end of the input in the middle of a character
+-f UTF-8 -t UTF-16BE incomplete
+-f UTF-8 -t UTF-16BE incomplete3
+-f UTF-8 -t UTF-16BE incomplete4
+-f UTF-16BE -t UTF-8 nonl
+# -c: invalid characters are omitted, and that does not change the status
+-c -f UTF-8 -t UTF-16BE bad_mid
+-c -f UTF-8 -t UTF-8 bad_mid
+-c -f UTF-8 -t ASCII utf8
+-c -f UTF-8 -t ASCII accent_mid
+-c -f UTF-8 -t ISO8859-1 emoji
+-c -f UTF-8 -t UTF-16BE euros_bad
+-c -f UTF-8 -t UTF-16BE bad_cont
+-c -f UTF-8 -t UTF-16BE bad_trunc4
+-c -f UTF-8 -t UTF-16BE bad_in_emoji
+-c -f UTF-8 -t UTF-16BE ascii
+-c -f UTF-8 -t UTF-16BE incomplete
+-c -f UTF-8 -t UTF-8 bad_mid ascii bad_mid
+# -s: no message about invalid characters, and that does not change the status
+-s -f UTF-8 -t UTF-16BE bad_mid
+-s -f UTF-8 -t ASCII utf8
+-s -f UTF-8 -t UTF-16BE incomplete
+-cs -f UTF-8 -t ASCII utf8
+-sc -f UTF-8 -t UTF-8 bad_mid
+-c -s -f UTF-8 -t UTF-8 bad_mid
+-s -f ISO8859-1 -t UTF-8 nosuch
+# -l lists the codesets; the format is not specified
+-l
+# the codesets and the options
+-f NO-SUCH-CODESET -t UTF-8 ascii
+-f UTF-8 -t NO-SUCH-CODESET ascii
+-f '' -t UTF-8 ascii
+-f UTF-8 -t '' ascii
+-f -t UTF-8 ascii
+-f UTF-8 -t
+-f
+-t
+-x -f UTF-8 -t UTF-8 ascii
+-l ascii
+-l -f UTF-8
+-f ISO8859-1 -t UTF-8 -l
+# charmap files (a slash in the argument) are not supported
+-f /nonexistent/charmap -t /nonexistent/charmap ascii
+-f ./charmap -t UTF-8 ascii
