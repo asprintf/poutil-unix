@@ -176,6 +176,11 @@ pub fn linkat(olddirfd: RawFd, old: &CStr, newdirfd: RawFd, new: &CStr, flags: l
     unsafe { libc::linkat(olddirfd, old.as_ptr(), newdirfd, new.as_ptr(), flags) }
 }
 
+/* rename(2): the name old becomes new, replacing it. */
+pub fn rename(old: &CStr, new: &CStr) -> libc::c_int {
+    unsafe { libc::rename(old.as_ptr(), new.as_ptr()) }
+}
+
 pub fn symlink(target: &CStr, path: &CStr) -> libc::c_int {
     unsafe { libc::symlink(target.as_ptr(), path.as_ptr()) }
 }

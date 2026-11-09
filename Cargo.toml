@@ -255,5 +255,9 @@ name = "chgrp"
 path = "chgrp/chgrp.rs"
 
 [[bin]]
+name = "mv"
+path = "mv/mv.rs"
+
+[[bin]]
 name = "xargs"
 path = "xargs/xargs.rs"
