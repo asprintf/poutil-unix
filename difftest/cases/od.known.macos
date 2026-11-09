@@ -1,0 +1,97 @@
+# The offset base x: 6 digits here (as GNU), 7 for macOS; the standard leaves the format of the offset open.
+-A x text
+-A x bytes256
+-A d -A x text
+# -A n: macOS writes an empty line where the last offset would be.
+-A n text
+-v -A n -t x1 zeros
+-A n -t x1 -t o1 short
+-j 3 -N 4 -A n text
+-A n -t a text
+# Empty input: the offset after the last byte is written (0000000), macOS writes nothing.
+empty
+in:empty
+in:empty -A d
+-A x empty
+-j 0 empty
+-N 5 empty
+-N 5 -A d empty
+# -t a: only the seven low bits count and each is named; macOS writes the hexadecimal value for a byte over 127.
+-t a bytes256
+# Items of 8 bytes (d8 o8 x8 dL): macOS does not read them as 8 bytes, and it does not extend the last one with
+# null bytes as the standard asks.
+-t x8 negative
+-t o8 -N 3 bytes256
+-t d8 -N 17 negative
+-t dL negative
+-t o8 negative
+-t d8 negative
+-t x8 -N 9 bytes256
+-t x8 -N 40 zeros
+-t x1 -t x2 -t x4 -t x8 short
+# Floating point: macOS writes a fixed number of digits (1.000000e+00), here the fewest that read back as the same number
+# (GNU does the same). Lines with several types that include f differ in that line alone.
+-t f8 float64
+-t fD float64
+-t f float64
+-t f4 float64
+-t f4 float32
+-t fF float32
+-t f8 float32
+-t f4 -t f8 float64
+-t f8 -N 3 float64
+-t f4 -N 5 float32
+-t acdfoux bytes256
+-t xuofdca bytes256
+-t a -t c -t d -t f -t o -t u -t x bytes256
+-t x -t u -t o -t f -t d -t c -t a bytes256
+# macOS writes the numbers of a field so close that no blank is left between them; the standard has them separated by blanks.
+-t dC negative
+-t d1x negative
+-t d1 bytes256
+# -j: the standard has an error if the input is shorter than skip; macOS writes the offset. A leading 0 is octal (08 is an
+# error), 0x needs a digit.
+-j 2k -N 20 -A d big
+-j 08 text
+-j 100 text
+-j 257 -t x1 bytes256
+-j 200 text dup
+-j 0x text
+# -N: 0, a number with 0x and a number in octal: macOS refuses 0 and 0x10 and reads 010 as decimal, 08 as 8.
+-N 0 text
+-N 0 -A d text
+-N 010 text
+-N 08 text
+-N 0x10 text
+# The file operand -: standard input (the standard lets the implementation take it so); macOS looks for a file named -.
+-
+in:text text -
+in:text - text
+in:text -
+in:text -A d - -
+in:text -N 5 -
+# A directory among the files: both say it cannot be read; the status is 1 here and 0 for macOS.
+dir
+text dir
+-A d dir text
+# The offset operand: the standard has it octal, with . decimal and b in blocks of 512; ours writes the offset in the base
+# of -A (octal), macOS in the base of the operand, and macOS takes it also with -A -j -N -t -v and after other operands.
+big 1.b
+big +1.b
+big +2.b
+text +010.
+text 3.
+text +3.
+in:text +3
+in:text +3.
+text +1 +2
+-A d text +3
+-t x1 text +3
+-j 1 text +3
+-v text +3
+-N 5 text +3
+text 1 2
+-c big 3.b
+# A character cut by the end of an output line: shown at its first byte with ** on the next line (the standard); macOS writes octal.
+-j 1 -t c utf8
+-A d -t c '😀 file.txt' utf8

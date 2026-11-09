@@ -1,0 +1,7 @@
+# The address base is one character; the number of -j has no sign or blank, -N takes no b or k (the standard names only 0x and a leading 0).
+# GNU and macOS take more.
+-A dx text
+-j +1 text
+-j ' 1' text
+-N 1b text
+-N 1k text

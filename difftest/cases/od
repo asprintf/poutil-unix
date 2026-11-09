@@ -1,0 +1,302 @@
+# no type: -t oS, 16 bytes to a line, the offset of the next byte at the end
+text
+bytes256
+short
+one
+empty
+# the offset base: d o x n, as the first character of the line and after the last byte
+-A d text
+-A o text
+-A x text
+-A n text
+-A d bytes256
+-A x bytes256
+-A n empty
+-A x empty
+-Ad text
+-A dx text
+-A q text
+-A '' text
+-A
+# the named characters (-t a): the low seven bits only
+-t a bytes256
+-A n -t a text
+# characters (-t c): escapes, three-digit octal for the rest, a single backslash
+-t c text
+-t c bytes256
+-c text
+# characters of the locale: a multibyte one in the area of its first byte, ** after it
+-t c utf8
+-t c '😀 file.txt'
+-A d -t c utf8
+-t c badutf8
+-t c wide
+-N 3 -t c utf8
+-j 1 -t c utf8
+-j 4 -N 3 -t c utf8
+# the integer types: the byte order of the machine, the size of C's types
+-t o1 bytes256
+-t x1 bytes256
+-t u1 bytes256
+-t d1 bytes256
+-t o2 negative
+-t x2 negative
+-t u2 negative
+-t d2 negative
+-t o4 negative
+-t x4 negative
+-t u4 negative
+-t d4 negative
+-t o8 negative
+-t x8 negative
+-t u8 negative
+-t d8 negative
+-t o negative
+-t d negative
+-t u negative
+-t x negative
+-t dC negative
+-t dS negative
+-t dI negative
+-t dL negative
+-t xC negative
+-t uL negative
+-t d3 negative
+-t d0 negative
+-t d16 negative
+-t o64 negative
+-t d1x negative
+-t dF negative
+# the XSI forms are the same as -t with a size, in the order given
+-b negative
+-d negative
+-o negative
+-s negative
+-x negative
+-bcdosx negative
+-b -c -d -o -s -x negative
+-xsodcb negative
+-b -t x1 negative
+-t x1 -b negative
+# floating point: float, double (the default size)
+-t f4 float32
+-t f8 float64
+-t f float64
+-t fF float32
+-t fD float64
+-t f4 float64
+-t f8 float32
+-t f2 float32
+-t f3 float32
+-t f1 float32
+# several types: a line for each, in the order of the options, as one string or many
+-t x1 -t c text
+-t o1x1 short
+-t acdfoux bytes256
+-t a -t c -t d -t f -t o -t u -t x bytes256
+-t xuofdca bytes256
+-t x -t u -t o -t f -t d -t c -t a bytes256
+-t o2x2x4 -N 18 bytes256
+-t x1 -t x2 -t x4 -t x8 short
+-t dC -t dS short
+-t f4 -t f8 float64
+-A n -t x1 -t o1 short
+# a short end: the input is extended with null bytes for the last item
+-t x8 -N 9 bytes256
+-t x4 short
+-t x4 one
+-t x2 one
+-t o8 -N 3 bytes256
+-t f8 -N 3 float64
+-t f4 -N 5 float32
+-t d8 -N 17 negative
+# identical groups of lines are replaced by a line with a star, -v writes all
+dup
+-v dup
+-t x1 dup
+-t x1 -v dup
+-t c dup
+zeros
+-v zeros
+-A d zeros
+-t x1 -t c dup
+-t d8 zeros
+-t x8 -N 40 zeros
+-t x1 -N 16 zeros
+-t x1 -N 17 zeros
+-t x1 -N 32 zeros
+-t x1 -N 33 zeros
+-j 3 -t x1 zeros
+-j 3 -t x1 -v zeros
+-v -A n -t x1 zeros
+# skip: decimal, octal, hexadecimal; b k m multiply; a b after hexadecimal digits is a digit
+-j 3 text
+-j 03 text
+-j 010 text
+-j 0x10 text
+-j 0X10 text
+-j 0x1b bytes256
+-j 1b big
+-j 0b big
+-j 1k -t x1 big
+-j 0k text
+-j 1m big
+-j 2k -N 20 -A d big
+-j 1b -N 20 -A d big
+-j 01b big
+-j 08 text
+-j 0xg text
+-j -1 text
+-j +1 text
+-j 1.5 text
+-j '' text
+-j ' 1' text
+-j b text
+-j 0x text
+-j
+-j 18446744073709551616 text
+-j 0 text
+-j 256 -t x1 bytes256
+-j 255 -t x1 bytes256
+-j 257 -t x1 bytes256
+-j 100 text
+-j 1 empty
+-j 0 empty
+-j 3 -A d text
+-j 3 -N 4 -A d text
+-j 3 -N 4 -A n text
+-j 20 -N 20 -t x1 -A d bytes256
+-j 5 -t c -A d dup
+# skip across the concatenated files
+-j 20 -A d text dup
+-j 60 -A d text dup
+-j 60 -N 20 -A d text dup
+-j 200 text dup
+# count: the same forms without a suffix; fewer bytes than asked is no error
+-N 5 text
+-N 0 text
+-N 0 -A d text
+-N 05 text
+-N 010 text
+-N 0x10 text
+-N 1000 text
+-N 3 -j 3 text
+-N 1k text
+-N 1b text
+-N 08 text
+-N -1 text
+-N '' text
+-N x text
+-N
+-N 5 empty
+-N 5 -A d empty
+-N 5 -N 3 text
+-N 16 -A d text
+-N 17 -A d text
+-N 15 -A d text
+-N 32 -t x1 -v dup
+-N 20 -A d text dup
+-N 100 -A d text dup
+# the options -A -j -N -t -v may be separate or joined to their argument, last of a repeated one counts
+-N5 text
+-j5 -N5 text
+-tx1 short
+-t x1 -t d1 short
+-A d -A x text
+-A x -A d text
+-j 1 -j 2 text
+-N 1 -N 2 -t c text
+-v -v dup
+# several files are one input, the offsets run on; an unreadable one is said and the others go on
+text dup
+-A d text dup
+short short short
+-A d short one short
+-t c text utf8
+-t x1 short one
+-t x1 -N 2 short one
+text nosuch
+nosuch text
+nosuch
+nosuch nosuch2
+-A d -N 5 text nosuch
+dir
+text dir
+-A d dir text
+'' text
+text ''
+-- text
+-- -v
+-- -A
+-A d -- text
+-- text dup
+'😀 file.txt'
+-t c '😀 file.txt'
+-A d -t c '😀 file.txt' utf8
+in:text -
+in:text - text
+in:text text -
+in:text -A d - -
+in:text -N 5 -
+in:dup
+in:bytes256 -t x1
+in:utf8 -t c
+in:empty
+in:empty -A d
+in:empty -A n
+in:short -j 1
+# the XSI offset operand: [+]offset[.][b], octal by default, only if no -A -j -N -t -v is given
+text +3
+text +3.
+big +1b
+big +1.b
+big +2.b
+text 3
+text 3.
+big 1b
+big 1.b
+text 010
+text +010
+text +010.
+text 08
+text +08
+text +
+text 1x
+text +-1
+text +0
+text 0
+text '' 
++3
++3.
++10 dup
+in:text +3
+in:text +3.
+text dup +3
+text dup 3
+text dup text
+text 1 2
+text +1 +2
+5
++5 +6
+-A d text +3
+-j 1 text +3
+-N 5 text +3
+-t x1 text +3
+-v text +3
+-b text 3
+-b text +3
+-bc +3
+-c big 3.b
++3 text
+3 text
+nosuch +3
+nosuch 3
+# usage
+-z text
+-A d -z text
+-
+-t
+-tx text
+-b -t
+-v -A
+-- -A d
