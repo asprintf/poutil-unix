@@ -40,6 +40,25 @@ impl Regex {
     }
 }
 
+impl Regex {
+    /*
+     * Look for the first match in the text of s from byte offset start on (s must end in a NUL, which
+     * ends the text). The range is counted from start; a match is not taken to be at the start of a line.
+     */
+    pub fn find_at(&self, s: &[u8], start: usize) -> Option<(usize, usize)> {
+        if s.last() != Some(&0) || start >= s.len() {
+            return None;
+        }
+        let mut m: [libc::regmatch_t; 1] = [unsafe { std::mem::zeroed() }];
+        let flags = if start > 0 { libc::REG_NOTBOL } else { 0 };
+        let text = unsafe { s.as_ptr().add(start) } as *const libc::c_char;
+        if unsafe { libc::regexec(&*self.0, text, 1, m.as_mut_ptr(), flags) } != 0 || m[0].rm_so < 0 {
+            return None;
+        }
+        Some((m[0].rm_so as usize, m[0].rm_eo as usize))
+    }
+}
+
 impl Drop for Regex {
     fn drop(&mut self) {
         unsafe { libc::regfree(&mut *self.0) };
