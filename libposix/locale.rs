@@ -57,3 +57,15 @@ pub fn codeset_is_utf8() -> bool {
         !cs.is_null() && CStr::from_ptr(cs).to_bytes() == b"UTF-8"
     }
 }
+
+/* The name of the character encoding of the locale (nl_langinfo(CODESET)). */
+pub fn codeset() -> Vec<u8> {
+    unsafe {
+        let cs = libc::nl_langinfo(libc::CODESET);
+        if cs.is_null() {
+            Vec::new()
+        } else {
+            CStr::from_ptr(cs).to_bytes().to_vec()
+        }
+    }
+}

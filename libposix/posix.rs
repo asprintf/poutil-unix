@@ -8,6 +8,7 @@ pub mod cal;
 pub mod cfmt;
 pub mod fsinfo;
 pub mod getopt;
+pub mod iconv;
 pub mod ldouble;
 pub mod locale;
 pub mod mb;
