@@ -36,3 +36,5 @@ in:utf8 -t c
 # The same for empty input (GNU writes nothing, as for the other bases).
 -A n empty
 in:empty -A n
+# -A n: GNU writes no last line, the standard and macOS an empty one
+-A n -t f4 float32.special

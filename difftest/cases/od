@@ -300,3 +300,22 @@ nosuch 3
 -b -t
 -v -A
 -- -A d
+# floating point values at the edges: zero, minus zero, denormals, the largest, infinities, NaNs, digits that need the shortest form
+-t f4 float32.special
+-t f8 float64.special
+-t fL float80.special
+-t fF float32.special
+-t fD float64.special
+-t f4 -v float32.special
+-A n -t f4 float32.special
+-t f4 -j 4 -N 12 float32.special
+-t f8 -j 8 -N 24 float64.special
+-t f4 -t x4 float32.special
+-t f8 -t x8 float64.special
+-t f4 -t f8 float64.special
+-t fL -t x1 float80.special
+-t f4 float64.special
+-t f8 float32.special
+-t f4 -N 6 float32.special
+-t f8 -N 12 float64.special
+-t fL -N 20 float80.special

@@ -91,3 +91,22 @@ text 1 2
 # A character cut by the end of an output line: shown at its first byte with ** on the next line (the standard); macOS writes octal.
 -j 1 -t c utf8
 -A d -t c '😀 file.txt' utf8
+# Floating point edge values: macOS writes a fixed number of digits (and 1.797693134862316e+308, which is above the largest double)
+-t f4 float32.special
+-t f8 float64.special
+-t fL float80.special
+-t fF float32.special
+-t fD float64.special
+-t f4 -v float32.special
+-A n -t f4 float32.special
+-t f4 -j 4 -N 12 float32.special
+-t f8 -j 8 -N 24 float64.special
+-t f4 -t x4 float32.special
+-t f8 -t x8 float64.special
+-t f4 -t f8 float64.special
+-t fL -t x1 float80.special
+-t f4 float64.special
+-t f8 float32.special
+-t f4 -N 6 float32.special
+-t f8 -N 12 float64.special
+-t fL -N 20 float80.special
