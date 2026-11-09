@@ -1,0 +1,4 @@
+for f in out keep 'out 😀' nosuch-dir/x; do
+	[ -f "$f" ] && { printf '%s: ' "$f"; wc -c < "$f" | tr -d ' '; cksum < "$f"; }
+done
+exit 0

@@ -1,0 +1,212 @@
+# no operand: standard input to standard output, in blocks of 512, nothing changed
+in:text
+in:bytes256
+in:big
+in:empty
+in:one
+# if= and of=: the file named; an existing output file is cut to the length of the copy
+if=text
+if=text of=out
+if=one of=out
+if=empty of=out
+if=text of=new
+if=in-emoji.txt of='out 😀'
+in:text of=out
+# the sizes: a number, k, b, products with x; bs sets both and wins over ibs and obs
+if=big ibs=1
+if=big ibs=7 obs=11
+if=big ibs=1k
+if=big ibs=2b obs=3
+if=big ibs=2x3 obs=5
+if=big ibs=1kx2
+if=big ibs=1x1x1
+if=big obs=1000
+if=big bs=100
+if=big bs=100 ibs=3 obs=4
+if=big ibs=3 obs=4 bs=100
+if=big bs=1b
+if=big bs=1 count=5
+if=big ibs=1.5
+if=big ibs=
+if=big ibs=0
+if=big obs=0
+if=big bs=0
+if=big ibs=-1
+if=big ibs=k
+if=big ibs=1m
+if=big ibs=1xx2
+if=big ibs=99999999999999999999
+if=big ibs=1x
+# count and skip: whole blocks of ibs
+if=big ibs=100 count=3
+if=big ibs=100 count=100
+if=big ibs=100 skip=10
+if=big ibs=100 skip=10 count=2
+if=big bs=100 skip=13
+if=big bs=100 skip=14
+if=big bs=100 skip=1000
+if=big ibs=1k skip=1
+if=big skip=1
+if=big count=1
+in:big ibs=100 skip=10 count=2
+in:big bs=64 skip=3
+in:big bs=1300 skip=1
+if=big count=x
+if=big skip=x
+if=big skip=-1
+if=big skip=
+# seek: the blocks of the output that are passed are kept, the rest of the file goes
+if=one of=out seek=1 obs=4
+if=one of=out bs=4 seek=3
+if=one of=out bs=4 seek=3 conv=notrunc
+if=one of=out bs=4 seek=100
+if=empty of=out bs=4 seek=3
+if=empty of=out bs=4 seek=100
+if=empty of=out bs=4 seek=3 conv=notrunc
+if=empty of=out seek=0
+if=text of=new bs=5 seek=2
+if=text of=out bs=5 seek=2 count=2 conv=notrunc
+if=text of=out obs=5 seek=2 conv=notrunc
+# notrunc: the file keeps what is past the copy
+if=one of=out conv=notrunc
+if=text of=out conv=notrunc
+if=empty of=out conv=notrunc
+if=one of=keep conv=notrunc
+if=one of=keep
+# sync: every short input block is padded to ibs with null bytes, with blanks beside block or unblock
+if=odd ibs=3 conv=sync
+if=odd ibs=4 conv=sync
+if=odd bs=4 conv=sync
+if=odd ibs=16 conv=sync
+if=even ibs=4 conv=sync
+if=odd ibs=3 obs=10 conv=sync
+if=odd ibs=4 cbs=6 conv=sync,block
+if=odd ibs=4 cbs=6 conv=sync,unblock
+if=lines ibs=7 cbs=6 conv=sync,block
+if=empty ibs=4 conv=sync
+conv=sync
+# swab: pairs of bytes in each input block; the last byte of an odd block stays
+if=even conv=swab
+if=odd conv=swab
+if=odd ibs=3 conv=swab
+if=odd ibs=2 conv=swab
+if=odd ibs=1 conv=swab
+if=bytes256 conv=swab
+if=one conv=swab
+if=odd bs=3 conv=swab
+if=odd ibs=4 conv=swab,sync
+# lcase and ucase: by the characters of the locale
+if=mixed conv=lcase
+if=mixed conv=ucase
+if=utf8 conv=lcase
+if=utf8 conv=ucase
+if=bytes256 conv=ucase
+if=bytes256 conv=lcase
+if=utf8 ibs=3 conv=ucase
+if=utf8 ibs=1 conv=lcase
+if=mixed conv=lcase,swab
+if=mixed conv=swab,ucase
+if=mixed conv=lcase conv=ucase
+if=mixed conv=lcase,ucase
+# block: lines to records of cbs, cut when too long; unblock: records to lines
+if=lines cbs=5 conv=block
+if=lines cbs=1 conv=block
+if=lines cbs=100 conv=block
+if=lines ibs=3 cbs=5 conv=block
+if=lines ibs=1 cbs=5 conv=block
+if=text cbs=10 conv=block
+if=text cbs=10 obs=7 conv=block
+if=empty cbs=5 conv=block
+if=one cbs=5 conv=block
+if=recs cbs=8 conv=unblock
+if=recs cbs=4 conv=unblock
+if=recs cbs=3 conv=unblock
+if=recs ibs=5 cbs=8 conv=unblock
+if=recs ibs=1 cbs=8 conv=unblock
+if=odd cbs=3 conv=unblock
+if=odd cbs=100 conv=unblock
+if=empty cbs=5 conv=unblock
+if=lines cbs=5 conv=block,lcase
+if=lines cbs=5 conv=block,ucase
+if=lines cbs=5 conv=block,swab
+if=recs cbs=8 conv=unblock,ucase
+if=lines conv=block
+if=lines conv=unblock
+if=lines cbs=0 conv=block
+if=lines cbs=5 conv=block,unblock
+if=lines cbs=5 cbs=3 conv=block
+# ascii, ebcdic and ibm: the tables of the standard (one to one, ibm differs in five entries)
+if=bytes256 conv=ebcdic
+if=bytes256 conv=ibm
+if=bytes256 conv=ascii
+if=ebcdic conv=ascii
+if=text conv=ebcdic
+if=text conv=ibm
+if=ebcdic conv=ascii,lcase
+if=text conv=ebcdic,ucase
+if=ebcdic conv=ascii,ucase
+if=text conv=ascii,ebcdic
+if=text conv=ascii,ibm
+if=text conv=ebcdic,ibm
+if=text conv=ascii conv=ebcdic
+if=text conv=ibm,ibm
+if=bytes256 conv=ebcdic,swab
+if=bytes256 conv=swab,ibm
+if=bytes256 conv=ibm bs=7
+# with cbs the standard reads ascii as unblock and ebcdic and ibm as block
+if=ebcdicrecs cbs=4 conv=ascii
+if=text cbs=10 conv=ebcdic
+if=text cbs=10 conv=ibm
+if=lines cbs=5 conv=ebcdic,block
+if=ebcdicrecs cbs=4 conv=ascii,unblock
+# conv= values that are not
+conv=
+conv=nosuch
+conv=sync,
+conv=,sync
+conv=SYNC
+conv=sync,nosuch
+conv=noerror,sync,notrunc
+if=text conv=noerror
+if=text conv=noerror,sync bs=7
+if=text bs=7 conv=sync,noerror
+# several conv= operands add up
+if=mixed conv=lcase conv=swab
+if=mixed conv=sync conv=ucase ibs=5
+# operands are processed before any input is read: an error in one means nothing is copied
+if=text of=new ibs=0
+if=text of=new conv=nosuch
+if=text of=new count=x
+if=text of=new foo=bar
+if=text of=new foo
+if=text of=new =
+if=text of=new =x
+if=text of=new if
+if=text of=new -x
+# the files: a missing input, an input that is a directory, an output that cannot be made
+if=nosuch
+if=nosuch of=new
+if=dir
+if=dir of=new
+if=''
+if= of=new
+of=
+of=nosuch-dir/x
+of=dir
+if=text of=dir
+if=text of=nosuch-dir/x
+if=text of=text
+if=text of=text conv=notrunc
+if=text of=keep seek=1
+if=text if=bytes256
+if=text of=new of=out
+if=text ibs=3 ibs=5
+if=text bs=3 bs=5
+# no options: -- is accepted before the operands, other words that start with - are not operands
+-- if=text
+-- if=text of=new
+if=text --
+-x
+-- -x
+--
+-- --

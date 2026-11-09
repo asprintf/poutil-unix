@@ -1,0 +1,5 @@
+cp "$CORPUS"/* .
+mv '😀 in.txt' in-emoji.txt
+printf '0123456789012345678901234567890123456789' > out
+printf 'KEEP' > keep
+mkdir dir

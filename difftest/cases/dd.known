@@ -1,0 +1,15 @@
+# lcase and ucase map the characters of the locale (the standard). In a UTF-8 locale GNU and macOS map each byte, which
+# changes the bytes of multibyte characters (an emoji becomes other bytes) and of bytes that are no character.
+if=bytes256 conv=lcase
+if=bytes256 conv=ucase
+if=ebcdic conv=ascii,lcase
+if=mixed conv=lcase
+if=mixed conv=lcase conv=swab
+if=mixed conv=lcase,swab
+if=mixed conv=swab,ucase
+if=mixed conv=sync conv=ucase ibs=5
+if=mixed conv=ucase
+if=utf8 conv=lcase
+if=utf8 conv=ucase
+if=utf8 ibs=1 conv=lcase
+if=utf8 ibs=3 conv=ucase
