@@ -277,3 +277,7 @@ path = "tr/tr.rs"
 [[bin]]
 name = "nl"
 path = "nl/nl.rs"
+
+[[bin]]
+name = "iconv"
+path = "iconv/iconv.rs"
