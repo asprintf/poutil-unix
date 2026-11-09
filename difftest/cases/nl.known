@@ -1,0 +1,4 @@
+# the type argument is read by its first character by both references, a full word here (a lone letter is the type)
+-b at text
+# an empty -d argument is ignored by both references; here it is an error
+-d '' text

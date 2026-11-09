@@ -1,0 +1,2 @@
+# the spec writes a line without a number as the bare line; others pad it (the corpus has no unnumbered line that starts with a digit)
+sed -E '/^ *-?[0-9]+/!s/^ *	?//'

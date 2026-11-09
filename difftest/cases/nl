@@ -1,0 +1,127 @@
+# nl: one spec rule per group of lines
+# defaults: body type t, %6d and a tab
+text
+in:text
+-
+- text
+# the file operand is the only one
+text text
+# -b types: a, t, n, pBRE
+-b a text
+# a line of blanks is not empty
+blankline
+-b t blankline
+-b a blankline
+-b a -l 2 blankline
+-b t text
+-b n text
+-b p'^[a-z]*e$' text
+-b p. pat
+-b pab pat
+-b 'p^.*$' pat
+-b 'p[x]' pat
+-b 'p\.' pat
+# header and footer default to n, body to t; -h -f -b set each
+-h a -f a pages
+-h t -f n -b n pages
+-h n -f t -b a pages
+-b a -h a -f a text
+# delimiter lines: exactly the characters, three, two, one times
+pages
+-h a notmarks
+-b a notmarks
+# numbering restarts at each header, -p keeps counting
+-h a -f a -b a pages
+-p -h a -f a -b a pages
+-p -v 5 -i 5 -h a pages
+# -d: two characters, one character (the second stays a colon)
+-d xy -h a pages
+-d '|:' -h a text
+-d '\' -h a pages
+-d '\:' -h a pages
+-d : -h a pages
+# -l: only every Nth adjacent blank line is numbered with -b a
+-b a -l 1 blanks
+-b a -l 2 blanks
+-b a -l 3 blanks
+-b a -l 5 blanks
+-b t -l 2 blanks
+# -n: ln, rn, rz and -w
+-n ln text
+-n rn text
+-n rz text
+-n ln -w 3 text
+-n rz -w 3 text
+-w 1 -v 8 text
+-w 2 -v 8 text
+-w 20 text
+# -s: any string, an empty one, one longer than the number
+-b a -s : text
+-b a -s '' text
+-b a -s ' - ' text
+-b a -s '\t' text
+-b a -s ab -n ln -w 2 text
+# -v and -i, negative too
+-v 10 -i 10 text
+-v 0 text
+-v -3 text
+-v -3 -n rz -w 4 text
+-v -3 -n ln -w 4 text
+-i 0 text
+-i -2 -v 5 text
+-i 3 -b a blanks
+-v 99999 -i 1 -w 5 text
+# the example of the spec
+-v 10 -i 10 -d \!+ text
+# input: empty file, no final newline, NUL, control characters, invalid bytes
+empty
+-b a empty
+nonl
+-b a nonl
+nulbytes
+-b a nulbytes
+ctl
+-b a ctl
+-b a invalid
+# characters of more than one byte: lines, delimiters, patterns
+utf8
+-b a utf8
+-d 'é€' -h a utf8
+-d é -h a utf8
+-d '😀:' -h a emoji
+-d '😀' -h a emoji
+-b p'é' utf8
+-b p'^.$' utf8
+-b p'^.$' emoji
+-b a emoji
+# several options together
+-b a -h a -f a -n rz -w 4 -s '|' -v 7 -i 7 pages
+-ba -ha -fa -nrz -w4 -s'|' -v7 -i7 pages
+# errors: no such file, a directory, bad arguments, unknown option
+nonexistent
+.
+-b x text
+-b '' text
+-b at text
+-b 'p[' text
+-b p text
+-h x text
+-f x text
+-n xx text
+-n '' text
+-n lnn text
+-w 0 text
+-w -1 text
+-w x text
+-w '' text
+-l x text
+-l -1 text
+-i x text
+-i '' text
+-v x text
+-v '' text
+-d '' text
+-d abc text
+-x text
+-b
+-p -p text

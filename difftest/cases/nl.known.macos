@@ -1,0 +1,25 @@
+# macOS writes nothing for a delimiter line (and no newline at the end if the input has none); ours and GNU write an empty line
+-h t -f n -b n pages
+-h a notmarks
+-h a -f a -b a pages
+-p -v 5 -i 5 -h a pages
+-d '\:' -h a pages
+-d é -h a utf8
+-d '😀' -h a emoji
+-ba -ha -fa -nrz -w4 -s'|' -v7 -i7 pages
+-h a -f a pages
+-h n -f t -b a pages
+pages
+-b a notmarks
+-p -h a -f a -b a pages
+-d '\' -h a pages
+-d 'é€' -h a utf8
+-d '😀:' -h a emoji
+-b a -h a -f a -n rz -w 4 -s '|' -v 7 -i 7 pages
+# macOS leaves a missing final newline missing; ours ends the last line
+nonl
+-b a nonl
+# macOS reads an empty or negative number as 0 for -v -i -l; ours refuses it
+-l -1 text
+-i '' text
+-v '' text
