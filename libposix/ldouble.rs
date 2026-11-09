@@ -33,11 +33,18 @@ pub const SIZE: usize = if cfg!(target_arch = "x86") {
     16
 };
 
-/* LDBL_DIG + 2: the digits that od writes */
+/* LDBL_DECIMAL_DIG: the most digits that od writes (it writes as few as read back as the same number) */
 pub const DIGITS: usize = match LAYOUT {
-    Layout::X87 => 20,
-    Layout::Quad => 35,
+    Layout::X87 => 21,
+    Layout::Quad => 36,
     Layout::Double => 17,
+};
+
+/* LDBL_DIG: the digits every number of this many survives a round trip through decimal */
+const DIG: usize = match LAYOUT {
+    Layout::X87 => 18,
+    Layout::Quad => 33,
+    Layout::Double => 15,
 };
 
 /* The widest text of format(): a sign, the digits, a point, "e+" and the exponent. */
@@ -50,8 +57,8 @@ enum Num {
     Zero(bool),
     Inf(bool),
     Nan(bool),
-    /* value = mant * 2^exp */
-    Finite(bool, u128, i32),
+    /* value = mant * 2^exp; whether the number below is closer (a power of two above the least exponent) */
+    Finite(bool, u128, i32, bool),
 }
 
 fn decode(layout: Layout, b: &[u8]) -> Num {
@@ -72,8 +79,9 @@ fn decode(layout: Layout, b: &[u8]) -> Num {
             if mant == 0 {
                 return Num::Zero(neg);
             }
+            let edge = mant == 1 << 63 && e > 1;
             let e = if e == 0 { 1 } else { e };
-            Num::Finite(neg, mant as u128, e - 16383 - 63)
+            Num::Finite(neg, mant as u128, e - 16383 - 63, edge)
         }
         Layout::Quad => {
             let mut m = [0u8; 16];
@@ -86,9 +94,9 @@ fn decode(layout: Layout, b: &[u8]) -> Num {
                 return if frac == 0 { Num::Inf(neg) } else { Num::Nan(neg) };
             }
             if e == 0 {
-                return if frac == 0 { Num::Zero(neg) } else { Num::Finite(neg, frac, 1 - 16383 - 112) };
+                return if frac == 0 { Num::Zero(neg) } else { Num::Finite(neg, frac, 1 - 16383 - 112, false) };
             }
-            Num::Finite(neg, frac | (1u128 << 112), e - 16383 - 112)
+            Num::Finite(neg, frac | (1u128 << 112), e - 16383 - 112, frac == 0 && e > 1)
         }
         Layout::Double => {
             let mut m = [0u8; 8];
@@ -101,9 +109,9 @@ fn decode(layout: Layout, b: &[u8]) -> Num {
                 return if frac == 0 { Num::Inf(neg) } else { Num::Nan(neg) };
             }
             if e == 0 {
-                return if frac == 0 { Num::Zero(neg) } else { Num::Finite(neg, frac as u128, 1 - 1023 - 52) };
+                return if frac == 0 { Num::Zero(neg) } else { Num::Finite(neg, frac as u128, 1 - 1023 - 52, false) };
             }
-            Num::Finite(neg, (frac | (1u64 << 52)) as u128, e - 1023 - 52)
+            Num::Finite(neg, (frac | (1u64 << 52)) as u128, e - 1023 - 52, frac == 0 && e > 1)
         }
     }
 }
@@ -254,13 +262,80 @@ fn text(layout: Layout, b: &[u8], p: usize) -> String {
         Num::Zero(neg) => (if neg { "-0" } else { "0" }).to_string(),
         Num::Inf(neg) => (if neg { "-inf" } else { "inf" }).to_string(),
         Num::Nan(neg) => (if neg { "-nan" } else { "nan" }).to_string(),
-        Num::Finite(neg, mant, exp2) => general(neg, mant, exp2, p),
+        Num::Finite(neg, mant, exp2, _) => general(neg, mant, exp2, p),
     }
 }
 
-/* The long double in b (SIZE bytes) as "%.*Lg" with DIGITS digits. */
+/* Compare two exact decimals, each the digits and the number of them after the point. */
+fn cmp_exact(a: &(Vec<u8>, i32), b: &(Vec<u8>, i32)) -> std::cmp::Ordering {
+    let (mut x, mut y) = (a.0.clone(), b.0.clone());
+    if a.1 < b.1 {
+        x.resize(x.len() + (b.1 - a.1) as usize, b'0');
+    } else {
+        y.resize(y.len() + (a.1 - b.1) as usize, b'0');
+    }
+    let strip = |v: &mut Vec<u8>| {
+        let z = v.iter().take_while(|&&c| c == b'0').count();
+        v.drain(..z);
+    };
+    strip(&mut x);
+    strip(&mut y);
+    x.len().cmp(&y.len()).then_with(|| x.cmp(&y))
+}
+
+/* The digits of printf("%.*e") of the exact value, as the exact decimal that they stand for. */
+fn rounded(mant: u128, exp2: i32, p: usize) -> (Vec<u8>, i32) {
+    let text = general(false, mant, exp2, p);
+    /* back to digits and scale: "d.ddde+XX", "ddd.dd" or "0.000ddd" */
+    let (body, e10) = match text.split_once('e') {
+        Some((b, e)) => (b.to_string(), e.parse::<i32>().unwrap_or(0)),
+        None => (text, 0),
+    };
+    let (int, frac) = body.split_once('.').unwrap_or((&body, ""));
+    let mut digits = format!("{int}{frac}").into_bytes();
+    let mut scale = frac.len() as i32 - e10;
+    if scale < 0 {
+        digits.resize(digits.len() + (-scale) as usize, b'0');
+        scale = 0;
+    }
+    (digits, scale)
+}
+
+/* The fewest digits, from start up to max, with which the number reads back as itself. */
+fn shortest(neg: bool, mant: u128, exp2: i32, edge: bool, start: usize, max: usize) -> String {
+    /* the numbers half way to the neighbours: (2m+1) 2^(e-1) above, (2m-1) 2^(e-1) or (4m-1) 2^(e-2) below */
+    let hi = exact(2 * mant + 1, exp2 - 1);
+    let lo = if edge { exact(4 * mant - 1, exp2 - 2) } else { exact(2 * mant - 1, exp2 - 1) };
+    /* a number half way is rounded to the even one */
+    let even = mant & 1 == 0;
+    for p in start..max {
+        let d = rounded(mant, exp2, p);
+        let above = cmp_exact(&d, &hi);
+        let below = cmp_exact(&d, &lo);
+        use std::cmp::Ordering::*;
+        let inside_hi = above == Less || (above == Equal && even);
+        let inside_lo = below == Greater || (below == Equal && even);
+        if inside_hi && inside_lo {
+            return general(neg, mant, exp2, p);
+        }
+    }
+    general(neg, mant, exp2, max)
+}
+
+/* The long double in b (SIZE bytes) as "%.*Lg" with the fewest digits (up to DIGITS) that read back as the same number. */
 pub fn format(b: &[u8]) -> String {
-    text(LAYOUT, b, DIGITS)
+    match decode(LAYOUT, b) {
+        /* as the C library's ftoastr does: from LDBL_DIG digits up, for a denormal number from one */
+        Num::Finite(neg, mant, exp2, edge) => {
+            let hidden = match LAYOUT {
+                Layout::X87 => 1u128 << 63,
+                Layout::Quad => 1u128 << 112,
+                Layout::Double => 1u128 << 52,
+            };
+            shortest(neg, mant, exp2, edge, if mant < hidden { 1 } else { DIG }, DIGITS)
+        }
+        _ => text(LAYOUT, b, DIGITS),
+    }
 }
 
 #[cfg(test)]
@@ -336,6 +411,59 @@ mod tests {
         let mut d = vec![0u8; 16];
         d[..8].copy_from_slice(&1u64.to_le_bytes());
         assert_eq!(text(Layout::X87, &d, 5), "3.6452e-4951");
+    }
+
+    /* the x87 bytes of mantissa and exponent field */
+    fn raw(mant: u64, se: u16) -> Vec<u8> {
+        let mut b = vec![0u8; 16];
+        b[..8].copy_from_slice(&mant.to_le_bytes());
+        b[8..10].copy_from_slice(&se.to_le_bytes());
+        b
+    }
+
+    fn short(b: &[u8]) -> String {
+        match decode(Layout::X87, b) {
+            Num::Finite(neg, mant, exp2, edge) => shortest(neg, mant, exp2, edge, if mant < 1 << 63 { 1 } else { 18 }, 21),
+            _ => text(Layout::X87, b, 21),
+        }
+    }
+
+    #[test]
+    fn the_fewest_digits_that_read_back() {
+        assert_eq!(short(&raw(1 << 63, 0x3fff)), "1");
+        assert_eq!(short(&raw(1 << 63, 0xbfff)), "-1");
+        /* the x87 number nearest to 0.1 */
+        assert_eq!(short(&raw(0xcccc_cccc_cccc_cccd, 0x3ffb)), "0.1");
+        /* the least denormal, 2^-16445: one digit tells it from its neighbours */
+        assert_eq!(short(&raw(1, 0)), "4e-4951");
+        /* the least normal number needs 20 digits, the largest 19 */
+        assert_eq!(short(&raw(1 << 63, 1)), "3.3621031431120935063e-4932");
+        assert_eq!(short(&raw(u64::MAX, 0x7ffe)), "1.189731495357231765e+4932");
+        /* 1 + 2^-63 */
+        assert_eq!(short(&raw((1 << 63) | 1, 0x3fff)), "1.0000000000000000001");
+        /* 5 and 10 */
+        assert_eq!(short(&raw(0xa000_0000_0000_0000, 0x4001)), "5");
+        assert_eq!(short(&raw(0xa000_0000_0000_0000, 0x4002)), "10");
+    }
+
+    #[test]
+    fn the_double_layout_agrees_with_rust() {
+        for &d in &[0.1f64, 1.0 / 3.0, 5e-324, 2.2250738585072014e-308, 1.7976931348623157e308, 123456789.0, 4.35, 1e22, 0.3, 2.5e-5, 9007199254740993.0] {
+            let (neg, m, e, edge) = match decode(Layout::Double, &d.to_ne_bytes()) {
+                Num::Finite(n, m, e, g) => (n, m, e, g),
+                _ => panic!("finite"),
+            };
+            let got = shortest(neg, m, e, edge, 1, 17);
+            let want = c_format_shortest(d);
+            assert_eq!(got, want, "{d:e}");
+        }
+    }
+
+    /* the digits Rust finds for the double, written as %g would */
+    fn c_format_shortest(d: f64) -> String {
+        let r = format!("{:e}", d);
+        let digits = r.split('e').next().unwrap().replace(['.', '-'], "");
+        c_format(d, digits.len())
     }
 
     #[test]
