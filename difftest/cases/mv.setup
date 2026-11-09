@@ -1,0 +1,15 @@
+echo F > f; echo G > g; echo H > h
+mkdir d e full
+echo X > d/x; mkdir d/sub; echo Y > d/sub/y
+echo K > full/k
+ln f hl
+ln -s f sl; ln -s d dl; ln -s nowhere dang
+echo R > ro; chmod 444 ro
+mkdir e2 e3; mkdir e2/f; echo D > e3/d
+mkdir -p tree/s; echo T > tree/a; echo U > tree/s/b; ln -s a tree/la; ln -s nowhere tree/dl
+touch -t 200101020304 f tree/a
+echo D > ./-dash
+echo U > 'ü ñ 😀.txt'; mkdir 'dir 😀'; echo I > 'dir 😀/in 🇩🇪'
+ln -s 'ü ñ 😀.txt' 'l😀'
+mkdir nowrite; echo W > nowrite/w; chmod 555 nowrite
+mkdir noexec; chmod 000 noexec

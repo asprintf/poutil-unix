@@ -1,0 +1,3 @@
+. "$DIFFTEST_LIB/stat.sh"
+chmod -R u+rwx nowrite 2>/dev/null
+st_tree cp nodot

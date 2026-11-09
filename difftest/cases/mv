@@ -1,0 +1,124 @@
+# step 3, first form: the file gets the new name; an existing destination is replaced
+f new
+f g
+sl new
+sl g
+dl new
+dang new
+'ü ñ 😀.txt' 'new 😀'
+'l😀' 'new 😀'
+# a directory moves with its contents; to a name that does not exist
+d new
+tree new
+'dir 😀' 'new 😀'
+# second form: the last operand is an existing directory, or a link to one: each source goes in under its own name
+f g d
+f g dl
+f d
+d e
+sl d
+dl e
+'ü ñ 😀.txt' 'dir 😀'
+f g h full
+tree/s e
+# trailing slashes: on a source they are dropped for the name, on the target of a non-directory they are an error
+f/ d
+d/ new
+d new/
+f new/
+f g new/
+sl new/
+dl new/
+d//  e//
+# the final operand is not a directory and there are three operands: an error, nothing moved
+f g h
+f g nosuch
+f g nosuch/
+# step 2: the same file under one or two names; nothing is removed
+f f
+hl f
+f hl
+sl sl
+d d
+# step 4: a directory over a file or a file over a directory
+f e2
+d e3
+d full
+# source or destination that is not there
+nosuch new
+nosuch d
+f nosuch/new
+f nosuch/
+'' new
+f ''
+nosuch f
+# an error on one source does not stop the next, and the status is not 0
+nosuch f d
+f nosuch g d
+f d/x g d
+# a directory into itself or below itself, and the names . and ..
+d d/sub/new
+d d/new
+d d/sub
+. new
+.. new
+d/. new
+d/.. new
+. d
+d/sub/.. e
+# permissions: a directory that cannot be written, searched
+nowrite/w new
+f nowrite
+f nowrite/new
+noexec/x new
+f noexec
+f noexec/new
+d nowrite
+# -i asks when the destination exists, and not otherwise; the answer is read from standard input
+in:yes -i f g
+in:no -i f g
+in:yesword -i f g
+in:eof -i f g
+in:yes -i f new
+in:no -i f new
+in:yes -i f g h full
+in:no -i f g h full
+in:yes -i d e3
+in:yes -i sl dang
+in:yes -i f d
+in:no -i d e
+in:yes -i hl f
+in:yes -i f f
+# the last of -f and -i decides
+in:no -if f g
+in:yes -if f g
+in:yes -fi f g
+in:no -fi f g
+in:no -f -i f g
+in:no -i -f f g
+in:no -i -i f g
+in:no -ff f g
+# -f: no question when the file cannot be written, and the file is replaced
+-f f ro
+-f f g
+-f ro g
+# without a terminal there is no question for a destination that cannot be written
+f ro
+ro g
+d ro
+# usage
+@
+f
+-i
+-f
+-if
+-z f g
+-iz f g
+-- f new
+-- -dash new
+-- f g d
+f -- new
+f g -i
+-fi -- f new
+-- -f new
+./-dash new

@@ -1,0 +1,11 @@
+# The same file under one or two names (step 2): the standard lets mv say nothing (macOS) or report it and
+# exit non-zero (ours, GNU). Checked: macOS leaves both names and exits 0.
+f f
+hl f
+f hl
+sl sl
+in:yes -i f f
+in:yes -i hl f
+# A dangling link as destination exists as a directory entry, so ours asks before replacing it (as GNU);
+# macOS follows the link, finds nothing and does not ask.
+in:yes -i sl dang
