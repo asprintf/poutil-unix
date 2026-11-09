@@ -251,5 +251,9 @@ name = "chown"
 path = "chown/chown.rs"
 
 [[bin]]
+name = "chgrp"
+path = "chgrp/chgrp.rs"
+
+[[bin]]
 name = "xargs"
 path = "xargs/xargs.rs"
