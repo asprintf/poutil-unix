@@ -155,12 +155,16 @@ fn parse_conv(list: &[u8], c: &mut Conv) -> Result<(), String> {
     Ok(())
 }
 
+/* The most a block (ibs, obs, bs or cbs) may be: dd holds a block, and a record of cbs, in memory. */
+const MAX_BLOCK: u64 = 1 << 30;
+
 fn parse_operands(ops: &[Vec<u8>]) -> Result<Opts, String> {
     let mut o = Opts { input: None, output: None, ibs: 512, obs: 512, bs: false, cbs: 0, skip: 0, seek: 0, count: None, conv: Conv::default() };
     let mut bs = None;
     let size = |name: &str, v: &[u8], zero: bool| -> Result<usize, String> {
         match parse_size(v) {
             Some(0) if !zero => Err(format!("{name}: a size is more than zero")),
+            Some(n) if n > MAX_BLOCK => Err(format!("{name}: a size over {MAX_BLOCK} bytes is not supported")),
             Some(n) => usize::try_from(n).map_err(|_| format!("{name}: too big")),
             None => Err(format!("{name}: invalid number '{}'", String::from_utf8_lossy(v))),
         }
@@ -733,7 +737,12 @@ mod tests {
     /* dd on files: the output, the status and the report */
     fn dd(t: &Tmp, v: &[&str], input: &[u8]) -> (Vec<u8>, i32, Vec<String>) {
         t.write("in", input);
-        let mut args = vec![format!("if={}", t.p("in")), format!("of={}", t.p("out"))];
+        dd_from(t, &t.p("in"), v)
+    }
+
+    /* the same, the input being the file at path */
+    fn dd_from(t: &Tmp, path: &str, v: &[&str]) -> (Vec<u8>, i32, Vec<String>) {
+        let mut args = vec![format!("if={path}"), format!("of={}", t.p("out"))];
         args.extend(v.iter().map(|s| s.to_string()));
         let a: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
         let o = opts(&a);
@@ -752,6 +761,46 @@ mod tests {
         let mut log = d.log.take().unwrap();
         log.push(d.stats.text());
         (t.read("out"), st, log)
+    }
+
+    #[test]
+    fn a_block_is_at_most_a_gibibyte() {
+        for ok in ["bs=1073741824", "ibs=1073741824", "obs=1k", "cbs=1073741824", "cbs=0"] {
+            assert!(parse_operands(&ops(&[ok])).is_ok(), "{ok}");
+        }
+        for bad in ["bs=1073741825", "ibs=2097152x1024", "obs=4000000000000", "cbs=1073741825", "bs=1024x1024x1024x1024"] {
+            let e = parse_operands(&ops(&[bad])).unwrap_err();
+            assert!(e.contains("not supported"), "{bad}: {e}");
+        }
+    }
+
+    /* a directory cannot be read: every read of it is an error */
+    #[test]
+    fn a_read_error_ends_the_copy() {
+        let t = Tmp::new();
+        let (out, st, log) = dd_from(&t, &t.p(""), &["ibs=10"]);
+        assert_eq!((out.len(), st), (0, 1));
+        assert_eq!(log.iter().filter(|l| l.starts_with("reading ")).count(), 1);
+        assert_eq!(log.last().unwrap(), "0+0 records in\n0+0 records out\n");
+    }
+
+    #[test]
+    fn noerror_goes_on_and_gives_up_after_100_in_a_row() {
+        let t = Tmp::new();
+        let (out, st, log) = dd_from(&t, &t.p(""), &["ibs=10", "conv=noerror"]);
+        assert_eq!((out.len(), st), (0, 1));
+        assert_eq!(log.iter().filter(|l| l.starts_with("reading ")).count(), 100);
+        /* with sync each failed block is a block of nulls; the 100th ends it */
+        let (out, st, _) = dd_from(&t, &t.p(""), &["ibs=10", "conv=noerror,sync"]);
+        assert_eq!((out.len(), st), (990, 1));
+        assert!(out.iter().all(|&b| b == 0));
+        /* count counts the failed blocks too */
+        let (out, st, log) = dd_from(&t, &t.p(""), &["ibs=10", "conv=noerror,sync", "count=3"]);
+        assert_eq!((out.len(), st), (30, 1));
+        assert_eq!(log.iter().filter(|l| l.starts_with("reading ")).count(), 3);
+        /* blanks, not nulls, with block: the two blocks are one line, cut to the record */
+        let (out, _, _) = dd_from(&t, &t.p(""), &["ibs=10", "cbs=10", "conv=noerror,sync,block", "count=2"]);
+        assert_eq!(out, vec![b' '; 10]);
     }
 
     #[test]
