@@ -273,3 +273,7 @@ path = "xargs/xargs.rs"
 [[bin]]
 name = "tr"
 path = "tr/tr.rs"
+
+[[bin]]
+name = "nl"
+path = "nl/nl.rs"
