@@ -210,3 +210,8 @@ if=text --
 -- -x
 --
 -- --
+# a read error ends the copy with a diagnostic (noerror is in the unit tests: macOS dd never ends on a directory with it)
+if=dir of=out
+# a block size too big to hold in memory
+if=/dev/null bs=4000000000000
+if=/dev/null ibs=2147483648
