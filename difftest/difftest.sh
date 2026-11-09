@@ -7,7 +7,7 @@
 # For each case line in difftest/cases/UTIL (shell words, # comments allowed) the
 # utility is run in a fresh directory, prepared by difftest/cases/UTIL.setup if
 # present, once for ours and once for each reference: the native one in
-# /usr/bin (or /bin) and the GNU one (g-prefixed from MacPorts; gnucut where gcut would clash) with
+# /usr/bin (or /bin) and the GNU one (g-prefixed from MacPorts; gnucut where gcut would clash; iconv is GNU libiconv's) with
 # POSIXLY_CORRECT=1. stdout, whether stderr is empty, the exit status
 # (zero/non-zero; exact for tty) and the resulting directory listing are
 # compared, in the C locale and in a UTF-8 locale.
@@ -176,7 +176,9 @@ for util in "$@"; do
 	cases=$here/cases/$util
 	[ -f "$cases" ] || { echo "$util: no case file" >&2; missing=$((missing + 1)); continue; }
 	refs=
-	for r in /usr/bin/$util /bin/$util /usr/sbin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util; do
+	# MacPorts installs GNU libiconv's iconv under its own name
+	gnu_iconv=; [ "$util" != iconv ] || gnu_iconv=/opt/local/bin/iconv
+	for r in /usr/bin/$util /bin/$util /usr/sbin/$util /opt/local/bin/g$util /opt/local/bin/gnu$util $gnu_iconv; do
 		[ -x "$r" ] || continue
 		# /bin and /usr/bin often hold the same file: one reference, not two
 		dup=0
